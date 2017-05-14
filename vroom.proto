@@ -1,0 +1,57 @@
+message Reply {
+    required int32 id = 1;
+    required int32 error_code = 2;
+}
+
+message CreateScene {
+    required string name = 1;
+}
+
+message DestroyScene {
+    required int32 id = 1;
+}
+
+message CreateDataObject {
+    enum Type {
+        UV = 0;
+        COLOR = 1;
+        TEXTURE = 2;
+        VERTEX = 3;
+        NORMAL = 4;
+        INDEX = 5;
+    }
+    required int32 scene_id = 1;
+    required Type type = 2;
+    required int32 shm_fd = 3;
+    required int32 offset = 4;
+    required int32 size_of = 5;
+    required int32 stride = 6;
+}
+
+message DestroyDataObject {
+    required int32 scene_id = 1;
+    required int32 id = 2;
+}
+
+message CreateGeometryObject {
+    required int32 scene_id = 1;
+    required int32 vertex_id = 2;
+    required int32 normal_id = 3;
+    required int32 index_id = 4;
+}
+
+message CreateColorMesh {
+    required int32 scene_id = 1;
+    required int32 geometry_id = 2;
+    required float r = 3;
+    required float g = 4;
+    required float b = 5;
+    required float a = 6;
+}
+
+message CreateTextureMesh {
+    required int32 scene_id = 1;
+    required int32 geometry_id = 2;
+    required int32 uv_id = 3;
+    required int32 texture_id = 4;
+}
