@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <string.h>
 #include "vrms_client.h"
 #include "vrms_geometry.h"
@@ -429,7 +430,8 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     //uint32_t nr_color_floats;
     size_t size_of_verts, size_of_indicies;
 
-    int32_t shm_id;
+    int32_t shm_fd;
+    void* address = NULL;
     char* buffer = NULL;
 
     float* verts;
@@ -457,15 +459,23 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     size_of_verts = sizeof(float) * nr_vert_floats;
     size_of_indicies = sizeof(uint32_t) * nr_indicies;
 
-    shm_id = vrms_create_memory(size_of_verts + size_of_indicies, buffer);
+    shm_fd = vrms_create_memory((size_of_verts * 2) + size_of_indicies, &address);
+    if (-1 == shm_fd) {
+        return 0;
+    }
+
+    //msync(result, size, MS_SYNC);
+    //munmap(result, size);
+
+    buffer = (char*)address;
 
     memcpy(buffer, verts, size_of_verts);
     memcpy(&buffer[size_of_verts], norms, size_of_verts);
     memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
 
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_id, 0, size_of_verts, 3);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_id, size_of_verts, size_of_verts, 3);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_id, size_of_verts * 2, size_of_indicies, 1);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_fd, 0, size_of_verts, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_fd, size_of_verts, size_of_verts, 3);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_fd, size_of_verts * 2, size_of_indicies, 1);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 

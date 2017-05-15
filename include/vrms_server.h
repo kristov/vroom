@@ -1,6 +1,7 @@
 #include <GL/gl.h>
 #include "vrms.h"
 
+/*
 typedef struct vrms_server {
     array scenes;
 } vrms_server_t;
@@ -84,6 +85,8 @@ typedef struct vrms_matrix {
     uint32_t id;
     GLfloat* data;
 } vrms_data_matrix_t;
+
+*/
 
 uint32_t vrms_create_scene(char* name);
 uint32_t vrms_create_data_object(uint32_t scene_id, vrms_data_type_t type, uint32_t shm_fd, uint32_t offset, uint32_t size_of, uint32_t stride);

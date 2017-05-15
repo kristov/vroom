@@ -13,33 +13,32 @@
 #include "vrms_client.h"
 
 #define SOCK_PATH "/tmp/libev-echo.sock"
-#define MMAP_PATH "/tmp/libev-echo.mmap"
+#define MMAP_PATH "/vrms_client"
 
 #define MAX_MSG_SIZE 1024
 
-uint32_t vrms_client_send_message(vrms_client_t* client, vrms_type_t type, void* buffer, uint32_t length) {
+uint32_t type_map[] = {
+    CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
+    CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
+    CREATE_DATA_OBJECT__TYPE__TEXTURE,  // VRMS_TEXTURE
+    CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
+    CREATE_DATA_OBJECT__TYPE__NORMAL,   // VRMS_NORMAL
+    CREATE_DATA_OBJECT__TYPE__INDEX     // VRMS_INDEX
+};
+
+uint32_t vrms_client_receive_reply(vrms_client_t* client) {
     int32_t id = 0;
     int count_recv;
     uint8_t in_buf[MAX_MSG_SIZE];
     Reply* re_msg;
 
-    char type_c = (char)type;
-
-    if (send(client->socket, &type_c, 1, 0) == -1) {
-        return 0;
-    }
-
-    if (send(client->socket, buffer, length, 0) == -1) {
-        return 0;
-    }
-
     count_recv = recv(client->socket, in_buf, MAX_MSG_SIZE, 0);
     if (count_recv <= 0) {
         if (0 == count_recv) {
-            printf("orderly disconnect\n");
+            fprintf(stderr, "orderly disconnect\n");
         }
         else {
-            perror("recv");
+            fprintf(stderr, "recv\n");
         }
         return 0;
     }
@@ -64,6 +63,49 @@ uint32_t vrms_client_send_message(vrms_client_t* client, vrms_type_t type, void*
     return id;
 }
 
+uint32_t vrms_client_send_message(vrms_client_t* client, vrms_type_t type, void* buffer, uint32_t length, int32_t fd) {
+    struct msghdr msgh;
+    struct iovec iov;
+    union {
+        struct cmsghdr cmsgh;
+        char control[CMSG_SPACE(sizeof(int))];
+    } control_un;
+
+    char type_c = (char)type;
+
+    if (send(client->socket, &type_c, 1, 0) == -1) {
+        return 0;
+    }
+
+    if (fd == -1) {
+        fprintf(stderr, "Cannot pass an invalid fd equaling -1\n");
+        return 0;
+    }
+
+    iov.iov_base = buffer;
+    iov.iov_len = length;
+
+    msgh.msg_name = NULL;
+    msgh.msg_namelen = 0;
+    msgh.msg_iov = &iov;
+    msgh.msg_iovlen = 1;
+    msgh.msg_control = control_un.control;
+    msgh.msg_controllen = sizeof(control_un.control);
+
+    control_un.cmsgh.cmsg_len = CMSG_LEN(sizeof(int));
+    control_un.cmsgh.cmsg_level = SOL_SOCKET;
+    control_un.cmsgh.cmsg_type = SCM_RIGHTS;
+    *((int *)CMSG_DATA(CMSG_FIRSTHDR(&msgh))) = fd;
+
+    int size = sendmsg(client->socket, &msgh, 0);
+    if (size < 0) {
+        fprintf(stderr, "Error sending fd\n");
+        return 0;
+    }
+
+    return vrms_client_receive_reply(client);
+}
+
 uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     uint32_t id;
     CreateScene msg = CREATE_SCENE__INIT;
@@ -76,7 +118,7 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     buf = malloc(length);
     create_scene__pack(&msg, buf);
 
-    id = vrms_client_send_message(client, VRMS_CREATESCENE, buf, length);
+    id = vrms_client_send_message(client, VRMS_CREATESCENE, buf, length, 0);
   
     free(buf);
     return id;
@@ -88,8 +130,14 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     void* buf;
     uint32_t length;
 
+    uint32_t type_map_index = (uint32_t)type;
+    if (type_map_index < 0 || type_map_index > 5) {
+        return 0;
+    }
+    uint32_t pb_type = type_map[type_map_index];
+
     msg.scene_id = client->scene_id;
-    msg.type = CREATE_DATA_OBJECT__TYPE__VERTEX;
+    msg.type = pb_type;
     msg.shm_fd = shm_fd;
     msg.offset = offset;
     msg.size_of = size_of;
@@ -100,7 +148,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     buf = malloc(length);
     create_data_object__pack(&msg, buf);
 
-    id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length);
+    id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, shm_fd);
   
     free(buf);
     return id;
@@ -122,7 +170,7 @@ uint32_t vrms_client_create_geometry_object(vrms_client_t* client, uint32_t vert
     buf = malloc(length);
     create_geometry_object__pack(&msg, buf);
 
-    id = vrms_client_send_message(client, VRMS_CREATEGEOMETRYOBJECT, buf, length);
+    id = vrms_client_send_message(client, VRMS_CREATEGEOMETRYOBJECT, buf, length, 0);
   
     free(buf);
     return id;
@@ -170,17 +218,22 @@ uint32_t vrms_destroy_scene(vrms_client_t* client) {
     return 0;
 }
 
-int32_t vrms_create_memory(size_t size, char* address) {
+int32_t vrms_create_memory(size_t size, void** address) {
     int32_t shm_fd = -1; 
-    int mmap_flags = MAP_SHARED;
 
-    shm_fd = shm_open(MMAP_PATH, O_CREAT|O_RDWR,S_IRUSR|S_IWUSR);
+    shm_fd = shm_open(MMAP_PATH, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
+    if (-1 == shm_fd) {
+        fprintf(stderr, "unable to create shared memory: %d\n", errno);
+        return -1;
+    }
     ftruncate(shm_fd, size);
 
-    address = mmap(NULL, size, PROT_WRITE, mmap_flags, shm_fd, 0);
-
-    //msync(result, size, MS_SYNC);
-    //munmap(result, size);
+    *address = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    if (MAP_FAILED == *address) {
+        fprintf(stderr, "unable to attach address\n");
+        shm_unlink(MMAP_PATH);
+        return -1;
+    }
 
     return shm_fd;
 }

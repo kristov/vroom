@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include "array-heap.h"
 #include "vroom.pb-c.h"
-#include "vrms.h"
 #include "vrms_server.h"
 
 #define MAX_MSG_SIZE 1024
@@ -56,7 +55,7 @@ uint32_t receive_create_scene(uint8_t* in_buf, int32_t length, vrms_error_t* err
     return id;
 }
 
-uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
     uint32_t id;
     CreateDataObject* cs_msg;
     cs_msg = create_data_object__unpack(NULL, length, in_buf);
@@ -90,7 +89,7 @@ uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_
         break;
     }
 
-    id = vrms_create_data_object(cs_msg->scene_id, vrms_type, cs_msg->shm_fd, cs_msg->offset, cs_msg->size_of, cs_msg->stride);
+    id = vrms_create_data_object(cs_msg->scene_id, vrms_type, shm_fd, cs_msg->offset, cs_msg->size_of, cs_msg->stride);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -168,10 +167,7 @@ uint32_t receive_create_texture_mesh(uint8_t* in_buf, int32_t length, vrms_error
     return id;
 }
 
-static void client_cb(EV_P_ ev_io *w, int revents) {
-    struct sock_ev_client* client = (struct sock_ev_client*) w;
-
-    uint8_t in_buf[MAX_MSG_SIZE];
+void send_reply(int32_t fd, int32_t id, int32_t error) {
     void *out_buf;
     int32_t length;
     Reply re_msg = REPLY__INIT;
@@ -179,6 +175,30 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     re_msg.id = 1;
     length = reply__get_packed_size(&re_msg);
     out_buf = malloc(length);
+
+    re_msg.error_code = (int32_t)error;
+    reply__pack(&re_msg, out_buf);
+    if (send(fd, out_buf, length, 0) < 0) {
+        fprintf(stderr, "error sending reply to client\n");
+    }
+
+    free(out_buf);
+}
+
+static void client_cb(EV_P_ ev_io *w, int revents) {
+    struct msghdr msgh;
+    struct iovec iov;
+    union {
+        struct cmsghdr cmsgh;
+        char control[CMSG_SPACE(sizeof(int))];
+    } control_un;
+    struct cmsghdr *cmsgh;
+
+    struct sock_ev_client* client = (struct sock_ev_client*) w;
+    int32_t id = 0;
+    int32_t shm_fd = 0;
+    vrms_error_t error;
+    uint8_t in_buf[MAX_MSG_SIZE];
 
     int32_t length_r;
     char type_c;
@@ -198,62 +218,76 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         }
         return;
     }
+    vrms_type_t type = (vrms_type_t)type_c;
 
-    length_r = recv(client->fd, in_buf, MAX_MSG_SIZE, 0);
-    if (length_r <= 0) {
-        if (0 == length_r) {
-            printf("orderly disconnect\n");
-            ev_io_stop(EV_A_ &client->io);
-            close(client->fd);
-        }
-        else if (EAGAIN == errno) {
-            printf("should never get in this state with libev\n");
-        }
-        else {
-            perror("recv");
-        }
+    iov.iov_base = in_buf;
+    iov.iov_len = MAX_MSG_SIZE;
+
+    msgh.msg_name = NULL;
+    msgh.msg_namelen = 0;
+    msgh.msg_iov = &iov;
+    msgh.msg_iovlen = 1;
+    msgh.msg_control = control_un.control;
+    msgh.msg_controllen = sizeof(control_un.control);
+
+    length_r = recvmsg(client->fd, &msgh, 0);
+    if (-1 == length_r) {
+        fprintf(stderr, "Error receiving control fd\n");
         return;
     }
 
-    vrms_type_t type = (vrms_type_t)type_c;
-    vrms_error_t error;
+    if (MAX_MSG_SIZE == length_r) {
+        fprintf(stderr, "Expected a placeholder message data of length 1\n");
+        fprintf(stderr, "Received a message of length %d instead\n", length_r);
+        return;
+    }
+
+    cmsgh = CMSG_FIRSTHDR(&msgh);
+    if (!cmsgh) {
+        fprintf(stderr, "Expected one recvmsg() header with a passed memfd fd. Got zero headers!\n");
+        return;
+    }
+
+    if (cmsgh->cmsg_level != SOL_SOCKET) {
+        fprintf(stderr, "invalid cmsg_level %d", cmsgh->cmsg_level);
+    }
+
+    if (cmsgh->cmsg_type != SCM_RIGHTS) {
+        fprintf(stderr, "invalid cmsg_type %d", cmsgh->cmsg_type);
+    }
+
+    shm_fd = *((int *)CMSG_DATA(cmsgh));
 
     switch (type) {
         case VRMS_REPLY:
             error = VRMS_INVALIDREQUEST;
         break;
         case VRMS_CREATESCENE:
-            re_msg.id = receive_create_scene(in_buf, length_r, &error);
+            id = receive_create_scene(in_buf, length_r, &error);
         break;
         case VRMS_DESTROYSCENE:
         break;
         case VRMS_CREATEDATAOBJECT:
-            re_msg.id = receive_create_data_object(in_buf, length_r, &error);
+            id = receive_create_data_object(in_buf, length_r, &error, shm_fd);
         break;
         case VRMS_DESTROYDATAOBJECT:
         break;
         case VRMS_CREATEGEOMETRYOBJECT:
-            re_msg.id = receive_create_geometry_object(in_buf, length_r, &error);
+            id = receive_create_geometry_object(in_buf, length_r, &error);
         break;
         case VRMS_CREATECOLORMESH:
-            re_msg.id = receive_create_color_mesh(in_buf, length_r, &error);
+            id = receive_create_color_mesh(in_buf, length_r, &error);
         break;
         case VRMS_CREATETEXTUREMESH:
-            re_msg.id = receive_create_texture_mesh(in_buf, length_r, &error);
+            id = receive_create_texture_mesh(in_buf, length_r, &error);
         break;
         default:
-            re_msg.id = 0;
+            id = 0;
             error = VRMS_INVALIDREQUEST;
         break;
     }
 
-    re_msg.error_code = (int32_t)error;
-    reply__pack(&re_msg, out_buf);
-    if (send(client->fd, out_buf, length, 0) < 0) {
-        perror("send");
-    }
-
-    free(out_buf);
+    send_reply(client->fd, id, error);
 }
 
 inline static struct sock_ev_client* client_new(int fd) {

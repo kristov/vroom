@@ -21,7 +21,7 @@ int main(void) {
     }
 
     cube_id = vrms_geometry_cube(client, 10, 10, 10, 0.5, 0.5, 0.5, 1.0);
-    if (cube_id > 0) {
+    if (cube_id == 0) {
         fprintf(stderr, "Unable to create cube\n");
         vrms_destroy_scene(client);
         exit(1);
