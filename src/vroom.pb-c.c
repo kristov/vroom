@@ -514,7 +514,7 @@ const ProtobufCEnumDescriptor create_data_object__type__descriptor =
   create_data_object__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
+static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
 {
   {
     "scene_id",
@@ -553,8 +553,20 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "offset",
+    "dtype",
     4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateDataObject, dtype),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "offset",
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -565,12 +577,12 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "size_of",
-    5,
+    "size",
+    6,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateDataObject, size_of),
+    offsetof(CreateDataObject, size),
     NULL,
     NULL,
     0,             /* flags */
@@ -578,7 +590,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
   {
     "stride",
-    6,
+    7,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -590,17 +602,18 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
 };
 static const unsigned create_data_object__field_indices_by_name[] = {
-  3,   /* field[3] = offset */
+  3,   /* field[3] = dtype */
+  4,   /* field[4] = offset */
   0,   /* field[0] = scene_id */
   2,   /* field[2] = shm_fd */
-  4,   /* field[4] = size_of */
-  5,   /* field[5] = stride */
+  5,   /* field[5] = size */
+  6,   /* field[6] = stride */
   1,   /* field[1] = type */
 };
 static const ProtobufCIntRange create_data_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 6 }
+  { 0, 7 }
 };
 const ProtobufCMessageDescriptor create_data_object__descriptor =
 {
@@ -610,7 +623,7 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   "CreateDataObject",
   "",
   sizeof(CreateDataObject),
-  6,
+  7,
   create_data_object__field_descriptors,
   create_data_object__field_indices_by_name,
   1,  create_data_object__number_ranges,

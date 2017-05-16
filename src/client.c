@@ -14,7 +14,7 @@ int main(void) {
     }
 
     scene_id = vrms_create_scene(client, "Test scene");
-    if (scene_id > 0) {
+    if (scene_id == 0) {
         fprintf(stderr, "Unable to create scene\n");
         vrms_destroy_scene(client);
         exit(1);

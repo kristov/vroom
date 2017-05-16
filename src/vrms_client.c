@@ -1,20 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/un.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <syscall.h>
+#include <sys/un.h>
+#include <linux/memfd.h>
+#include <unistd.h>
+#include "memfd.h"
 #include "vroom.pb-c.h"
 #include "vrms_client.h"
 
 #define SOCK_PATH "/tmp/libev-echo.sock"
-#define MMAP_PATH "/vrms_client"
-
 #define MAX_MSG_SIZE 1024
 
 uint32_t type_map[] = {
@@ -45,12 +47,12 @@ uint32_t vrms_client_receive_reply(vrms_client_t* client) {
 
     re_msg = reply__unpack(NULL, count_recv, in_buf);   
     if (re_msg == NULL) {
-        printf("error unpacking incoming message\n");
+        fprintf(stderr, "error unpacking incoming message\n");
         return 0;
     }
 
     if (re_msg->error_code > 0) {
-        printf("error: %d\n", re_msg->error_code);
+        fprintf(stderr, "error: %d\n", re_msg->error_code);
     }
     else {
         if (re_msg->id > 0) {
@@ -124,7 +126,7 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     return id;
 }
 
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t shm_fd, uint32_t offset, uint32_t size_of, uint32_t stride) {
+uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t shm_fd, vrms_dtype_t dtype, uint32_t offset, uint32_t size, uint32_t stride) {
     uint32_t id;
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
     void* buf;
@@ -139,8 +141,9 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     msg.scene_id = client->scene_id;
     msg.type = pb_type;
     msg.shm_fd = shm_fd;
+    msg.dtype = dtype;
     msg.offset = offset;
-    msg.size_of = size_of;
+    msg.size = size;
     msg.stride = stride;
 
     length = create_data_object__get_packed_size(&msg);
@@ -206,10 +209,10 @@ uint32_t vrms_create_scene(vrms_client_t* client, char* name) {
     uint32_t scene_id;
     scene_id = vrms_client_create_scene(client, name);
     if (0 == scene_id) {
-        return 1;
+        return 0;
     }
-
-    return 0;
+    client->scene_id = scene_id;
+    return scene_id;
 }
 
 uint32_t vrms_destroy_scene(vrms_client_t* client) {
@@ -219,27 +222,38 @@ uint32_t vrms_destroy_scene(vrms_client_t* client) {
 }
 
 int32_t vrms_create_memory(size_t size, void** address) {
-    int32_t shm_fd = -1; 
+    int32_t fd = -1;
+    int32_t ret;
 
-    shm_fd = shm_open(MMAP_PATH, O_CREAT|O_RDWR, S_IRUSR|S_IWUSR);
-    if (-1 == shm_fd) {
+    fd = memfd_create("VROOM memfd", MFD_ALLOW_SEALING);
+    if (-1 == fd) {
         fprintf(stderr, "unable to create shared memory: %d\n", errno);
         return -1;
     }
-    ftruncate(shm_fd, size);
 
-    *address = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, shm_fd, 0);
-    if (MAP_FAILED == *address) {
-        fprintf(stderr, "unable to attach address\n");
-        shm_unlink(MMAP_PATH);
+    ret = ftruncate(fd, size);
+    if (-1 == ret) {
+        fprintf(stderr, "unable to truncate memfd\n");
         return -1;
     }
 
-    return shm_fd;
+    ret = fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK);
+    if (-1 == ret) {
+        fprintf(stderr, "failed to add seals to memfd\n");
+        return -1;
+    }
+
+    *address = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == *address) {
+        fprintf(stderr, "unable to attach address\n");
+        return -1;
+    }
+
+    return fd;
 }
 
-int32_t destroy_shared_memory(int32_t shm_fd) {
-    shm_unlink(MMAP_PATH);
+int32_t destroy_shared_memory(int32_t fd) {
+    close(fd);
     return 0;
 }
 

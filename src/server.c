@@ -21,6 +21,7 @@ struct sock_ev_serv {
     struct sockaddr_un socket;
     int socket_len;
     array clients;
+    vrms_server_t* vrms_server;
 };
 
 struct sock_ev_client {
@@ -33,7 +34,7 @@ struct sock_ev_client {
 int setnonblock(int fd);
 static void not_blocked(EV_P_ ev_periodic *w, int revents);
 
-uint32_t receive_create_scene(uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     CreateScene* cs_msg;
     cs_msg = create_scene__unpack(NULL, length, in_buf);
@@ -43,7 +44,7 @@ uint32_t receive_create_scene(uint8_t* in_buf, int32_t length, vrms_error_t* err
         return 0;
     }
 
-    id = vrms_create_scene(cs_msg->name);
+    id = vrms_create_scene(vrms_server, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -55,7 +56,7 @@ uint32_t receive_create_scene(uint8_t* in_buf, int32_t length, vrms_error_t* err
     return id;
 }
 
-uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
     uint32_t id;
     CreateDataObject* cs_msg;
     cs_msg = create_data_object__unpack(NULL, length, in_buf);
@@ -89,7 +90,9 @@ uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_
         break;
     }
 
-    id = vrms_create_data_object(cs_msg->scene_id, vrms_type, shm_fd, cs_msg->offset, cs_msg->size_of, cs_msg->stride);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+
+    id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->dtype, cs_msg->offset, cs_msg->size, cs_msg->stride);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -101,7 +104,7 @@ uint32_t receive_create_data_object(uint8_t* in_buf, int32_t length, vrms_error_
     return id;
 }
 
-uint32_t receive_create_geometry_object(uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     CreateGeometryObject* cs_msg;
     cs_msg = create_geometry_object__unpack(NULL, length, in_buf);
@@ -111,7 +114,9 @@ uint32_t receive_create_geometry_object(uint8_t* in_buf, int32_t length, vrms_er
         return 0;
     }
 
-    id = vrms_create_geometry_object(cs_msg->scene_id, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+
+    id = vrms_create_geometry_object(vrms_scene, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -172,7 +177,7 @@ void send_reply(int32_t fd, int32_t id, int32_t error) {
     int32_t length;
     Reply re_msg = REPLY__INIT;
 
-    re_msg.id = 1;
+    re_msg.id = id;
     length = reply__get_packed_size(&re_msg);
     out_buf = malloc(length);
 
@@ -263,17 +268,17 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             error = VRMS_INVALIDREQUEST;
         break;
         case VRMS_CREATESCENE:
-            id = receive_create_scene(in_buf, length_r, &error);
+            id = receive_create_scene(client->server->vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_DESTROYSCENE:
         break;
         case VRMS_CREATEDATAOBJECT:
-            id = receive_create_data_object(in_buf, length_r, &error, shm_fd);
+            id = receive_create_data_object(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
         break;
         case VRMS_DESTROYDATAOBJECT:
         break;
         case VRMS_CREATEGEOMETRYOBJECT:
-            id = receive_create_geometry_object(in_buf, length_r, &error);
+            id = receive_create_geometry_object(client->server->vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_CREATECOLORMESH:
             id = receive_create_color_mesh(in_buf, length_r, &error);
@@ -384,6 +389,7 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
 }
 
 int main(void) {
+    vrms_server_t* vrms_server;
     int max_queue = 128;
     struct sock_ev_serv server;
     struct ev_periodic every_few_seconds;
@@ -392,6 +398,13 @@ int main(void) {
 
     // Create unix socket in non-blocking fashion
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
+
+    vrms_server = vrms_server_create();
+    if (NULL == vrms_server) {
+        fprintf(stderr, "error creating server\n");
+        return 1;
+    }
+    server.vrms_server = vrms_server;
 
     // To be sure that we aren't actually blocking
     ev_periodic_init(&every_few_seconds, not_blocked, 0, 5, 0);

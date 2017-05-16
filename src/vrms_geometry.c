@@ -473,9 +473,9 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     memcpy(&buffer[size_of_verts], norms, size_of_verts);
     memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
 
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_fd, 0, size_of_verts, 3);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_fd, size_of_verts, size_of_verts, 3);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_fd, size_of_verts * 2, size_of_indicies, 1);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_fd, VRMS_FLOAT, 0, size_of_verts, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_fd, VRMS_FLOAT, size_of_verts, size_of_verts, 3);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_fd, VRMS_INT, size_of_verts * 2, size_of_indicies, 1);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 

@@ -76,13 +76,14 @@ struct  _CreateDataObject
   int32_t scene_id;
   CreateDataObject__Type type;
   int32_t shm_fd;
+  int32_t dtype;
   int32_t offset;
-  int32_t size_of;
+  int32_t size;
   int32_t stride;
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  _DestroyDataObject
