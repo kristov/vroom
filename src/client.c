@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "vrms_client.h"
 #include "vrms_geometry.h"
 
@@ -26,6 +27,8 @@ int main(void) {
         vrms_destroy_scene(client);
         exit(1);
     }
+
+    sleep(10);
 
     vrms_destroy_scene(client);
     return 0;

@@ -1,19 +1,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <pthread.h>
+#include <GL/glut.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <ev.h>
-#define g_warning printf
 #include <unistd.h>
 #include "array-heap.h"
 #include "vroom.pb-c.h"
 #include "vrms_server.h"
+#include "opengl_stereo.h"
 
 #define MAX_MSG_SIZE 1024
+
+opengl_stereo* ostereo;
+vrms_server_t* vrms_server;
 
 struct sock_ev_serv {
     ev_io io;
@@ -31,15 +36,18 @@ struct sock_ev_client {
     struct sock_ev_serv* server;
 };
 
-int setnonblock(int fd);
-static void not_blocked(EV_P_ ev_periodic *w, int revents);
-
 uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     CreateScene* cs_msg;
+
+    if (NULL == vrms_server) {
+        fprintf(stderr, "error server not initialized\n");
+        return 0;
+    }
+
     cs_msg = create_scene__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
+        fprintf(stderr, "error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
         return 0;
     }
@@ -128,17 +136,19 @@ uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_
     return id;
 }
 
-uint32_t receive_create_color_mesh(uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_mesh_color(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateColorMesh* cs_msg;
-    cs_msg = create_color_mesh__unpack(NULL, length, in_buf);
+    CreateMeshColor* cs_msg;
+    cs_msg = create_mesh_color__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
         printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
         return 0;
     }
 
-    id = vrms_create_color_mesh(cs_msg->scene_id, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+
+    id = vrms_create_mesh_color(vrms_scene, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -150,17 +160,19 @@ uint32_t receive_create_color_mesh(uint8_t* in_buf, int32_t length, vrms_error_t
     return id;
 }
 
-uint32_t receive_create_texture_mesh(uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateTextureMesh* cs_msg;
-    cs_msg = create_texture_mesh__unpack(NULL, length, in_buf);
+    CreateMeshTexture* cs_msg;
+    cs_msg = create_mesh_texture__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
         printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
         return 0;
     }
 
-    id = vrms_create_texture_mesh(cs_msg->scene_id, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+
+    id = vrms_create_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -242,8 +254,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     }
 
     if (MAX_MSG_SIZE == length_r) {
-        fprintf(stderr, "Expected a placeholder message data of length 1\n");
-        fprintf(stderr, "Received a message of length %d instead\n", length_r);
+        fprintf(stderr, "maximum message length exceeded: %d\n", length_r);
         return;
     }
 
@@ -280,11 +291,11 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_CREATEGEOMETRYOBJECT:
             id = receive_create_geometry_object(client->server->vrms_server, in_buf, length_r, &error);
         break;
-        case VRMS_CREATECOLORMESH:
-            id = receive_create_color_mesh(in_buf, length_r, &error);
+        case VRMS_CREATEMESHCOLOR:
+            id = receive_create_mesh_color(client->server->vrms_server, in_buf, length_r, &error);
         break;
-        case VRMS_CREATETEXTUREMESH:
-            id = receive_create_texture_mesh(in_buf, length_r, &error);
+        case VRMS_CREATEMESHTEXTURE:
+            id = receive_create_mesh_texture(client->server->vrms_server, in_buf, length_r, &error);
         break;
         default:
             id = 0;
@@ -293,6 +304,14 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     }
 
     send_reply(client->fd, id, error);
+}
+
+int setnonblock(int fd) {
+    int flags;
+
+    flags = fcntl(fd, F_GETFL);
+    flags |= O_NONBLOCK;
+    return fcntl(fd, F_SETFL, flags);
 }
 
 inline static struct sock_ev_client* client_new(int fd) {
@@ -307,24 +326,19 @@ inline static struct sock_ev_client* client_new(int fd) {
     return client;
 }
 
-// This callback is called when data is readable on the unix socket.
 static void server_cb(EV_P_ ev_io *w, int revents) {
-    puts("unix stream socket has become readable");
+    fprintf(stderr, "unix stream socket has become readable\n");
 
     int client_fd;
     struct sock_ev_client* client;
-
-    // since ev_io is the first member,
-    // watcher `w` has the address of the 
-    // start of the sock_ev_serv struct
     struct sock_ev_serv* server = (struct sock_ev_serv*) w;
 
     while (1) {
         client_fd = accept(server->fd, NULL, NULL);
         if( client_fd == -1 ) {
             if( errno != EAGAIN && errno != EWOULDBLOCK ) {
-                g_warning("accept() failed errno=%i (%s)",  errno, strerror(errno));
-                exit(EXIT_FAILURE);
+                fprintf(stderr, "accept() failed errno=%i (%s)\n",  errno, strerror(errno));
+                exit(1);
             }
             break;
         }
@@ -336,33 +350,22 @@ static void server_cb(EV_P_ ev_io *w, int revents) {
     }
 }
 
-int setnonblock(int fd) {
-    int flags;
-
-    flags = fcntl(fd, F_GETFL);
-    flags |= O_NONBLOCK;
-    return fcntl(fd, F_SETFL, flags);
-}
-
 int unix_socket_init(struct sockaddr_un* socket_un, char* sock_path, int max_queue) {
     int fd;
 
     unlink(sock_path);
 
-    // Setup a unix socket listener.
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (-1 == fd) {
-        perror("echo server socket");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "error creating server socket");
+        exit(1);
     }
 
-    // Set it non-blocking
     if (-1 == setnonblock(fd)) {
-        perror("echo server socket nonblock");
-        exit(EXIT_FAILURE);
+        fprintf(stderr, "error making server socket nonblocking\n");
+        exit(1);
     }
 
-    // Set it as unix socket
     socket_un->sun_family = AF_UNIX;
     strcpy(socket_un->sun_path, sock_path);
 
@@ -377,52 +380,82 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
 
     if (-1 == bind(server->fd, (struct sockaddr*) &server->socket, server->socket_len))
     {
-      perror("echo server bind");
-      exit(EXIT_FAILURE);
+      fprintf(stderr, "error server bind\n");
+      exit(1);
     }
 
     if (-1 == listen(server->fd, max_queue)) {
-      perror("listen");
-      exit(EXIT_FAILURE);
+      fprintf(stderr, "error listen\n");
+      exit(1);
     }
     return 0;
 }
 
-int main(void) {
-    vrms_server_t* vrms_server;
+void* start_socket_thread(void *ptr) {
     int max_queue = 128;
     struct sock_ev_serv server;
-    struct ev_periodic every_few_seconds;
-    // Create our single-loop for this single-thread application
-    EV_P  = ev_default_loop(0);
+    EV_P = ev_default_loop(0);
 
-    // Create unix socket in non-blocking fashion
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
 
     vrms_server = vrms_server_create();
     if (NULL == vrms_server) {
         fprintf(stderr, "error creating server\n");
-        return 1;
+        return NULL;
     }
     server.vrms_server = vrms_server;
 
-    // To be sure that we aren't actually blocking
-    ev_periodic_init(&every_few_seconds, not_blocked, 0, 5, 0);
-    ev_periodic_start(EV_A_ &every_few_seconds);
-
-    // Get notified whenever the socket is ready to read
     ev_io_init(&server.io, server_cb, server.fd, EV_READ);
     ev_io_start(EV_A_ &server.io);
 
-    // Run our loop, ostensibly forever
-    printf("unix-socket-echo starting...\n");
     ev_loop(EV_A_ 0);
 
-    // This point is only ever reached if the loop is manually exited
     close(server.fd);
-    return EXIT_SUCCESS;
+    return NULL;
 }
 
-static void not_blocked(EV_P_ ev_periodic *w, int revents) {
-    //printf("I'm not blocked\n");
+void draw_scene() {
+    vrms_server_draw_scene(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+}
+
+GLvoid reshape(int w, int h) {
+    opengl_stereo_reshape(ostereo, w, h);
+}
+
+GLvoid display(GLvoid) {
+    opengl_stereo_display(ostereo);
+    glutSwapBuffers();
+}
+
+void initWindowingSystem(int *argc, char **argv, int width, int height) {
+    glutInit(argc, argv);
+    glutInitWindowSize(width, height);
+    glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
+    glutCreateWindow("Stereo Test");
+    glutDisplayFunc(display);
+    glutReshapeFunc(reshape);
+}
+
+void init(int *argc, char **argv) {
+    int width = 1024;
+    int height = 768;
+    double physical_width = 1.347;
+
+    initWindowingSystem(argc, argv, width, height);
+    ostereo = opengl_stereo_create(width, height, physical_width);
+    ostereo->draw_scene_function = &draw_scene;
+}
+
+int32_t main(int argc, char **argv) {
+    pthread_t socket_thread;
+    int32_t thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
+    if (thread_ret != 0) {
+        fprintf(stderr, "unable to start socket thread\n");
+        exit(1);
+    }
+    init(&argc, argv);
+    glutMainLoop();
+
+    pthread_join(socket_thread, NULL);
+    return 0;
 }

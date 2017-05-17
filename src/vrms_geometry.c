@@ -479,5 +479,7 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 
-    return geometry_id;
+    uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
+
+    return mesh_id;
 }

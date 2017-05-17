@@ -41,7 +41,7 @@ message CreateGeometryObject {
     required int32 index_id = 4;
 }
 
-message CreateColorMesh {
+message CreateMeshColor {
     required int32 scene_id = 1;
     required int32 geometry_id = 2;
     required float r = 3;
@@ -50,7 +50,7 @@ message CreateColorMesh {
     required float a = 6;
 }
 
-message CreateTextureMesh {
+message CreateMeshTexture {
     required int32 scene_id = 1;
     required int32 geometry_id = 2;
     required int32 uv_id = 3;

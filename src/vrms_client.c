@@ -179,6 +179,30 @@ uint32_t vrms_client_create_geometry_object(vrms_client_t* client, uint32_t vert
     return id;
 }
 
+uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_id, float r, float g, float b, float a) {
+    uint32_t id;
+    CreateMeshColor msg = CREATE_MESH_COLOR__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.geometry_id = geometry_id;
+    msg.r = r;
+    msg.g = g;
+    msg.b = b;
+    msg.a = a;
+
+    length = create_mesh_color__get_packed_size(&msg);
+  
+    buf = malloc(length);
+    create_mesh_color__pack(&msg, buf);
+
+    id = vrms_client_send_message(client, VRMS_CREATEMESHCOLOR, buf, length, 0);
+  
+    free(buf);
+    return id;
+}
+
 int32_t vrms_client_connect_socket(vrms_client_t* client) {
     int socket_name_length;
     struct sockaddr_un remote;

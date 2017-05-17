@@ -21,8 +21,8 @@ typedef struct _DestroyScene DestroyScene;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
-typedef struct _CreateColorMesh CreateColorMesh;
-typedef struct _CreateTextureMesh CreateTextureMesh;
+typedef struct _CreateMeshColor CreateMeshColor;
+typedef struct _CreateMeshTexture CreateMeshTexture;
 
 
 /* --- enums --- */
@@ -110,7 +110,7 @@ struct  _CreateGeometryObject
     , 0, 0, 0, 0 }
 
 
-struct  _CreateColorMesh
+struct  _CreateMeshColor
 {
   ProtobufCMessage base;
   int32_t scene_id;
@@ -120,12 +120,12 @@ struct  _CreateColorMesh
   float b;
   float a;
 };
-#define CREATE_COLOR_MESH__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_color_mesh__descriptor) \
+#define CREATE_MESH_COLOR__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_mesh_color__descriptor) \
     , 0, 0, 0, 0, 0, 0 }
 
 
-struct  _CreateTextureMesh
+struct  _CreateMeshTexture
 {
   ProtobufCMessage base;
   int32_t scene_id;
@@ -133,8 +133,8 @@ struct  _CreateTextureMesh
   int32_t uv_id;
   int32_t texture_id;
 };
-#define CREATE_TEXTURE_MESH__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_texture_mesh__descriptor) \
+#define CREATE_MESH_TEXTURE__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_mesh_texture__descriptor) \
     , 0, 0, 0, 0 }
 
 
@@ -252,43 +252,43 @@ CreateGeometryObject *
 void   create_geometry_object__free_unpacked
                      (CreateGeometryObject *message,
                       ProtobufCAllocator *allocator);
-/* CreateColorMesh methods */
-void   create_color_mesh__init
-                     (CreateColorMesh         *message);
-size_t create_color_mesh__get_packed_size
-                     (const CreateColorMesh   *message);
-size_t create_color_mesh__pack
-                     (const CreateColorMesh   *message,
+/* CreateMeshColor methods */
+void   create_mesh_color__init
+                     (CreateMeshColor         *message);
+size_t create_mesh_color__get_packed_size
+                     (const CreateMeshColor   *message);
+size_t create_mesh_color__pack
+                     (const CreateMeshColor   *message,
                       uint8_t             *out);
-size_t create_color_mesh__pack_to_buffer
-                     (const CreateColorMesh   *message,
+size_t create_mesh_color__pack_to_buffer
+                     (const CreateMeshColor   *message,
                       ProtobufCBuffer     *buffer);
-CreateColorMesh *
-       create_color_mesh__unpack
+CreateMeshColor *
+       create_mesh_color__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   create_color_mesh__free_unpacked
-                     (CreateColorMesh *message,
+void   create_mesh_color__free_unpacked
+                     (CreateMeshColor *message,
                       ProtobufCAllocator *allocator);
-/* CreateTextureMesh methods */
-void   create_texture_mesh__init
-                     (CreateTextureMesh         *message);
-size_t create_texture_mesh__get_packed_size
-                     (const CreateTextureMesh   *message);
-size_t create_texture_mesh__pack
-                     (const CreateTextureMesh   *message,
+/* CreateMeshTexture methods */
+void   create_mesh_texture__init
+                     (CreateMeshTexture         *message);
+size_t create_mesh_texture__get_packed_size
+                     (const CreateMeshTexture   *message);
+size_t create_mesh_texture__pack
+                     (const CreateMeshTexture   *message,
                       uint8_t             *out);
-size_t create_texture_mesh__pack_to_buffer
-                     (const CreateTextureMesh   *message,
+size_t create_mesh_texture__pack_to_buffer
+                     (const CreateMeshTexture   *message,
                       ProtobufCBuffer     *buffer);
-CreateTextureMesh *
-       create_texture_mesh__unpack
+CreateMeshTexture *
+       create_mesh_texture__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   create_texture_mesh__free_unpacked
-                     (CreateTextureMesh *message,
+void   create_mesh_texture__free_unpacked
+                     (CreateMeshTexture *message,
                       ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
@@ -310,11 +310,11 @@ typedef void (*DestroyDataObject_Closure)
 typedef void (*CreateGeometryObject_Closure)
                  (const CreateGeometryObject *message,
                   void *closure_data);
-typedef void (*CreateColorMesh_Closure)
-                 (const CreateColorMesh *message,
+typedef void (*CreateMeshColor_Closure)
+                 (const CreateMeshColor *message,
                   void *closure_data);
-typedef void (*CreateTextureMesh_Closure)
-                 (const CreateTextureMesh *message,
+typedef void (*CreateMeshTexture_Closure)
+                 (const CreateMeshTexture *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -329,8 +329,8 @@ extern const ProtobufCMessageDescriptor create_data_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
 extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
-extern const ProtobufCMessageDescriptor create_color_mesh__descriptor;
-extern const ProtobufCMessageDescriptor create_texture_mesh__descriptor;
+extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;
+extern const ProtobufCMessageDescriptor create_mesh_texture__descriptor;
 
 PROTOBUF_C__END_DECLS
 

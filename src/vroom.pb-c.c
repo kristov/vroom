@@ -265,90 +265,90 @@ void   create_geometry_object__free_unpacked
   assert(message->base.descriptor == &create_geometry_object__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   create_color_mesh__init
-                     (CreateColorMesh         *message)
+void   create_mesh_color__init
+                     (CreateMeshColor         *message)
 {
-  static CreateColorMesh init_value = CREATE_COLOR_MESH__INIT;
+  static CreateMeshColor init_value = CREATE_MESH_COLOR__INIT;
   *message = init_value;
 }
-size_t create_color_mesh__get_packed_size
-                     (const CreateColorMesh *message)
+size_t create_mesh_color__get_packed_size
+                     (const CreateMeshColor *message)
 {
-  assert(message->base.descriptor == &create_color_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_color__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t create_color_mesh__pack
-                     (const CreateColorMesh *message,
+size_t create_mesh_color__pack
+                     (const CreateMeshColor *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &create_color_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_color__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t create_color_mesh__pack_to_buffer
-                     (const CreateColorMesh *message,
+size_t create_mesh_color__pack_to_buffer
+                     (const CreateMeshColor *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &create_color_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_color__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-CreateColorMesh *
-       create_color_mesh__unpack
+CreateMeshColor *
+       create_mesh_color__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (CreateColorMesh *)
-     protobuf_c_message_unpack (&create_color_mesh__descriptor,
+  return (CreateMeshColor *)
+     protobuf_c_message_unpack (&create_mesh_color__descriptor,
                                 allocator, len, data);
 }
-void   create_color_mesh__free_unpacked
-                     (CreateColorMesh *message,
+void   create_mesh_color__free_unpacked
+                     (CreateMeshColor *message,
                       ProtobufCAllocator *allocator)
 {
-  assert(message->base.descriptor == &create_color_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_color__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   create_texture_mesh__init
-                     (CreateTextureMesh         *message)
+void   create_mesh_texture__init
+                     (CreateMeshTexture         *message)
 {
-  static CreateTextureMesh init_value = CREATE_TEXTURE_MESH__INIT;
+  static CreateMeshTexture init_value = CREATE_MESH_TEXTURE__INIT;
   *message = init_value;
 }
-size_t create_texture_mesh__get_packed_size
-                     (const CreateTextureMesh *message)
+size_t create_mesh_texture__get_packed_size
+                     (const CreateMeshTexture *message)
 {
-  assert(message->base.descriptor == &create_texture_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_texture__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t create_texture_mesh__pack
-                     (const CreateTextureMesh *message,
+size_t create_mesh_texture__pack
+                     (const CreateMeshTexture *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &create_texture_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_texture__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t create_texture_mesh__pack_to_buffer
-                     (const CreateTextureMesh *message,
+size_t create_mesh_texture__pack_to_buffer
+                     (const CreateMeshTexture *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &create_texture_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_texture__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-CreateTextureMesh *
-       create_texture_mesh__unpack
+CreateMeshTexture *
+       create_mesh_texture__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (CreateTextureMesh *)
-     protobuf_c_message_unpack (&create_texture_mesh__descriptor,
+  return (CreateMeshTexture *)
+     protobuf_c_message_unpack (&create_mesh_texture__descriptor,
                                 allocator, len, data);
 }
-void   create_texture_mesh__free_unpacked
-                     (CreateTextureMesh *message,
+void   create_mesh_texture__free_unpacked
+                     (CreateMeshTexture *message,
                       ProtobufCAllocator *allocator)
 {
-  assert(message->base.descriptor == &create_texture_mesh__descriptor);
+  assert(message->base.descriptor == &create_mesh_texture__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 static const ProtobufCFieldDescriptor reply__field_descriptors[2] =
@@ -758,7 +758,7 @@ const ProtobufCMessageDescriptor create_geometry_object__descriptor =
   (ProtobufCMessageInit) create_geometry_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
+static const ProtobufCFieldDescriptor create_mesh_color__field_descriptors[6] =
 {
   {
     "scene_id",
@@ -766,7 +766,7 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, scene_id),
+    offsetof(CreateMeshColor, scene_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -778,7 +778,7 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, geometry_id),
+    offsetof(CreateMeshColor, geometry_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -790,7 +790,7 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, r),
+    offsetof(CreateMeshColor, r),
     NULL,
     NULL,
     0,             /* flags */
@@ -802,7 +802,7 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, g),
+    offsetof(CreateMeshColor, g),
     NULL,
     NULL,
     0,             /* flags */
@@ -814,7 +814,7 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, b),
+    offsetof(CreateMeshColor, b),
     NULL,
     NULL,
     0,             /* flags */
@@ -826,14 +826,14 @@ static const ProtobufCFieldDescriptor create_color_mesh__field_descriptors[6] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_FLOAT,
     0,   /* quantifier_offset */
-    offsetof(CreateColorMesh, a),
+    offsetof(CreateMeshColor, a),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned create_color_mesh__field_indices_by_name[] = {
+static const unsigned create_mesh_color__field_indices_by_name[] = {
   5,   /* field[5] = a */
   4,   /* field[4] = b */
   3,   /* field[3] = g */
@@ -841,27 +841,27 @@ static const unsigned create_color_mesh__field_indices_by_name[] = {
   2,   /* field[2] = r */
   0,   /* field[0] = scene_id */
 };
-static const ProtobufCIntRange create_color_mesh__number_ranges[1 + 1] =
+static const ProtobufCIntRange create_mesh_color__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 6 }
 };
-const ProtobufCMessageDescriptor create_color_mesh__descriptor =
+const ProtobufCMessageDescriptor create_mesh_color__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "CreateColorMesh",
-  "CreateColorMesh",
-  "CreateColorMesh",
+  "CreateMeshColor",
+  "CreateMeshColor",
+  "CreateMeshColor",
   "",
-  sizeof(CreateColorMesh),
+  sizeof(CreateMeshColor),
   6,
-  create_color_mesh__field_descriptors,
-  create_color_mesh__field_indices_by_name,
-  1,  create_color_mesh__number_ranges,
-  (ProtobufCMessageInit) create_color_mesh__init,
+  create_mesh_color__field_descriptors,
+  create_mesh_color__field_indices_by_name,
+  1,  create_mesh_color__number_ranges,
+  (ProtobufCMessageInit) create_mesh_color__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor create_texture_mesh__field_descriptors[4] =
+static const ProtobufCFieldDescriptor create_mesh_texture__field_descriptors[4] =
 {
   {
     "scene_id",
@@ -869,7 +869,7 @@ static const ProtobufCFieldDescriptor create_texture_mesh__field_descriptors[4] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateTextureMesh, scene_id),
+    offsetof(CreateMeshTexture, scene_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -881,7 +881,7 @@ static const ProtobufCFieldDescriptor create_texture_mesh__field_descriptors[4] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateTextureMesh, geometry_id),
+    offsetof(CreateMeshTexture, geometry_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -893,7 +893,7 @@ static const ProtobufCFieldDescriptor create_texture_mesh__field_descriptors[4] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateTextureMesh, uv_id),
+    offsetof(CreateMeshTexture, uv_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -905,36 +905,36 @@ static const ProtobufCFieldDescriptor create_texture_mesh__field_descriptors[4] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateTextureMesh, texture_id),
+    offsetof(CreateMeshTexture, texture_id),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned create_texture_mesh__field_indices_by_name[] = {
+static const unsigned create_mesh_texture__field_indices_by_name[] = {
   1,   /* field[1] = geometry_id */
   0,   /* field[0] = scene_id */
   3,   /* field[3] = texture_id */
   2,   /* field[2] = uv_id */
 };
-static const ProtobufCIntRange create_texture_mesh__number_ranges[1 + 1] =
+static const ProtobufCIntRange create_mesh_texture__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 4 }
 };
-const ProtobufCMessageDescriptor create_texture_mesh__descriptor =
+const ProtobufCMessageDescriptor create_mesh_texture__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "CreateTextureMesh",
-  "CreateTextureMesh",
-  "CreateTextureMesh",
+  "CreateMeshTexture",
+  "CreateMeshTexture",
+  "CreateMeshTexture",
   "",
-  sizeof(CreateTextureMesh),
+  sizeof(CreateMeshTexture),
   4,
-  create_texture_mesh__field_descriptors,
-  create_texture_mesh__field_indices_by_name,
-  1,  create_texture_mesh__number_ranges,
-  (ProtobufCMessageInit) create_texture_mesh__init,
+  create_mesh_texture__field_descriptors,
+  create_mesh_texture__field_indices_by_name,
+  1,  create_mesh_texture__number_ranges,
+  (ProtobufCMessageInit) create_mesh_texture__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
