@@ -414,8 +414,8 @@ void* start_socket_thread(void *ptr) {
     return NULL;
 }
 
-void draw_scene() {
-    vrms_server_draw_scene(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+void draw_scene(opengl_stereo* ostereo) {
+    vrms_server_draw_scene(vrms_server, ostereo->default_scene_shader_program_id, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
 }
 
 GLvoid reshape(int w, int h) {
@@ -423,6 +423,7 @@ GLvoid reshape(int w, int h) {
 }
 
 GLvoid display(GLvoid) {
+    vrms_server_process_queues(vrms_server);
     opengl_stereo_display(ostereo);
     glutSwapBuffers();
 }
@@ -437,8 +438,8 @@ void initWindowingSystem(int *argc, char **argv, int width, int height) {
 }
 
 void init(int *argc, char **argv) {
-    int width = 1024;
-    int height = 768;
+    int width = 1152;
+    int height = 648;
     double physical_width = 1.347;
 
     initWindowingSystem(argc, argv, width, height);
@@ -448,6 +449,7 @@ void init(int *argc, char **argv) {
 
 int32_t main(int argc, char **argv) {
     pthread_t socket_thread;
+
     int32_t thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start socket thread\n");

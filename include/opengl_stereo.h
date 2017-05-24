@@ -15,6 +15,7 @@ typedef struct opengl_stereo_buffer_store {
     GLuint rendered_texture_right;
 } opengl_stereo_buffer_store;
 
+typedef struct opengl_stereo opengl_stereo;
 typedef struct opengl_stereo {
     double width;
     double height;
@@ -37,7 +38,7 @@ typedef struct opengl_stereo {
     GLfloat* model_matrix;
     GLfloat* view_matrix;
     GLfloat* projection_matrix;
-    void (*draw_scene_function)();
+    void (*draw_scene_function)(opengl_stereo* ostereo);
     GLuint barrel_power_id;
     opengl_stereo_camera* left_camera;
     opengl_stereo_camera* right_camera;

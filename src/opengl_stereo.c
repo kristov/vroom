@@ -66,6 +66,8 @@ int printGlError(char *file, int line) {
     return retCode;
 }
 
+#define printOpenGLError() printGlError(__FILE__, __LINE__)
+
 /*
 Eye separation is typically kept at 1/30th of the convergence distance and objects
 closer than half the convergence distance are avoided in the scene.
@@ -262,7 +264,7 @@ void opengl_stereo_render_scene_to_left_buffer(opengl_stereo* ostereo) {
                 ostereo->left_camera->bottom_frustum, ostereo->left_camera->top_frustum,
                 ostereo->nearZ, ostereo->farZ);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
-    ostereo->draw_scene_function();
+    ostereo->draw_scene_function(ostereo);
 }
 
 void opengl_stereo_render_scene_to_right_buffer(opengl_stereo* ostereo) {
@@ -279,7 +281,7 @@ void opengl_stereo_render_scene_to_right_buffer(opengl_stereo* ostereo) {
                 ostereo->right_camera->bottom_frustum, ostereo->right_camera->top_frustum,
                 ostereo->nearZ, ostereo->farZ);
     esmTranslatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
-    ostereo->draw_scene_function();
+    ostereo->draw_scene_function(ostereo);
 }
 
 void opengl_stereo_render_scene_to_buffers(opengl_stereo* ostereo) {

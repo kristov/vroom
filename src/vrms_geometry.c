@@ -124,19 +124,19 @@ void std_cube_generate_normals(float* norms) {
     // front
     norms[off + 0] = 0.0f; // 0
     norms[off + 1] = 0.0f;
-    norms[off + 2] = 1.0f;
+    norms[off + 2] = -1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 1
     norms[off + 1] = 0.0f;
-    norms[off + 2] = 1.0f;
+    norms[off + 2] = -1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 2
     norms[off + 1] = 0.0f;
-    norms[off + 2] = 1.0f;
+    norms[off + 2] = -1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 3
     norms[off + 1] = 0.0f;
-    norms[off + 2] = 1.0f;
+    norms[off + 2] = -1.0f;
     off += 3;
 
     // left
@@ -214,158 +214,21 @@ void std_cube_generate_normals(float* norms) {
     // back
     norms[off + 0] = 0.0f; // 20
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 21
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 22
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 23
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
 }
-
-/*
-void std_cube_generate_colors(float* colors, float r, float g, float b, float a) {
-    uint32_t off = 0;
-    // front
-    colors[off + 0] = r; // 0
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 1
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 2
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 3
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-
-    // left
-    colors[off + 0] = r; // 4
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 5
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 6
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 7
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-
-    // right
-    colors[off + 0] = r; // 8
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 9
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 10
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 11
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-
-    // top
-    colors[off + 0] = r; // 12
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 13
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 14
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 15
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-
-    // bottom
-    colors[off + 0] = r; // 16
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 17
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 18
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 19
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-
-    // back
-    colors[off + 0] = r; // 20
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 21
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 22
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-    colors[off + 0] = r; // 23
-    colors[off + 1] = g;
-    colors[off + 2] = b;
-    colors[off + 3] = a;
-    off += 4;
-}
-*/
 
 void std_cube_generate_indicies(uint32_t* indicies) {
     uint32_t off = 0;
@@ -427,7 +290,6 @@ void std_cube_generate_indicies(uint32_t* indicies) {
 
 uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint32_t z, float r, float g, float b, float a) {
     uint32_t nr_verticies, nr_indicies, nr_vert_floats;
-    //uint32_t nr_color_floats;
     size_t size_of_verts, size_of_indicies;
 
     int32_t shm_fd;
@@ -437,7 +299,6 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     float* verts;
     float* norms;
     uint32_t* indicies;
-    //float* colors;
 
     nr_verticies = 4 * 6;
     nr_vert_floats = 3 * nr_verticies;
@@ -448,13 +309,119 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     nr_indicies = 6 * 6;
     indicies = malloc(sizeof(uint32_t) * nr_indicies);
 
-    //nr_color_floats = 4 * nr_verticies;
-    //colors = malloc(sizeof(float) * nr_color_floats);
-
     std_cube_generate_verticies(verts, x, y, z);
     std_cube_generate_normals(norms);
-    //std_cube_generate_colors(colors, r, g, b, a);
     std_cube_generate_indicies(indicies);
+
+    size_of_verts = sizeof(float) * nr_vert_floats;
+    size_of_indicies = sizeof(uint32_t) * nr_indicies;
+
+    shm_fd = vrms_create_memory((size_of_verts * 2) + size_of_indicies, &address);
+    if (-1 == shm_fd) {
+        return 0;
+    }
+
+    //msync(result, size, MS_SYNC);
+    //munmap(result, size);
+
+    buffer = (char*)address;
+
+    memcpy(buffer, verts, size_of_verts);
+    memcpy(&buffer[size_of_verts], norms, size_of_verts);
+    memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
+
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_fd, VRMS_FLOAT, 0, size_of_verts, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_fd, VRMS_FLOAT, size_of_verts, size_of_verts, 3);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_fd, VRMS_INT, size_of_verts * 2, size_of_indicies, 1);
+
+    uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
+
+    uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
+
+    return mesh_id;
+}
+
+void std_plane_generate_verticies(float* verts, uint32_t x, uint32_t y) {
+    uint32_t off = 0;
+
+    verts[off + 0] = 0.0f; // 0
+    verts[off + 1] = 0.0f;
+    verts[off + 2] = 0.0f;
+    off += 3;
+    verts[off + 0] = x; // 1
+    verts[off + 1] = 0.0f;
+    verts[off + 2] = 0.0f;
+    off += 3;
+    verts[off + 0] = 0.0f; // 2
+    verts[off + 1] = y;
+    verts[off + 2] = 0.0f;
+    off += 3;
+    verts[off + 0] = x; // 3
+    verts[off + 1] = y;
+    verts[off + 2] = 0.0f;
+    off += 3;
+}
+
+void std_plane_generate_normals(float* norms) {
+    uint32_t off = 0;
+
+    // [+-1, 0, 0],   [0,+-1,0],    [0,0,+-1]
+    // (Left/Right), (Top/Bottom), (Front/Back)
+
+    norms[off + 0] = 0.0f; // 0
+    norms[off + 1] = 0.0f;
+    norms[off + 2] = -1.0f;
+    off += 3;
+    norms[off + 0] = 0.0f; // 1
+    norms[off + 1] = 0.0f;
+    norms[off + 2] = -1.0f;
+    off += 3;
+    norms[off + 0] = 0.0f; // 2
+    norms[off + 1] = 0.0f;
+    norms[off + 2] = -1.0f;
+    off += 3;
+    norms[off + 0] = 0.0f; // 3
+    norms[off + 1] = 0.0f;
+    norms[off + 2] = -1.0f;
+    off += 3;
+}
+
+void std_plane_generate_indicies(uint32_t* indicies) {
+    uint32_t off = 0;
+
+    indicies[off + 0] = 0;
+    indicies[off + 1] = 1;
+    indicies[off + 2] = 2;
+    indicies[off + 3] = 1;
+    indicies[off + 4] = 2;
+    indicies[off + 5] = 3;
+    off += 6;
+}
+
+uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, float r, float g, float b, float a) {
+    uint32_t nr_verticies, nr_indicies, nr_vert_floats;
+    size_t size_of_verts, size_of_indicies;
+
+    int32_t shm_fd;
+    void* address = NULL;
+    char* buffer = NULL;
+
+    float* verts;
+    float* norms;
+    uint32_t* indicies;
+
+    nr_verticies = 4;
+    nr_vert_floats = 3 * nr_verticies;
+
+    verts = malloc(sizeof(float) * nr_vert_floats);
+    norms = malloc(sizeof(float) * nr_vert_floats);
+
+    nr_indicies = 6;
+    indicies = malloc(sizeof(uint32_t) * nr_indicies);
+
+    std_plane_generate_verticies(verts, x, y);
+    std_plane_generate_normals(norms);
+    std_plane_generate_indicies(indicies);
 
     size_of_verts = sizeof(float) * nr_vert_floats;
     size_of_indicies = sizeof(uint32_t) * nr_indicies;
