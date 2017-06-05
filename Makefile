@@ -3,9 +3,9 @@ CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o
 SERVEROBJS := lib/vroom.pb.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
-SRVCOM := -lopenhmd
+SRVCOM := -lopenhmd -lpthread
 
-EXTGL := -lpthread -lGL -lGLU -lglut
+EXTGL := -lGL -lGLU -lglut
 INCLUDEDIRS :=
 LINKDIRS :=
 PREPROC :=
@@ -15,7 +15,7 @@ rpi_egl : INCLUDEDIRS := -I/opt/vc/include
 rpi_egl : LINKDIRS := -L/opt/vc/lib
 rpi_egl : PREPROC := -DRASPBERRYPI
 
-rpi_egl: all
+rpi_egl: pre_work egl_server client
 
 all: pre_work server client
 
@@ -23,6 +23,9 @@ pre_work:
 	mkdir -p lib/
 
 server: src/server.c $(SERVEROBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
+
+egl_server: src/egl_server.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
 
 client: src/client.c $(CLIENTOBJS)

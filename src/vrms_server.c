@@ -322,7 +322,7 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     glEnableVertexAttribArray(m_mv);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
-    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
     printOpenGLError();
 
     esmDestroy(mvp_matrix);
@@ -425,6 +425,9 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        if (0 == *data_load->destination) {
+            fprintf(stderr, "unable to load gl element buffer");
+        }
         free(data_load->buffer);
     }
 }
@@ -434,6 +437,9 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        if (0 == *data_load->destination) {
+            fprintf(stderr, "unable to load gl buffer");
+        }
         free(data_load->buffer);
     }
 }

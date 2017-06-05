@@ -230,7 +230,7 @@ void std_cube_generate_normals(float* norms) {
     off += 3;
 }
 
-void std_cube_generate_indicies(uint32_t* indicies) {
+void std_cube_generate_indicies(unsigned short* indicies) {
     uint32_t off = 0;
 
     // front
@@ -298,7 +298,7 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
 
     float* verts;
     float* norms;
-    uint32_t* indicies;
+    unsigned short* indicies;
 
     nr_verticies = 4 * 6;
     nr_vert_floats = 3 * nr_verticies;
@@ -307,14 +307,14 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     norms = malloc(sizeof(float) * nr_vert_floats);
 
     nr_indicies = 6 * 6;
-    indicies = malloc(sizeof(uint32_t) * nr_indicies);
+    indicies = malloc(sizeof(unsigned short) * nr_indicies);
 
     std_cube_generate_verticies(verts, x, y, z);
     std_cube_generate_normals(norms);
     std_cube_generate_indicies(indicies);
 
     size_of_verts = sizeof(float) * nr_vert_floats;
-    size_of_indicies = sizeof(uint32_t) * nr_indicies;
+    size_of_indicies = sizeof(unsigned short) * nr_indicies;
 
     shm_fd = vrms_create_memory((size_of_verts * 2) + size_of_indicies, &address);
     if (-1 == shm_fd) {
@@ -386,7 +386,7 @@ void std_plane_generate_normals(float* norms) {
     off += 3;
 }
 
-void std_plane_generate_indicies(uint32_t* indicies) {
+void std_plane_generate_indicies(unsigned short* indicies) {
     uint32_t off = 0;
 
     indicies[off + 0] = 0;
@@ -408,7 +408,7 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
 
     float* verts;
     float* norms;
-    uint32_t* indicies;
+    unsigned short* indicies;
 
     nr_verticies = 4;
     nr_vert_floats = 3 * nr_verticies;
@@ -417,14 +417,14 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     norms = malloc(sizeof(float) * nr_vert_floats);
 
     nr_indicies = 6;
-    indicies = malloc(sizeof(uint32_t) * nr_indicies);
+    indicies = malloc(sizeof(unsigned short) * nr_indicies);
 
     std_plane_generate_verticies(verts, x, y);
     std_plane_generate_normals(norms);
     std_plane_generate_indicies(indicies);
 
     size_of_verts = sizeof(float) * nr_vert_floats;
-    size_of_indicies = sizeof(uint32_t) * nr_indicies;
+    size_of_indicies = sizeof(unsigned short) * nr_indicies;
 
     shm_fd = vrms_create_memory((size_of_verts * 2) + size_of_indicies, &address);
     if (-1 == shm_fd) {
