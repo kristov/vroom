@@ -3,10 +3,10 @@
 
 typedef struct vrms_object_data {
     vrms_data_type_t type;
-    uint32_t nr_values;
+    uint32_t size;
+    uint32_t nr_strides;
+    uint32_t stride;
     GLuint gl_id;
-    GLuint gl_offset;
-    GLuint gl_size;
 } vrms_object_data_t;
 
 typedef struct vrms_object_geometry {
@@ -63,11 +63,10 @@ typedef enum vrms_queue_item_type {
 } vrms_queue_item_type_t;
 
 typedef struct vrms_queue_item_data_load {
+    vrms_data_type_t type;
     GLuint* destination;
-    float* float_buffer;
-    uint32_t* int_buffer;
+    void* buffer;
     uint32_t size;
-    uint32_t nr_values;
 } vrms_queue_item_data_load_t;
 
 typedef struct vrms_queue_item_event {
@@ -103,7 +102,7 @@ typedef struct vrms_server {
 vrms_server_t* vrms_server_create();
 vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_id);
 uint32_t vrms_create_scene(vrms_server_t* vrms_server, char* name);
-uint32_t vrms_create_data_object(vrms_scene_t* scene, vrms_data_type_t type, uint32_t shm_fd, uint32_t offset, uint32_t size_of, uint32_t size, uint32_t stride);
+uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type, uint32_t fd, uint32_t offset, uint32_t size, uint32_t nr_values, uint32_t stride);
 uint32_t vrms_create_geometry_object(vrms_scene_t* scene, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 uint32_t vrms_create_mesh_color(vrms_scene_t* vrms_scene, uint32_t geometry_id, float r, float g, float b, float a);
 uint32_t vrms_create_mesh_texture(vrms_scene_t* vrms_scene, uint32_t geometry_id, uint32_t uv_id, uint32_t texture_id);

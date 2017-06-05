@@ -106,11 +106,9 @@ vrms_object_t* vrms_object_create(vrms_scene_t* vrms_scene) {
     return vrms_object;
 }
 
-uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type, uint32_t fd, uint32_t dtype, uint32_t offset, uint32_t size, uint32_t stride) {
+uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type, uint32_t fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
     void* address;
     void* buffer;
-    uint32_t* int_buffer;
-    float* float_buffer;
     int32_t seals;
     vrms_object_t* vrms_object;
 
@@ -136,6 +134,9 @@ uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type
     memset(object_data, 0, sizeof(vrms_object_data_t));
 
     object_data->type = type;
+    object_data->size = size;
+    object_data->nr_strides = nr_strides;
+    object_data->stride = stride;
     vrms_object->object.object_data = object_data;
 
     vrms_queue_item_data_load_t* data_load = malloc(sizeof(vrms_queue_item_data_load_t));
@@ -143,19 +144,8 @@ uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type
 
     data_load->size = size;
     data_load->destination = &object_data->gl_id;
-
-    if (VRMS_FLOAT == dtype) {
-        object_data->nr_values = size / sizeof(float);
-        float_buffer = (float*)buffer;
-        data_load->float_buffer = float_buffer;
-        data_load->nr_values = object_data->nr_values;
-    }
-    else if (VRMS_INT == dtype) {
-        object_data->nr_values = size / sizeof(uint32_t);
-        int_buffer = (uint32_t*)buffer;
-        data_load->int_buffer = int_buffer;
-        data_load->nr_values = object_data->nr_values;
-    }
+    data_load->type = type;
+    data_load->buffer = buffer;
 
     vrms_queue_item_t* queue_item = malloc(sizeof(vrms_queue_item_t));
     memset(queue_item, 0, sizeof(vrms_queue_item_t));
@@ -169,35 +159,6 @@ uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type
     pthread_mutex_unlock(vrms_scene->inbound_queue_lock);
 
     return vrms_object->id;
-}
-
-void vrms_queue_item_process(vrms_queue_item_t* queue_item) {
-    vrms_queue_item_data_load_t* data_load;
-    switch (queue_item->type) {
-        case VRMS_QUEUE_DATA_LOAD:
-            data_load = queue_item->item.data_load;
-            if (NULL != data_load->float_buffer) {
-                glGenBuffers(1, data_load->destination);
-                glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
-                glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->float_buffer, GL_STATIC_DRAW);
-                free(data_load->float_buffer);
-            }
-            else if (NULL != data_load->int_buffer) {
-                glGenBuffers(1, data_load->destination);
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
-                glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->int_buffer, GL_STATIC_DRAW);
-                free(data_load->int_buffer);
-            }
-            else {
-                fprintf(stderr, "malformed buffer\n");
-            }
-            free(data_load);
-            free(queue_item);
-        break;
-        case VRMS_QUEUE_EVENT:
-            fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");
-        break;
-    }
 }
 
 uint32_t vrms_create_geometry_object(vrms_scene_t* vrms_scene, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id) {
@@ -317,7 +278,7 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     glEnableVertexAttribArray(m_mv);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
-    glDrawElements(GL_TRIANGLES, index->nr_values, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_INT, NULL);
     printOpenGLError();
 
     esmDestroy(mvp_matrix);
@@ -361,9 +322,6 @@ void vrms_server_draw_scene(vrms_server_t* vrms_server, GLuint shader_id, GLfloa
                     case VRMS_OBJECT_MESH_TEXTURE:
                         vrms_server_draw_mesh_texture(vrms_scene, shader_id, vrms_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
                     break;
-                    case VRMS_OBJECT_MATRIX:
-                        //vrms_server_draw_matrix();
-                    break;
                 }
                 if (oi >= 2000) break;
             }
@@ -375,23 +333,73 @@ void vrms_server_draw_scene(vrms_server_t* vrms_server, GLuint shader_id, GLfloa
     }
 }
 
-void vrms_server_flush_client_inbound_queues(vrms_server_t* server) {
+void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
+    if (NULL != data_load->buffer) {
+        glGenBuffers(1, data_load->destination);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        free(data_load->buffer);
+    }
+}
+
+void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
+    if (NULL != data_load->buffer) {
+        glGenBuffers(1, data_load->destination);
+        glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
+        glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        free(data_load->buffer);
+    }
+}
+
+void vrms_scene_queue_item_process(vrms_scene_t* scene, vrms_queue_item_t* queue_item) {
+    vrms_queue_item_data_load_t* data_load;
+    if (VRMS_QUEUE_DATA_LOAD == queue_item->type) {
+        data_load = queue_item->item.data_load;
+        if (VRMS_INDEX == data_load->type) {
+            fprintf(stderr, "loading GL element buffer\n");
+            vrms_queue_load_gl_element_buffer(data_load);
+        }
+        else {
+            if (VRMS_MATRIX == data_load->type) {
+                fprintf(stderr, "allocating local space for matrix data\n");
+            }
+            else {
+                fprintf(stderr, "loading GL buffer\n");
+                vrms_queue_load_gl_buffer(data_load);
+            }
+        }
+        free(data_load);
+        free(queue_item);
+    }
+    else if (VRMS_QUEUE_EVENT == queue_item->type) {
+        fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");
+    }
+    else {
+        fprintf(stderr, "unknown queue type!!\n");
+    }
+}
+
+void vrms_scene_queue_item_flush(vrms_scene_t* scene) {
     uint32_t idx;
-    vrms_scene_t* scene;
     vrms_queue_item_t* queue_item;
+    for (idx = 0; idx < scene->inbound_queue_index; idx++) {
+        queue_item = scene->inbound_queue[idx];
+        if (NULL != queue_item) {
+            vrms_scene_queue_item_process(scene, queue_item);
+        }
+        else {
+            fprintf(stderr, "null queue item\n");
+        }
+    }
+    scene->inbound_queue_index = 0;
+}
+
+void vrms_server_flush_client_inbound_queues(vrms_server_t* server) {
+    vrms_scene_t* scene;
     scene = server->scenes[1];
     if (NULL != scene) {
         if (!pthread_mutex_trylock(scene->inbound_queue_lock)) {
-            for (idx = 0; idx < scene->inbound_queue_index; idx++) {
-                queue_item = scene->inbound_queue[idx];
-                if (NULL != queue_item) {
-                    vrms_queue_item_process(queue_item);
-                }
-                else {
-                    fprintf(stderr, "null queue item\n");
-                }
-            }
-            scene->inbound_queue_index = 0;
+            vrms_scene_queue_item_flush(scene);
             pthread_mutex_unlock(scene->inbound_queue_lock);
         }
         else {

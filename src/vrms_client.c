@@ -25,7 +25,8 @@ uint32_t type_map[] = {
     CREATE_DATA_OBJECT__TYPE__TEXTURE,  // VRMS_TEXTURE
     CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
     CREATE_DATA_OBJECT__TYPE__NORMAL,   // VRMS_NORMAL
-    CREATE_DATA_OBJECT__TYPE__INDEX     // VRMS_INDEX
+    CREATE_DATA_OBJECT__TYPE__INDEX,    // VRMS_INDEX
+    CREATE_DATA_OBJECT__TYPE__MATRIX    // VRMS_MATRIX
 };
 
 uint32_t vrms_client_receive_reply(vrms_client_t* client) {
@@ -126,14 +127,14 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     return id;
 }
 
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t shm_fd, vrms_dtype_t dtype, uint32_t offset, uint32_t size, uint32_t stride) {
+uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t shm_fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
     uint32_t id;
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
     void* buf;
     uint32_t length;
 
     uint32_t type_map_index = (uint32_t)type;
-    if (type_map_index < 0 || type_map_index > 5) {
+    if (type_map_index < 0 || type_map_index > 6) {
         return 0;
     }
     uint32_t pb_type = type_map[type_map_index];
@@ -141,9 +142,9 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     msg.scene_id = client->scene_id;
     msg.type = pb_type;
     msg.shm_fd = shm_fd;
-    msg.dtype = dtype;
     msg.offset = offset;
     msg.size = size;
+    msg.nr_strides = nr_strides;
     msg.stride = stride;
 
     length = create_data_object__get_packed_size(&msg);

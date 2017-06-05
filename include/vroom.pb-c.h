@@ -19,6 +19,7 @@ typedef struct _Reply Reply;
 typedef struct _CreateScene CreateScene;
 typedef struct _DestroyScene DestroyScene;
 typedef struct _CreateDataObject CreateDataObject;
+typedef struct _CreateRenderBuffer CreateRenderBuffer;
 typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
 typedef struct _CreateMeshColor CreateMeshColor;
@@ -33,7 +34,8 @@ typedef enum _CreateDataObject__Type {
   CREATE_DATA_OBJECT__TYPE__TEXTURE = 2,
   CREATE_DATA_OBJECT__TYPE__VERTEX = 3,
   CREATE_DATA_OBJECT__TYPE__NORMAL = 4,
-  CREATE_DATA_OBJECT__TYPE__INDEX = 5
+  CREATE_DATA_OBJECT__TYPE__INDEX = 5,
+  CREATE_DATA_OBJECT__TYPE__MATRIX = 6
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_DATA_OBJECT__TYPE)
 } CreateDataObject__Type;
 
@@ -76,14 +78,25 @@ struct  _CreateDataObject
   int32_t scene_id;
   CreateDataObject__Type type;
   int32_t shm_fd;
-  int32_t dtype;
   int32_t offset;
   int32_t size;
+  int32_t nr_strides;
   int32_t stride;
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
     , 0, 0, 0, 0, 0, 0, 0 }
+
+
+struct  _CreateRenderBuffer
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t nr_objects;
+};
+#define CREATE_RENDER_BUFFER__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_render_buffer__descriptor) \
+    , 0, 0 }
 
 
 struct  _DestroyDataObject
@@ -214,6 +227,25 @@ CreateDataObject *
 void   create_data_object__free_unpacked
                      (CreateDataObject *message,
                       ProtobufCAllocator *allocator);
+/* CreateRenderBuffer methods */
+void   create_render_buffer__init
+                     (CreateRenderBuffer         *message);
+size_t create_render_buffer__get_packed_size
+                     (const CreateRenderBuffer   *message);
+size_t create_render_buffer__pack
+                     (const CreateRenderBuffer   *message,
+                      uint8_t             *out);
+size_t create_render_buffer__pack_to_buffer
+                     (const CreateRenderBuffer   *message,
+                      ProtobufCBuffer     *buffer);
+CreateRenderBuffer *
+       create_render_buffer__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   create_render_buffer__free_unpacked
+                     (CreateRenderBuffer *message,
+                      ProtobufCAllocator *allocator);
 /* DestroyDataObject methods */
 void   destroy_data_object__init
                      (DestroyDataObject         *message);
@@ -304,6 +336,9 @@ typedef void (*DestroyScene_Closure)
 typedef void (*CreateDataObject_Closure)
                  (const CreateDataObject *message,
                   void *closure_data);
+typedef void (*CreateRenderBuffer_Closure)
+                 (const CreateRenderBuffer *message,
+                  void *closure_data);
 typedef void (*DestroyDataObject_Closure)
                  (const DestroyDataObject *message,
                   void *closure_data);
@@ -327,6 +362,7 @@ extern const ProtobufCMessageDescriptor create_scene__descriptor;
 extern const ProtobufCMessageDescriptor destroy_scene__descriptor;
 extern const ProtobufCMessageDescriptor create_data_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
+extern const ProtobufCMessageDescriptor create_render_buffer__descriptor;
 extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;

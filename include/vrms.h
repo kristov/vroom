@@ -5,8 +5,7 @@ typedef enum vrms_object_type {
     VRMS_OBJECT_GEOMETRY,
     VRMS_OBJECT_TEXTURE,
     VRMS_OBJECT_MESH_COLOR,
-    VRMS_OBJECT_MESH_TEXTURE,
-    VRMS_OBJECT_MATRIX
+    VRMS_OBJECT_MESH_TEXTURE
 } vrms_object_type_t;
 
 typedef enum vrms_type {
@@ -26,7 +25,8 @@ typedef enum vrms_data_type {
     VRMS_TEXTURE,
     VRMS_VERTEX,
     VRMS_NORMAL,
-    VRMS_INDEX
+    VRMS_INDEX,
+    VRMS_MATRIX
 } vrms_data_type_t;
 
 typedef enum vrms_error {
@@ -35,8 +35,3 @@ typedef enum vrms_error {
     VRMS_UNKNOWNID,
     VRMS_OUTOFMEMORY
 } vrms_error_t;
-
-typedef enum vrms_dtype {
-    VRMS_FLOAT,
-    VRMS_INT
-} vrms_dtype_t;

@@ -97,13 +97,16 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
         case CREATE_DATA_OBJECT__TYPE__INDEX:
             vrms_type = VRMS_INDEX;
         break;
+        case CREATE_DATA_OBJECT__TYPE__MATRIX:
+            vrms_type = VRMS_MATRIX;
+        break;
         case _CREATE_DATA_OBJECT__TYPE_IS_INT_SIZE:
         break;
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
 
-    id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->dtype, cs_msg->offset, cs_msg->size, cs_msg->stride);
+    id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }

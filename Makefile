@@ -15,7 +15,10 @@ rpi_egl : INCLUDEDIRS := -I/opt/vc/include
 rpi_egl : LINKDIRS := -L/opt/vc/lib
 rpi_egl : PREPROC := -DRASPBERRYPI
 
-all: server client
+all: pre_work server client
+
+pre_work:
+	mkdir -p lib/
 
 server: src/server.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
