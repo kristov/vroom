@@ -5,16 +5,6 @@
 #include <pthread.h>
 #include <openhmd/openhmd.h>
 #include <time.h>
-
-#ifdef RASPBERRYPI
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#else /* not RASPBERRYPI */
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#endif /* RASPBERRYPI */
-
 #include "esm.h"
 #include "vrms_hmd.h"
 

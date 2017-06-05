@@ -11,7 +11,7 @@
 
 #define PI 3.1415926535f
 
-void esm_set_identity(GLfloat* M) {
+void esm_set_identity(float* M) {
     M[0] = 1;
     M[1] = 0;
     M[2] = 0;
@@ -30,7 +30,7 @@ void esm_set_identity(GLfloat* M) {
     M[15] = 1;
 }
 
-void esmDump(GLfloat* M, const char* name) {
+void esmDump(float* M, const char* name) {
     if (M == NULL) {
         fprintf(stderr, "ESM: undefined matrix\n");
         return;
@@ -48,8 +48,8 @@ void esmDump(GLfloat* M, const char* name) {
     fprintf(stderr, "\n");
 }
 
-void esmMultiply(GLfloat* M, GLfloat* M2) {
-    GLfloat a00 = M[0], a01 = M[1], a02 = M[2], a03 = M[3],
+void esmMultiply(float* M, float* M2) {
+    float a00 = M[0], a01 = M[1], a02 = M[2], a03 = M[3],
             a10 = M[4], a11 = M[5], a12 = M[6], a13 = M[7],
             a20 = M[8], a21 = M[9], a22 = M[10], a23 = M[11],
             a30 = M[12], a31 = M[13], a32 = M[14], a33 = M[15],
@@ -76,7 +76,7 @@ void esmMultiply(GLfloat* M, GLfloat* M2) {
     M[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
 }
 
-void esmScalef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z) {
+void esmScalef(float* M, float x, float y, float z) {
     M[0] *= x;
     M[1] *= x;
     M[2] *= x;
@@ -92,8 +92,8 @@ void esmScalef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z) {
 }
 
 /*
-void esmTranslatef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z) {
-    GLfloat a00, a01, a02, a03,
+void esmTranslatef(float* M, float x, float y, float z) {
+    float a00, a01, a02, a03,
             a10, a11, a12, a13,
             a20, a21, a22, a23;
 
@@ -112,15 +112,15 @@ void esmTranslatef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z) {
 }
 */
 
-void esmTranslatef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z) {
+void esmTranslatef(float* M, float x, float y, float z) {
     M[12] = M[0] * x + M[4] * y + M[8] * z + M[12];
     M[13] = M[1] * x + M[5] * y + M[9] * z + M[13];
     M[14] = M[2] * x + M[6] * y + M[10] * z + M[14];
     M[15] = M[3] * x + M[7] * y + M[11] * z + M[15];
 }
 
-void esmRotatef(GLfloat* M, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
-    GLfloat len = sqrt(x * x + y * y + z * z),
+void esmRotatef(float* M, float angle, float x, float y, float z) {
+    float len = sqrt(x * x + y * y + z * z),
             s, c, t,
             a00, a01, a02, a03,
             a10, a11, a12, a13,
@@ -165,8 +165,8 @@ void esmRotatef(GLfloat* M, GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
     M[11] = a03 * b20 + a13 * b21 + a23 * b22;
 }
 
-void esmFrustumf(GLfloat* M, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far) {
-    GLfloat rl = (right - left),
+void esmFrustumf(float* M, float left, float right, float bottom, float top, float near, float far) {
+    float rl = (right - left),
             tb = (top - bottom),
             fn = (far - near);
 
@@ -188,8 +188,8 @@ void esmFrustumf(GLfloat* M, GLfloat left, GLfloat right, GLfloat bottom, GLfloa
     M[15] = 0;
 }
 
-void esmPerspectivef(GLfloat* M, GLfloat fovy, GLfloat aspect, GLfloat near, GLfloat far) {
-    GLfloat frustumW, frustumH;
+void esmPerspectivef(float* M, float fovy, float aspect, float near, float far) {
+    float frustumW, frustumH;
 
     frustumH = tanf(fovy / 360.0f * PI) * near;
     frustumW = frustumH * aspect;
@@ -197,8 +197,8 @@ void esmPerspectivef(GLfloat* M, GLfloat fovy, GLfloat aspect, GLfloat near, GLf
     esmFrustumf(M, -frustumW, frustumW, -frustumH, frustumH, near, far);
 }
 
-void esmOrthof(GLfloat* M, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat near, GLfloat far) {
-    GLfloat rl = (right - left),
+void esmOrthof(float* M, float left, float right, float bottom, float top, float near, float far) {
+    float rl = (right - left),
             tb = (top - bottom),
             fn = (far - near);
     M[0] = 2 / rl;
@@ -230,11 +230,11 @@ void esmOrthof(GLfloat* M, GLfloat left, GLfloat right, GLfloat bottom, GLfloat 
     [ 2  5  8 ]
 */
 
-GLfloat* esmNormalMatrixFromProjection(GLfloat* M) {
-    GLfloat* tmp = malloc(sizeof(GLfloat) * 16);
-    GLfloat* N = malloc(sizeof(GLfloat) * 9);
+float* esmNormalMatrixFromProjection(float* M) {
+    float* tmp = malloc(sizeof(float) * 16);
+    float* N = malloc(sizeof(float) * 9);
 
-    GLfloat a00 = M[0], a01 = M[1], a02 = M[2], a03 = M[3],
+    float a00 = M[0], a01 = M[1], a02 = M[2], a03 = M[3],
             a10 = M[4], a11 = M[5], a12 = M[6], a13 = M[7],
             a20 = M[8], a21 = M[9], a22 = M[10], a23 = M[11],
             a30 = M[12], a31 = M[13], a32 = M[14], a33 = M[15],
@@ -308,17 +308,17 @@ GLfloat* esmNormalMatrixFromProjection(GLfloat* M) {
     return N;
 }
 
-void esmLoadIdentity(GLfloat* M) {
+void esmLoadIdentity(float* M) {
     esm_set_identity(M);
 }
 
-GLfloat* esmCreate() {
-    GLfloat* M = malloc(sizeof(GLfloat) * 16);
+float* esmCreate() {
+    float* M = malloc(sizeof(float) * 16);
     esm_set_identity(M);
     return M;
 }
 
-void esmCopy(GLfloat* dst, GLfloat* src) {
+void esmCopy(float* dst, float* src) {
     dst[0] = src[0];
     dst[1] = src[1];
     dst[2] = src[2];
@@ -337,8 +337,8 @@ void esmCopy(GLfloat* dst, GLfloat* src) {
     dst[15] = src[15];
 }
 
-GLfloat* esmCreateCopy(GLfloat* M) {
-    GLfloat* N = malloc(sizeof(GLfloat) * 16);
+float* esmCreateCopy(float* M) {
+    float* N = malloc(sizeof(float) * 16);
     N[0] = M[0];
     N[1] = M[1];
     N[2] = M[2];
@@ -358,6 +358,6 @@ GLfloat* esmCreateCopy(GLfloat* M) {
     return N;
 }
 
-void esmDestroy(GLfloat* M) {
+void esmDestroy(float* M) {
     free(M);
 }

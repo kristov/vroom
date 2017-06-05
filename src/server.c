@@ -441,7 +441,6 @@ void do_timer(int timer_event) {
     vrms_server_process_queues(vrms_server);
     if (vrms_hmd != NULL) {
         if (!pthread_mutex_trylock(vrms_hmd->matrix_lock)) {
-esmDump(vrms_hmd->matrix, "hmd matrix");
             esmCopy(ostereo->hmd_matrix, vrms_hmd->matrix);
             pthread_mutex_unlock(vrms_hmd->matrix_lock);
         }
