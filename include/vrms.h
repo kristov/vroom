@@ -16,7 +16,8 @@ typedef enum vrms_type {
     VRMS_DESTROYDATAOBJECT,
     VRMS_CREATEGEOMETRYOBJECT,
     VRMS_CREATEMESHCOLOR,
-    VRMS_CREATEMESHTEXTURE
+    VRMS_CREATEMESHTEXTURE,
+    VRMS_SETRENDERBUFFER
 } vrms_type_t;
 
 typedef enum vrms_data_type {

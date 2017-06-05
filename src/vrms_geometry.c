@@ -435,7 +435,6 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     //munmap(result, size);
 
     buffer = (char*)address;
-
     memcpy(buffer, verts, size_of_verts);
     memcpy(&buffer[size_of_verts], norms, size_of_verts);
     memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
@@ -449,4 +448,46 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
 
     return mesh_id;
+}
+
+uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matricies, float* matrix_data) {
+    size_t size_of_matricies;
+
+    int32_t shm_fd;
+    void* address = NULL;
+    char* buffer = NULL;
+
+    size_of_matricies = (sizeof(float) * 16) * nr_matricies;
+    shm_fd = vrms_create_memory(size_of_matricies, &address);
+    if (-1 == shm_fd) {
+        return 0;
+    }
+
+    buffer = (char*)address;
+    memcpy(buffer, matrix_data, size_of_matricies);
+
+    uint32_t matrix_id = vrms_client_create_data_object(client, VRMS_MATRIX, shm_fd, 0, size_of_matricies, nr_matricies, 16);
+
+    return matrix_id;
+}
+
+uint32_t vrms_geometry_render_buffer_set(vrms_client_t* client, uint32_t nr_items, uint32_t* render_buffer) {
+    size_t size_of_buffer;
+
+    int32_t shm_fd;
+    void* address = NULL;
+    char* buffer = NULL;
+
+    size_of_buffer = (sizeof(uint32_t) * 3) * nr_items;
+    shm_fd = vrms_create_memory(size_of_buffer, &address);
+    if (-1 == shm_fd) {
+        return 0;
+    }
+
+    buffer = (char*)address;
+    memcpy(buffer, render_buffer, size_of_buffer);
+
+    uint32_t render_ret = vrms_client_render_buffer_set(client, shm_fd, nr_items);
+
+    return render_ret;
 }

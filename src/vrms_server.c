@@ -94,6 +94,10 @@ uint32_t vrms_create_scene(vrms_server_t* vrms_server, char* name) {
     vrms_scene->inbound_queue_lock = malloc(sizeof(pthread_mutex_t));
     memset(vrms_scene->inbound_queue_lock, 0, sizeof(pthread_mutex_t));
 
+    vrms_scene->render_buffer_nr_objects = 0;
+    vrms_scene->render_buffer_lock = malloc(sizeof(pthread_mutex_t));
+    memset(vrms_scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
+
     return vrms_scene->id;
 }
 
@@ -208,6 +212,36 @@ uint32_t vrms_create_mesh_texture(vrms_scene_t* vrms_scene, uint32_t geometry_id
     return vrms_object->id;
 }
 
+uint32_t vrms_set_render_buffer(vrms_scene_t* vrms_scene, uint32_t fd, uint32_t nr_objects) {
+    void* address;
+    int32_t seals;
+    size_t size;
+
+    size = (sizeof(uint32_t) * 3) * nr_objects;
+    seals = fcntl(fd, F_GET_SEALS);
+    if (!(seals & F_SEAL_SHRINK)) {
+        fprintf(stderr, "got non-sealed memfd\n");
+        return 0;
+    }
+
+    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == address) {
+        fprintf(stderr, "memory map failed\n");
+        return 0;
+    }
+
+    pthread_mutex_lock(vrms_scene->render_buffer_lock);
+    if (NULL != vrms_scene->render_buffer) {
+        free(vrms_scene->render_buffer);
+    }
+    vrms_scene->render_buffer = malloc(size);
+    vrms_scene->render_buffer_nr_objects = nr_objects;
+    memcpy(vrms_scene->render_buffer, (char*)address, size);
+    pthread_mutex_unlock(vrms_scene->render_buffer_lock);
+
+    return 1;
+}
+
 vrms_object_t* vrms_server_get_object_by_id(vrms_scene_t* vrms_scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (vrms_scene->next_object_id <= id) {
@@ -288,43 +322,84 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
 void vrms_server_draw_mesh_texture(vrms_scene_t* vrms_scene, GLuint shader_id, vrms_object_mesh_texture_t* vrms_object_mesh_texture, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
 }
 
-void vrms_server_draw_scene(vrms_server_t* vrms_server, GLuint shader_id, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
-    int si, oi;
-    vrms_scene_t* vrms_scene;
-    vrms_object_t* vrms_object;
+void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint32_t matrix_idx, uint32_t mesh_id, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+    vrms_object_t* matrix_object;
+    vrms_object_t* mesh_object;
+    vrms_object_data_t* matrix;
+    float matrix_buffer[16];
 
-    esmRotatef(model_matrix, 2.0f, 1, 0, 0);
-    esmTranslatef(model_matrix, -1.0f, -1.0f, -1.0f);
+    if (matrix_id >= scene->next_object_id) {
+        fprintf(stderr, "matrix object: %d is out of bounds\n", matrix_id);
+        return;
+    }
 
-    for (si = 1; si < vrms_server->next_scene_id; si++) {
-        vrms_scene = vrms_server->scenes[si];
-        if (NULL != vrms_scene) {
-            for (oi = 1; oi < vrms_scene->next_object_id; oi++) {
-                vrms_object = vrms_scene->objects[oi];
-                if (NULL == vrms_object) {
+    if (mesh_id >= scene->next_object_id) {
+        fprintf(stderr, "mesh object: %d is out of bounds\n", mesh_id);
+        return;
+    }
+
+    matrix_object = vrms_server_get_object_by_id(scene, matrix_id);
+    matrix = matrix_object->object.object_data;
+
+    mesh_object = vrms_server_get_object_by_id(scene, mesh_id);
+
+    glBindBuffer(GL_ARRAY_BUFFER, matrix->gl_id);
+    glGetBufferSubData(GL_ARRAY_BUFFER, matrix_idx * 16, sizeof(float) * 16, matrix_buffer);
+
+    esmMultiply(model_matrix, matrix_buffer);
+
+    if (VRMS_OBJECT_MESH_COLOR == mesh_object->type) {
+        vrms_server_draw_mesh_color(scene, shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+    }
+    else if (VRMS_OBJECT_MESH_TEXTURE == mesh_object->type) {
+        vrms_server_draw_mesh_texture(scene, shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+    }
+}
+
+void vrms_server_draw_scene_buffer(vrms_scene_t* scene, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+    uint32_t matrix_id, matrix_idx, mesh_id;
+
+    if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
+        int i = 0;
+        int idx = 0;
+        for (i = 0; i < scene->render_buffer_nr_objects; i++) {
+            matrix_id = scene->render_buffer[idx + 0];
+            matrix_idx = scene->render_buffer[idx + 1];
+            mesh_id = scene->render_buffer[idx + 2];
+            vrms_server_draw_scene_object(scene, matrix_id, matrix_idx, mesh_id, shader_id, projection_matrix, view_matrix, model_matrix);
+            idx += 3;
+        }
+        pthread_mutex_unlock(scene->render_buffer_lock);
+    }
+    else {
+        fprintf(stderr, "lock on render bufer\n");
+    }
+}
+
+void vrms_server_draw_scenes(vrms_server_t* server, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+    int si;//, oi;
+    vrms_scene_t* scene;
+
+    for (si = 1; si < server->next_scene_id; si++) {
+        scene = server->scenes[si];
+        if (NULL != scene) {
+            vrms_server_draw_scene_buffer(scene, shader_id, projection_matrix, view_matrix, model_matrix);
+/*
+            for (oi = 1; oi < scene->next_object_id; oi++) {
+                object = scene->objects[oi];
+                if (NULL == object) {
                     fprintf(stderr, "null object stored in scene at %d\n", oi);
                     break;
                 }
-                switch (vrms_object->type) {
-                    case VRMS_OBJECT_INVALID:
-                    break;
-                    case VRMS_OBJECT_SCENE:
-                    break;
-                    case VRMS_OBJECT_DATA:
-                    break;
-                    case VRMS_OBJECT_GEOMETRY:
-                    break;
-                    case VRMS_OBJECT_TEXTURE:
-                    break;
-                    case VRMS_OBJECT_MESH_COLOR:
-                        vrms_server_draw_mesh_color(vrms_scene, shader_id, vrms_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
-                    break;
-                    case VRMS_OBJECT_MESH_TEXTURE:
-                        vrms_server_draw_mesh_texture(vrms_scene, shader_id, vrms_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
-                    break;
+                if (VRMS_OBJECT_MESH_COLOR == object->type) {
+                    vrms_server_draw_mesh_color(scene, shader_id, object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+                }
+                else if (VRMS_OBJECT_MESH_TEXTURE == object->type) {
+                    vrms_server_draw_mesh_texture(scene, shader_id, object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
                 }
                 if (oi >= 2000) break;
             }
+*/
         }
         else {
             fprintf(stderr, "null scene at %d\n", si);
@@ -356,15 +431,14 @@ void vrms_scene_queue_item_process(vrms_scene_t* scene, vrms_queue_item_t* queue
     if (VRMS_QUEUE_DATA_LOAD == queue_item->type) {
         data_load = queue_item->item.data_load;
         if (VRMS_INDEX == data_load->type) {
-            fprintf(stderr, "loading GL element buffer\n");
             vrms_queue_load_gl_element_buffer(data_load);
         }
         else {
             if (VRMS_MATRIX == data_load->type) {
                 fprintf(stderr, "allocating local space for matrix data\n");
+                vrms_queue_load_gl_buffer(data_load);
             }
             else {
-                fprintf(stderr, "loading GL buffer\n");
                 vrms_queue_load_gl_buffer(data_load);
             }
         }

@@ -19,7 +19,7 @@ typedef struct _Reply Reply;
 typedef struct _CreateScene CreateScene;
 typedef struct _DestroyScene DestroyScene;
 typedef struct _CreateDataObject CreateDataObject;
-typedef struct _CreateRenderBuffer CreateRenderBuffer;
+typedef struct _SetRenderBuffer SetRenderBuffer;
 typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
 typedef struct _CreateMeshColor CreateMeshColor;
@@ -77,7 +77,6 @@ struct  _CreateDataObject
   ProtobufCMessage base;
   int32_t scene_id;
   CreateDataObject__Type type;
-  int32_t shm_fd;
   int32_t offset;
   int32_t size;
   int32_t nr_strides;
@@ -85,17 +84,17 @@ struct  _CreateDataObject
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0 }
 
 
-struct  _CreateRenderBuffer
+struct  _SetRenderBuffer
 {
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t nr_objects;
 };
-#define CREATE_RENDER_BUFFER__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_render_buffer__descriptor) \
+#define SET_RENDER_BUFFER__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&set_render_buffer__descriptor) \
     , 0, 0 }
 
 
@@ -227,24 +226,24 @@ CreateDataObject *
 void   create_data_object__free_unpacked
                      (CreateDataObject *message,
                       ProtobufCAllocator *allocator);
-/* CreateRenderBuffer methods */
-void   create_render_buffer__init
-                     (CreateRenderBuffer         *message);
-size_t create_render_buffer__get_packed_size
-                     (const CreateRenderBuffer   *message);
-size_t create_render_buffer__pack
-                     (const CreateRenderBuffer   *message,
+/* SetRenderBuffer methods */
+void   set_render_buffer__init
+                     (SetRenderBuffer         *message);
+size_t set_render_buffer__get_packed_size
+                     (const SetRenderBuffer   *message);
+size_t set_render_buffer__pack
+                     (const SetRenderBuffer   *message,
                       uint8_t             *out);
-size_t create_render_buffer__pack_to_buffer
-                     (const CreateRenderBuffer   *message,
+size_t set_render_buffer__pack_to_buffer
+                     (const SetRenderBuffer   *message,
                       ProtobufCBuffer     *buffer);
-CreateRenderBuffer *
-       create_render_buffer__unpack
+SetRenderBuffer *
+       set_render_buffer__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   create_render_buffer__free_unpacked
-                     (CreateRenderBuffer *message,
+void   set_render_buffer__free_unpacked
+                     (SetRenderBuffer *message,
                       ProtobufCAllocator *allocator);
 /* DestroyDataObject methods */
 void   destroy_data_object__init
@@ -336,8 +335,8 @@ typedef void (*DestroyScene_Closure)
 typedef void (*CreateDataObject_Closure)
                  (const CreateDataObject *message,
                   void *closure_data);
-typedef void (*CreateRenderBuffer_Closure)
-                 (const CreateRenderBuffer *message,
+typedef void (*SetRenderBuffer_Closure)
+                 (const SetRenderBuffer *message,
                   void *closure_data);
 typedef void (*DestroyDataObject_Closure)
                  (const DestroyDataObject *message,
@@ -362,7 +361,7 @@ extern const ProtobufCMessageDescriptor create_scene__descriptor;
 extern const ProtobufCMessageDescriptor destroy_scene__descriptor;
 extern const ProtobufCMessageDescriptor create_data_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
-extern const ProtobufCMessageDescriptor create_render_buffer__descriptor;
+extern const ProtobufCMessageDescriptor set_render_buffer__descriptor;
 extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;

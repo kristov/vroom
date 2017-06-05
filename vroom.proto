@@ -23,14 +23,13 @@ message CreateDataObject {
     }
     required int32 scene_id = 1;
     required Type type = 2;
-    required int32 shm_fd = 3;
-    required int32 offset = 4;
-    required int32 size = 5;
-    required int32 nr_strides = 6;
-    required int32 stride = 7;
+    required int32 offset = 3;
+    required int32 size = 4;
+    required int32 nr_strides = 5;
+    required int32 stride = 6;
 }
 
-message CreateRenderBuffer {
+message SetRenderBuffer {
     required int32 scene_id = 1;
     required int32 nr_objects = 2;
 }

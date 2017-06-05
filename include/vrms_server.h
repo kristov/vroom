@@ -92,6 +92,9 @@ typedef struct vrms_scene {
     vrms_queue_item_t** outbound_queue;
     uint32_t outbound_queue_index;
     pthread_mutex_t* outbound_queue_lock;
+    uint32_t render_buffer_nr_objects;
+    uint32_t* render_buffer;
+    pthread_mutex_t* render_buffer_lock;
 } vrms_scene_t;
 
 typedef struct vrms_server {
@@ -106,6 +109,7 @@ uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type
 uint32_t vrms_create_geometry_object(vrms_scene_t* scene, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 uint32_t vrms_create_mesh_color(vrms_scene_t* vrms_scene, uint32_t geometry_id, float r, float g, float b, float a);
 uint32_t vrms_create_mesh_texture(vrms_scene_t* vrms_scene, uint32_t geometry_id, uint32_t uv_id, uint32_t texture_id);
-void vrms_server_draw_scene(vrms_server_t* vrms_server, GLuint shader_id, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix);
+uint32_t vrms_set_render_buffer(vrms_scene_t* vrms_scene, uint32_t fd, uint32_t nr_objects);
+void vrms_server_draw_scenes(vrms_server_t* vrms_server, GLuint shader_id, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix);
 void vrms_queue_item_process(vrms_queue_item_t* queue_item);
 void vrms_server_process_queues(vrms_server_t* server);

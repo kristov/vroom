@@ -179,47 +179,47 @@ void   create_data_object__free_unpacked
   assert(message->base.descriptor == &create_data_object__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   create_render_buffer__init
-                     (CreateRenderBuffer         *message)
+void   set_render_buffer__init
+                     (SetRenderBuffer         *message)
 {
-  static CreateRenderBuffer init_value = CREATE_RENDER_BUFFER__INIT;
+  static SetRenderBuffer init_value = SET_RENDER_BUFFER__INIT;
   *message = init_value;
 }
-size_t create_render_buffer__get_packed_size
-                     (const CreateRenderBuffer *message)
+size_t set_render_buffer__get_packed_size
+                     (const SetRenderBuffer *message)
 {
-  assert(message->base.descriptor == &create_render_buffer__descriptor);
+  assert(message->base.descriptor == &set_render_buffer__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t create_render_buffer__pack
-                     (const CreateRenderBuffer *message,
+size_t set_render_buffer__pack
+                     (const SetRenderBuffer *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &create_render_buffer__descriptor);
+  assert(message->base.descriptor == &set_render_buffer__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t create_render_buffer__pack_to_buffer
-                     (const CreateRenderBuffer *message,
+size_t set_render_buffer__pack_to_buffer
+                     (const SetRenderBuffer *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &create_render_buffer__descriptor);
+  assert(message->base.descriptor == &set_render_buffer__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-CreateRenderBuffer *
-       create_render_buffer__unpack
+SetRenderBuffer *
+       set_render_buffer__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (CreateRenderBuffer *)
-     protobuf_c_message_unpack (&create_render_buffer__descriptor,
+  return (SetRenderBuffer *)
+     protobuf_c_message_unpack (&set_render_buffer__descriptor,
                                 allocator, len, data);
 }
-void   create_render_buffer__free_unpacked
-                     (CreateRenderBuffer *message,
+void   set_render_buffer__free_unpacked
+                     (SetRenderBuffer *message,
                       ProtobufCAllocator *allocator)
 {
-  assert(message->base.descriptor == &create_render_buffer__descriptor);
+  assert(message->base.descriptor == &set_render_buffer__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   destroy_data_object__init
@@ -559,7 +559,7 @@ const ProtobufCEnumDescriptor create_data_object__type__descriptor =
   create_data_object__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
+static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
 {
   {
     "scene_id",
@@ -586,20 +586,8 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "shm_fd",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateDataObject, shm_fd),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "offset",
-    4,
+    3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -611,7 +599,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
   },
   {
     "size",
-    5,
+    4,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -623,7 +611,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
   },
   {
     "nr_strides",
-    6,
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -635,7 +623,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
   },
   {
     "stride",
-    7,
+    6,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -647,18 +635,17 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
   },
 };
 static const unsigned create_data_object__field_indices_by_name[] = {
-  5,   /* field[5] = nr_strides */
-  3,   /* field[3] = offset */
+  4,   /* field[4] = nr_strides */
+  2,   /* field[2] = offset */
   0,   /* field[0] = scene_id */
-  2,   /* field[2] = shm_fd */
-  4,   /* field[4] = size */
-  6,   /* field[6] = stride */
+  3,   /* field[3] = size */
+  5,   /* field[5] = stride */
   1,   /* field[1] = type */
 };
 static const ProtobufCIntRange create_data_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 7 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor create_data_object__descriptor =
 {
@@ -668,14 +655,14 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   "CreateDataObject",
   "",
   sizeof(CreateDataObject),
-  7,
+  6,
   create_data_object__field_descriptors,
   create_data_object__field_indices_by_name,
   1,  create_data_object__number_ranges,
   (ProtobufCMessageInit) create_data_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor create_render_buffer__field_descriptors[2] =
+static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[2] =
 {
   {
     "scene_id",
@@ -683,7 +670,7 @@ static const ProtobufCFieldDescriptor create_render_buffer__field_descriptors[2]
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateRenderBuffer, scene_id),
+    offsetof(SetRenderBuffer, scene_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -695,35 +682,35 @@ static const ProtobufCFieldDescriptor create_render_buffer__field_descriptors[2]
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(CreateRenderBuffer, nr_objects),
+    offsetof(SetRenderBuffer, nr_objects),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned create_render_buffer__field_indices_by_name[] = {
+static const unsigned set_render_buffer__field_indices_by_name[] = {
   1,   /* field[1] = nr_objects */
   0,   /* field[0] = scene_id */
 };
-static const ProtobufCIntRange create_render_buffer__number_ranges[1 + 1] =
+static const ProtobufCIntRange set_render_buffer__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor create_render_buffer__descriptor =
+const ProtobufCMessageDescriptor set_render_buffer__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "CreateRenderBuffer",
-  "CreateRenderBuffer",
-  "CreateRenderBuffer",
+  "SetRenderBuffer",
+  "SetRenderBuffer",
+  "SetRenderBuffer",
   "",
-  sizeof(CreateRenderBuffer),
+  sizeof(SetRenderBuffer),
   2,
-  create_render_buffer__field_descriptors,
-  create_render_buffer__field_indices_by_name,
-  1,  create_render_buffer__number_ranges,
-  (ProtobufCMessageInit) create_render_buffer__init,
+  set_render_buffer__field_descriptors,
+  set_render_buffer__field_indices_by_name,
+  1,  set_render_buffer__number_ranges,
+  (ProtobufCMessageInit) set_render_buffer__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor destroy_data_object__field_descriptors[2] =

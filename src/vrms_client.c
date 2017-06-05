@@ -141,19 +141,18 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
 
     msg.scene_id = client->scene_id;
     msg.type = pb_type;
-    msg.shm_fd = shm_fd;
     msg.offset = offset;
     msg.size = size;
     msg.nr_strides = nr_strides;
     msg.stride = stride;
 
     length = create_data_object__get_packed_size(&msg);
-  
+
     buf = malloc(length);
     create_data_object__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, shm_fd);
-  
+
     free(buf);
     return id;
 }
@@ -202,6 +201,26 @@ uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_
   
     free(buf);
     return id;
+}
+
+uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t shm_fd, uint32_t nr_items) {
+    uint32_t ret;
+    SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.nr_objects = nr_items;
+
+    length = set_render_buffer__get_packed_size(&msg);
+
+    buf = malloc(length);
+    set_render_buffer__pack(&msg, buf);
+
+    ret = vrms_client_send_message(client, VRMS_SETRENDERBUFFER, buf, length, shm_fd);
+
+    free(buf);
+    return ret;
 }
 
 int32_t vrms_client_connect_socket(vrms_client_t* client) {

@@ -190,6 +190,31 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
     return id;
 }
 
+uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+    uint32_t id;
+    SetRenderBuffer* cs_msg;
+    cs_msg = set_render_buffer__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        printf("error unpacking incoming message\n");
+        *error = VRMS_INVALIDREQUEST;
+        return 0;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+
+    id = vrms_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
+
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return id;
+}
+
 void send_reply(int32_t fd, int32_t id, int32_t error) {
     void *out_buf;
     int32_t length;
@@ -302,6 +327,9 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         break;
         case VRMS_CREATEMESHTEXTURE:
             id = receive_create_mesh_texture(client->server->vrms_server, in_buf, length_r, &error);
+        break;
+        case VRMS_SETRENDERBUFFER:
+            id = receive_set_render_buffer(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
         break;
         default:
             id = 0;
@@ -428,7 +456,7 @@ void* start_hmd_thread(void* ptr) {
 }
 
 void draw_scene(opengl_stereo* ostereo) {
-    vrms_server_draw_scene(vrms_server, ostereo->default_scene_shader_program_id, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+    vrms_server_draw_scenes(vrms_server, ostereo->default_scene_shader_program_id, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
 }
 
 GLvoid reshape(int w, int h) {
