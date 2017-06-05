@@ -1,4 +1,12 @@
+#ifdef RASPBERRYPI
+#include <GLES/gl.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
+#else /* not RASPBERRYPI */
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
+#endif /* RASPBERRYPI */
+
 #include "vrms.h"
 
 typedef struct vrms_object_data {

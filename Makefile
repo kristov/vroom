@@ -15,6 +15,8 @@ rpi_egl : INCLUDEDIRS := -I/opt/vc/include
 rpi_egl : LINKDIRS := -L/opt/vc/lib
 rpi_egl : PREPROC := -DRASPBERRYPI
 
+rpi_egl: all
+
 all: pre_work server client
 
 pre_work:
