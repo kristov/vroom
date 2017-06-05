@@ -37,6 +37,7 @@ typedef struct opengl_stereo {
     GLuint default_scene_shader_program_id;
     GLfloat* model_matrix;
     GLfloat* view_matrix;
+    GLfloat* hmd_matrix;
     GLfloat* projection_matrix;
     void (*draw_scene_function)(opengl_stereo* ostereo);
     GLuint barrel_power_id;

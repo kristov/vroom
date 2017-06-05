@@ -13,12 +13,15 @@
 #include "array-heap.h"
 #include "vroom.pb-c.h"
 #include "vrms_server.h"
+#include "vrms_hmd.h"
+#include "esm.h"
 #include "opengl_stereo.h"
 
 #define MAX_MSG_SIZE 1024
 
 opengl_stereo* ostereo;
 vrms_server_t* vrms_server;
+vrms_hmd_t* vrms_hmd;
 
 struct sock_ev_serv {
     ev_io io;
@@ -391,7 +394,7 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
     return 0;
 }
 
-void* start_socket_thread(void *ptr) {
+void* start_socket_thread(void* ptr) {
     int max_queue = 128;
     struct sock_ev_serv server;
     EV_P = ev_default_loop(0);
@@ -414,6 +417,13 @@ void* start_socket_thread(void *ptr) {
     return NULL;
 }
 
+void* start_hmd_thread(void* ptr) {
+    vrms_hmd = vrms_hmd_create();
+    vrms_hmd_init(vrms_hmd);
+    vrms_hmd_run(vrms_hmd);
+    return NULL;
+}
+
 void draw_scene(opengl_stereo* ostereo) {
     vrms_server_draw_scene(vrms_server, ostereo->default_scene_shader_program_id, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
 }
@@ -423,9 +433,21 @@ GLvoid reshape(int w, int h) {
 }
 
 GLvoid display(GLvoid) {
-    vrms_server_process_queues(vrms_server);
     opengl_stereo_display(ostereo);
     glutSwapBuffers();
+}
+
+void do_timer(int timer_event) {
+    vrms_server_process_queues(vrms_server);
+    if (vrms_hmd != NULL) {
+        if (!pthread_mutex_trylock(vrms_hmd->matrix_lock)) {
+esmDump(vrms_hmd->matrix, "hmd matrix");
+            esmCopy(ostereo->hmd_matrix, vrms_hmd->matrix);
+            pthread_mutex_unlock(vrms_hmd->matrix_lock);
+        }
+    }
+    glutPostRedisplay();
+    glutTimerFunc(10, do_timer, 1);
 }
 
 void initWindowingSystem(int *argc, char **argv, int width, int height) {
@@ -435,6 +457,7 @@ void initWindowingSystem(int *argc, char **argv, int width, int height) {
     glutCreateWindow("Stereo Test");
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
+    glutTimerFunc(10, do_timer, 1);
 }
 
 void init(int *argc, char **argv) {
@@ -447,17 +470,29 @@ void init(int *argc, char **argv) {
     ostereo->draw_scene_function = &draw_scene;
 }
 
+
+
 int32_t main(int argc, char **argv) {
     pthread_t socket_thread;
+    pthread_t hmd_thread;
+    int32_t thread_ret;
 
-    int32_t thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
+    thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start socket thread\n");
         exit(1);
     }
+
+    thread_ret = pthread_create(&hmd_thread, NULL, start_hmd_thread, NULL);
+    if (thread_ret != 0) {
+        fprintf(stderr, "unable to start hmd thread\n");
+        exit(1);
+    }
+
     init(&argc, argv);
     glutMainLoop();
 
     pthread_join(socket_thread, NULL);
+    pthread_join(hmd_thread, NULL);
     return 0;
 }

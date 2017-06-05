@@ -332,7 +332,6 @@ void vrms_server_draw_scene(vrms_server_t* vrms_server, GLuint shader_id, GLfloa
     vrms_scene_t* vrms_scene;
     vrms_object_t* vrms_object;
 
-    //esmTranslatef(model_matrix, 0.0f, 0.0f, -10.0f);
     esmRotatef(model_matrix, 2.0f, 1, 0, 0);
     esmTranslatef(model_matrix, -1.0f, -1.0f, -1.0f);
 

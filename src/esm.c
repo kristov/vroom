@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <memory.h>
 #ifdef RASPBERRYPI
 #include <GLES/gl.h>
@@ -27,6 +28,24 @@ void esm_set_identity(GLfloat* M) {
     M[13] = 0;
     M[14] = 0;
     M[15] = 1;
+}
+
+void esmDump(GLfloat* M, const char* name) {
+    if (M == NULL) {
+        fprintf(stderr, "ESM: undefined matrix\n");
+        return;
+    }
+
+    fprintf(stderr, "ESM: \"%-10s\": -----------------------------\n", name);
+    int i, v;
+    for (i = 0; i < 4; i++) {
+        for (v = 0; v < 4; v++) {
+            fprintf(stderr, "%8.2f", M[v + (i * 4)]);
+        }
+        fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "ESM: -----------------------------\n");
+    fprintf(stderr, "\n");
 }
 
 void esmMultiply(GLfloat* M, GLfloat* M2) {
@@ -297,6 +316,25 @@ GLfloat* esmCreate() {
     GLfloat* M = malloc(sizeof(GLfloat) * 16);
     esm_set_identity(M);
     return M;
+}
+
+void esmCopy(GLfloat* dst, GLfloat* src) {
+    dst[0] = src[0];
+    dst[1] = src[1];
+    dst[2] = src[2];
+    dst[3] = src[3];
+    dst[4] = src[4];
+    dst[5] = src[5];
+    dst[6] = src[6];
+    dst[7] = src[7];
+    dst[8] = src[8];
+    dst[9] = src[9];
+    dst[10] = src[10];
+    dst[11] = src[11];
+    dst[12] = src[12];
+    dst[13] = src[13];
+    dst[14] = src[14];
+    dst[15] = src[15];
 }
 
 GLfloat* esmCreateCopy(GLfloat* M) {

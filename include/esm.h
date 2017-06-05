@@ -1,3 +1,4 @@
+void esmDump(GLfloat* M, const char* name);
 void esmMultiply(GLfloat* M, GLfloat* M2);
 void esmScalef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z);
 void esmTranslatef(GLfloat* M, GLfloat x, GLfloat y, GLfloat z);
@@ -8,5 +9,6 @@ void esmOrthof(GLfloat* M, GLfloat left, GLfloat right, GLfloat bottom, GLfloat 
 void esmLoadIdentity(GLfloat* M);
 GLfloat* esmNormalMatrixFromProjection(GLfloat* M);
 GLfloat* esmCreate();
+void esmCopy(GLfloat* dst, GLfloat* src);
 GLfloat* esmCreateCopy(GLfloat* M);
 void esmDestroy(GLfloat* M);
