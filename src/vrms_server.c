@@ -110,6 +110,27 @@ vrms_object_t* vrms_object_create(vrms_scene_t* vrms_scene) {
     return vrms_object;
 }
 
+void vrms_queue_add_data_load(vrms_scene_t* scene, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
+    vrms_queue_item_data_load_t* data_load = malloc(sizeof(vrms_queue_item_data_load_t));
+    memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
+
+    data_load->size = size;
+    data_load->destination = gl_id_ref;
+    data_load->type = type;
+    data_load->buffer = buffer;
+
+    vrms_queue_item_t* queue_item = malloc(sizeof(vrms_queue_item_t));
+    memset(queue_item, 0, sizeof(vrms_queue_item_t));
+    queue_item->type = VRMS_QUEUE_DATA_LOAD;
+
+    queue_item->item.data_load = data_load;
+
+    pthread_mutex_lock(scene->inbound_queue_lock);
+    scene->inbound_queue[scene->inbound_queue_index] = queue_item;
+    scene->inbound_queue_index++;
+    pthread_mutex_unlock(scene->inbound_queue_lock);
+}
+
 uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type, uint32_t fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
     void* address;
     void* buffer;
@@ -143,24 +164,13 @@ uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type
     object_data->stride = stride;
     vrms_object->object.object_data = object_data;
 
-    vrms_queue_item_data_load_t* data_load = malloc(sizeof(vrms_queue_item_data_load_t));
-    memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
-
-    data_load->size = size;
-    data_load->destination = &object_data->gl_id;
-    data_load->type = type;
-    data_load->buffer = buffer;
-
-    vrms_queue_item_t* queue_item = malloc(sizeof(vrms_queue_item_t));
-    memset(queue_item, 0, sizeof(vrms_queue_item_t));
-    queue_item->type = VRMS_QUEUE_DATA_LOAD;
-
-    queue_item->item.data_load = data_load;
-
-    pthread_mutex_lock(vrms_scene->inbound_queue_lock);
-    vrms_scene->inbound_queue[vrms_scene->inbound_queue_index] = queue_item;
-    vrms_scene->inbound_queue_index++;
-    pthread_mutex_unlock(vrms_scene->inbound_queue_lock);
+    if (VRMS_MATRIX == type) {
+        fprintf(stderr, "allocating local space for matrix data\n");
+        object_data->local_storage = buffer;
+    }
+    else {
+        vrms_queue_add_data_load(vrms_scene, size, &object_data->gl_id, type, buffer);
+    }
 
     return vrms_object->id;
 }
@@ -341,12 +351,14 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint
     matrix_object = vrms_server_get_object_by_id(scene, matrix_id);
     matrix = matrix_object->object.object_data;
 
+    if (NULL != matrix->local_storage) {
+        uint32_t offset = matrix_idx * 16;
+        uint32_t size = sizeof(float) * 16;
+        memcpy(matrix_buffer, &((char*)matrix->local_storage)[offset], size);
+        esmMultiply(model_matrix, matrix_buffer);
+    }
+
     mesh_object = vrms_server_get_object_by_id(scene, mesh_id);
-
-    glBindBuffer(GL_ARRAY_BUFFER, matrix->gl_id);
-    glGetBufferSubData(GL_ARRAY_BUFFER, matrix_idx * 16, sizeof(float) * 16, matrix_buffer);
-
-    esmMultiply(model_matrix, matrix_buffer);
 
     if (VRMS_OBJECT_MESH_COLOR == mesh_object->type) {
         vrms_server_draw_mesh_color(scene, shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
@@ -434,13 +446,7 @@ void vrms_scene_queue_item_process(vrms_scene_t* scene, vrms_queue_item_t* queue
             vrms_queue_load_gl_element_buffer(data_load);
         }
         else {
-            if (VRMS_MATRIX == data_load->type) {
-                fprintf(stderr, "allocating local space for matrix data\n");
-                vrms_queue_load_gl_buffer(data_load);
-            }
-            else {
-                vrms_queue_load_gl_buffer(data_load);
-            }
+            vrms_queue_load_gl_buffer(data_load);
         }
         free(data_load);
         free(queue_item);

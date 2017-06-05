@@ -15,6 +15,7 @@ typedef struct vrms_object_data {
     uint32_t nr_strides;
     uint32_t stride;
     GLuint gl_id;
+    void* local_storage;
 } vrms_object_data_t;
 
 typedef struct vrms_object_geometry {
@@ -56,14 +57,6 @@ typedef struct vrms_object {
         vrms_object_matrix_t* object_matrix;
     } object;
 } vrms_object_t;
-
-typedef struct vrms_gl_buffer {
-    pthread_mutex_t* lock;
-    GLuint* destination;
-    float* float_buffer;
-    uint32_t* int_buffer;
-    uint32_t size;
-} vrms_gl_buffer_t;
 
 typedef enum vrms_queue_item_type {
     VRMS_QUEUE_DATA_LOAD,
