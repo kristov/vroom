@@ -289,6 +289,11 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     object = vrms_server_get_object_by_id(scene, geometry->index_id);
     index = object->object.object_data;
 
+    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id)) {
+        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id);
+        return;
+    }
+
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
 
@@ -320,6 +325,7 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
     glEnableVertexAttribArray(m_mv);
+    printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
     glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
@@ -396,22 +402,6 @@ void vrms_server_draw_scenes(vrms_server_t* server, GLuint shader_id, float* pro
         scene = server->scenes[si];
         if (NULL != scene) {
             vrms_server_draw_scene_buffer(scene, shader_id, projection_matrix, view_matrix, model_matrix);
-/*
-            for (oi = 1; oi < scene->next_object_id; oi++) {
-                object = scene->objects[oi];
-                if (NULL == object) {
-                    fprintf(stderr, "null object stored in scene at %d\n", oi);
-                    break;
-                }
-                if (VRMS_OBJECT_MESH_COLOR == object->type) {
-                    vrms_server_draw_mesh_color(scene, shader_id, object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
-                }
-                else if (VRMS_OBJECT_MESH_TEXTURE == object->type) {
-                    vrms_server_draw_mesh_texture(scene, shader_id, object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
-                }
-                if (oi >= 2000) break;
-            }
-*/
         }
         else {
             fprintf(stderr, "null scene at %d\n", si);
@@ -425,6 +415,7 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        printOpenGLError();
         if (0 == *data_load->destination) {
             fprintf(stderr, "unable to load gl element buffer");
         }
@@ -437,6 +428,7 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
+        printOpenGLError();
         if (0 == *data_load->destination) {
             fprintf(stderr, "unable to load gl buffer");
         }

@@ -23,7 +23,7 @@
 #define MAX_MSG_SIZE 1024
 
 #define NANO_SECOND_MULTIPLIER 1000000
-const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
+const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
 opengl_stereo* ostereo;
 vrms_server_t* vrms_server;
@@ -603,7 +603,7 @@ int32_t main(int argc, char **argv) {
 
     struct timespec ts;
     ts.tv_sec = 0;
-    ts.tv_nsec = INTERVAL_MS;
+    ts.tv_nsec = INNER_LOOP_INTERVAL_MS;
 
     while (GL_TRUE) {
         opengl_stereo_display(ostereo);
