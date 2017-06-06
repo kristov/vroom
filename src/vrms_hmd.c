@@ -60,7 +60,6 @@ void vrms_hmd_run(vrms_hmd_t* hmd) {
 
         nanosleep(&ts, NULL);
     }
-    int nanosleep(const struct timespec *req, struct timespec *rem);
 }
 
 void vrms_hmd_destroy(vrms_hmd_t* hmd) {
