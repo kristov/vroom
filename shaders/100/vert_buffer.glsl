@@ -16,7 +16,7 @@ varying vec3 v_vertex;
 
 void main(void) {
     v_color = u_color;
-    v_normal = vec3(m_mv * vec4(b_normal, 1.0)); // m_mv is bad
-    v_vertex = vec3(m_mv * vec4(b_vertex, 1.0)); // m_mv is bad
+    v_normal = vec3(m_mv * vec4(b_normal, 0.0)); // m_mv is bad
+    v_vertex = vec3(m_mv * vec4(b_vertex, 0.0)); // m_mv is bad
     gl_Position = m_mvp * vec4(b_vertex, 1.0);
 }

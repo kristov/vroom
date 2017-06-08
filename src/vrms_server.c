@@ -303,6 +303,7 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
 
 esmDump(mv_matrix, "mv_matrix");
 esmDump(mvp_matrix, "mvp_matrix");
+
     glBindBuffer(GL_ARRAY_BUFFER, vertex->gl_id);
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
