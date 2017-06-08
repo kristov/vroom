@@ -37,11 +37,12 @@ void esmDump(float* M, const char* name) {
     }
 
     fprintf(stderr, "+----------+----------+----------+----------+ %s\n", name);
-    fprintf(stderr, "| %8.2f | %8.2f | %8.2f | %8.2f |\n", M[0], M[1], M[2], M[3]);
-    fprintf(stderr, "| %8.2f | %8.2f | %8.2f | %8.2f |\n", M[4], M[5], M[6], M[7]);
-    fprintf(stderr, "| %8.2f | %8.2f | %8.2f | %8.2f |\n", M[8], M[9], M[10], M[11]);
-    fprintf(stderr, "| %8.2f | %8.2f | %8.2f | %8.2f |\n", M[12], M[13], M[14], M[15]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", M[0], M[1], M[2], M[3]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", M[4], M[5], M[6], M[7]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", M[8], M[9], M[10], M[11]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", M[12], M[13], M[14], M[15]);
     fprintf(stderr, "+----------+----------+----------+----------+\n");
+    fprintf(stderr, "   trans1     trans2     trans3\n");
     fprintf(stderr, "\n");
 }
 
