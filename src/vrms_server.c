@@ -324,6 +324,7 @@ esmDump(mvp_matrix, "mvp_matrix");
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
     glEnableVertexAttribArray(m_mvp);
+    printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
