@@ -308,35 +308,30 @@ esmDump(mvp_matrix, "mvp_matrix");
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
-    printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
-    printOpenGLError();
 
     u_color = glGetUniformLocation(shader_id, "u_color");
     glUniform4f(u_color, mesh->r, mesh->g, mesh->b, mesh->a);
     glEnableVertexAttribArray(u_color);
-    printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
-    glEnableVertexAttribArray(m_mvp);
-    printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
-    glEnableVertexAttribArray(m_mv);
-    printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
     glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
-    printOpenGLError();
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void vrms_server_draw_mesh_texture(vrms_scene_t* vrms_scene, GLuint shader_id, vrms_object_mesh_texture_t* vrms_object_mesh_texture, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
