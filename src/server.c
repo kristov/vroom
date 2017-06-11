@@ -37,6 +37,7 @@ struct sock_ev_client {
     int fd;
     int index;
     struct sock_ev_serv* server;
+    uint32_t vrms_scene_id;
 };
 
 uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
@@ -105,8 +106,10 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
+    }
 
-    id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -129,8 +132,10 @@ uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_create_geometry_object(vrms_scene, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
+    }
 
-    id = vrms_create_geometry_object(vrms_scene, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -153,8 +158,10 @@ uint32_t receive_create_mesh_color(vrms_server_t* vrms_server, uint8_t* in_buf, 
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_create_mesh_color(vrms_scene, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
+    }
 
-    id = vrms_create_mesh_color(vrms_scene, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -177,8 +184,10 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_create_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
+    }
 
-    id = vrms_create_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -201,8 +210,9 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
-
-    id = vrms_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
+    if (NULL != vrms_scene) {
+        id = vrms_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
+    }
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
@@ -255,6 +265,9 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     if (length_r <= 0) {
         if (0 == length_r) {
             printf("orderly disconnect\n");
+            if (client->vrms_scene_id > 0) {
+                vrms_server_destroy_scene(client->server->vrms_server, client->vrms_scene_id);
+            }
             ev_io_stop(EV_A_ &client->io);
             close(client->fd);
         }
@@ -310,7 +323,16 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             error = VRMS_INVALIDREQUEST;
         break;
         case VRMS_CREATESCENE:
-            id = receive_create_scene(client->server->vrms_server, in_buf, length_r, &error);
+            if (client->vrms_scene_id > 0) {
+                error = VRMS_INVALIDREQUEST;
+                id = 0;
+            }
+            else {
+                id = receive_create_scene(client->server->vrms_server, in_buf, length_r, &error);
+                if (id > 0) {
+                    client->vrms_scene_id = id;
+                }
+            }
         break;
         case VRMS_DESTROYSCENE:
         break;
@@ -353,7 +375,6 @@ inline static struct sock_ev_client* client_new(int fd) {
 
     client = realloc(NULL, sizeof(struct sock_ev_client));
     client->fd = fd;
-    //client->server = server;
     setnonblock(client->fd);
     ev_io_init(&client->io, client_cb, client->fd, EV_READ);
 
@@ -378,6 +399,7 @@ static void server_cb(EV_P_ ev_io *w, int revents) {
         }
         printf("accepted a client\n");
         client = client_new(client_fd);
+        client->vrms_scene_id = 0;
         client->server = server;
         client->index = array_push(&server->clients, client);
         ev_io_start(EV_A_ &client->io);
@@ -469,7 +491,7 @@ GLvoid display(GLvoid) {
 }
 
 void do_timer(int timer_event) {
-    vrms_server_process_queues(vrms_server);
+    vrms_server_process_queue(vrms_server);
     if (vrms_hmd != NULL) {
         if (!pthread_mutex_trylock(vrms_hmd->matrix_lock)) {
             esmCopy(ostereo->hmd_matrix, vrms_hmd->matrix);

@@ -608,7 +608,7 @@ int32_t main(int argc, char **argv) {
     while (GL_TRUE) {
         opengl_stereo_display(ostereo);
         eglSwapBuffers(display, surface);
-        vrms_server_process_queues(vrms_server);
+        vrms_server_process_queue(vrms_server);
         if (vrms_hmd != NULL) {
             if (!pthread_mutex_trylock(vrms_hmd->matrix_lock)) {
                 esmCopy(ostereo->hmd_matrix, vrms_hmd->matrix);
