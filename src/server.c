@@ -13,9 +13,11 @@
 #include "array-heap.h"
 #include "vroom.pb-c.h"
 #include "vrms_server.h"
+#include "vrms_scene.h"
 #include "vrms_hmd.h"
 #include "esm.h"
 #include "opengl_stereo.h"
+#include "vrms.h"
 
 #define MAX_MSG_SIZE 1024
 
@@ -56,7 +58,7 @@ uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32
         return 0;
     }
 
-    id = vrms_create_scene(vrms_server, cs_msg->name);
+    id = vrms_server_create_scene(vrms_server, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
     }
@@ -107,7 +109,7 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_create_data_object(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
+        id = vrms_scene_create_object_data(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
     }
 
     if (0 == id) {
@@ -133,7 +135,7 @@ uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_create_geometry_object(vrms_scene, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
+        id = vrms_scene_create_object_geometry(vrms_scene, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
     }
 
     if (0 == id) {
@@ -159,7 +161,7 @@ uint32_t receive_create_mesh_color(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_create_mesh_color(vrms_scene, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
+        id = vrms_scene_create_object_mesh_color(vrms_scene, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
     }
 
     if (0 == id) {
@@ -185,7 +187,7 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_create_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
+        id = vrms_scene_create_object_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
     }
 
     if (0 == id) {
@@ -211,7 +213,7 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
+        id = vrms_scene_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
     }
 
     if (0 == id) {

@@ -1,6 +1,6 @@
 CC := gcc
 CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o
-SERVEROBJS := lib/vroom.pb.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o
+SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
@@ -35,6 +35,12 @@ lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
 
 lib/vrms_server.o: src/vrms_server.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
+lib/vrms_scene.o: src/vrms_scene.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
+lib/vrms_object.o: src/vrms_object.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/vrms_client.o: src/vrms_client.c

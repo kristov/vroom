@@ -22,8 +22,40 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
+#include "vrms_object.h"
+#include "vrms_scene.h"
 #include "vrms_server.h"
 #include "esm.h"
+
+typedef enum vrms_queue_item_type {
+    VRMS_QUEUE_DATA_LOAD,
+    VRMS_QUEUE_SCENE_DESTROY,
+    VRMS_QUEUE_EVENT
+} vrms_queue_item_type_t;
+
+typedef struct vrms_queue_item_scene_destroy {
+    uint32_t scene_id;
+} vrms_queue_item_scene_destroy_t;
+
+typedef struct vrms_queue_item_data_load {
+    vrms_data_type_t type;
+    GLuint* destination;
+    void* buffer;
+    uint32_t size;
+} vrms_queue_item_data_load_t;
+
+typedef struct vrms_queue_item_event {
+    char* data;
+} vrms_queue_item_event_t;
+
+typedef struct vrms_queue_item {
+    vrms_queue_item_type_t type;
+    union {
+        vrms_queue_item_data_load_t* data_load;
+        vrms_queue_item_scene_destroy_t* scene_destroy;
+        vrms_queue_item_event_t* event;
+    } item;
+} vrms_queue_item_t;
 
 int VprintGlError(char *file, int line) {
     GLenum glErr;
@@ -94,110 +126,16 @@ vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_i
     return scene;
 }
 
-uint32_t vrms_create_scene(vrms_server_t* server, char* name) {
-    vrms_scene_t* scene = malloc(sizeof(vrms_scene_t));
-    memset(scene, 0, sizeof(vrms_scene_t));
+uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
+    vrms_scene_t* scene = vrms_scene_create(name);
 
     scene->server = server;
-
-    scene->objects = malloc(sizeof(vrms_object_t) * 10);
-    memset(scene->objects, 0, sizeof(vrms_object_t) * 10);
-    scene->next_object_id = 1;
 
     server->scenes[server->next_scene_id] = scene;
     scene->id = server->next_scene_id;
     server->next_scene_id++;
 
-    scene->render_buffer_nr_objects = 0;
-    scene->render_buffer_lock = malloc(sizeof(pthread_mutex_t));
-    memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
-
     return scene->id;
-}
-
-vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* vrms_scene, uint32_t id) {
-    vrms_object_t* vrms_object;
-    if (vrms_scene->next_object_id <= id) {
-        fprintf(stderr, "id out of range\n");
-        return NULL;
-    }
-    vrms_object = vrms_scene->objects[id];
-    if (NULL == vrms_object) {
-        fprintf(stderr, "undefined object ofr id: %d\n", id);
-        return NULL;
-    }
-    return vrms_object;
-}
-
-void vrms_object_data_destroy(vrms_object_data_t* data) {
-    if (NULL != data->local_storage) {
-        free(data->local_storage);
-    }
-    if (0 < data->gl_id) {
-        glDeleteBuffers(1, &data->gl_id);
-    }
-    free(data);
-}
-
-void vrms_object_geometry_destroy(vrms_object_geometry_t* geometry) {
-    free(geometry);
-}
-
-void vrms_object_mesh_color_destroy(vrms_object_mesh_color_t* mesh_color) {
-    free(mesh_color);
-}
-
-void vrms_object_mesh_texture_destroy(vrms_object_mesh_texture_t* mesh_texture) {
-    free(mesh_texture);
-}
-
-void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
-    free(matrix->data);
-    free(matrix);
-}
-
-void vrms_object_destroy(vrms_object_t* object) {
-    if (VRMS_OBJECT_DATA == object->type) {
-        vrms_object_data_destroy(object->object.object_data);
-    }
-    else if (VRMS_OBJECT_GEOMETRY == object->type) {
-        vrms_object_geometry_destroy(object->object.object_geometry);
-    }
-    else if (VRMS_OBJECT_MESH_COLOR == object->type) {
-        vrms_object_mesh_color_destroy(object->object.object_mesh_color);
-    }
-    else if (VRMS_OBJECT_MESH_TEXTURE == object->type) {
-        vrms_object_mesh_texture_destroy(object->object.object_mesh_texture);
-    }
-    else if (VRMS_OBJECT_MATRIX == object->type) {
-        vrms_object_matrix_destroy(object->object.object_matrix);
-    }
-}
-
-void vrms_scene_destroy_objects(vrms_scene_t* scene) {
-    uint32_t idx;
-    vrms_object_t* object;
-
-    for (idx = 1; idx < scene->next_object_id; idx++) {
-        object = vrms_scene_get_object_by_id(scene, idx);
-        vrms_object_destroy(object);
-    }
-}
-
-void vrms_scene_empty_outbound_queue(vrms_scene_t* scene) {
-/*
-    uint32_t idx;
-    vrms_queue_item_t* queue_item;
-    vrms_queue_item_data_load_t* data_load;
-
-    if (!pthread_mutex_lock(scene->outbound_queue_lock)) {
-        for (idx = 0; idx < scene->outbound_queue_index; idx++) {
-            queue_item = scene->outbound_queue[idx];
-            free(queue_item);
-        }
-        pthread_mutex_unlock(scene->inbound_queue_lock);
-    }
-*/
 }
 
 void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
@@ -209,22 +147,7 @@ void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
 
     server->scenes[scene_id] = NULL;
 
-    if (!pthread_mutex_lock(scene->render_buffer_lock)) {
-        free(scene->render_buffer);
-        pthread_mutex_unlock(scene->render_buffer_lock);
-        free(scene->render_buffer_lock);
-    }
-
-    vrms_scene_destroy_objects(scene);
-    free(scene->objects);
-
-/*
-    vrms_scene_empty_outbound_queue(scene);
-    free(scene->outbound_queue);
-    free(scene->outbound_queue_lock);
-*/
-
-    free(scene);
+    vrms_scene_destroy(scene);
 }
 
 void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
@@ -243,20 +166,7 @@ void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-vrms_object_t* vrms_object_create(vrms_scene_t* vrms_scene) {
-    vrms_object_t* vrms_object = malloc(sizeof(vrms_object_t));
-    vrms_object->type = VRMS_OBJECT_INVALID;
-    vrms_scene->objects[vrms_scene->next_object_id] = vrms_object;
-    vrms_object->id = vrms_scene->next_object_id;
-    vrms_scene->next_object_id++;
-    return vrms_object;
-}
-
-void vrms_queue_add_data_load(vrms_scene_t* scene, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
-    vrms_server_t* server;
-
-    server = scene->server;
-
+void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
     vrms_queue_item_data_load_t* data_load = malloc(sizeof(vrms_queue_item_data_load_t));
     memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
 
@@ -275,127 +185,6 @@ void vrms_queue_add_data_load(vrms_scene_t* scene, uint32_t size, GLuint* gl_id_
     server->inbound_queue[server->inbound_queue_index] = queue_item;
     server->inbound_queue_index++;
     pthread_mutex_unlock(server->inbound_queue_lock);
-}
-
-uint32_t vrms_create_data_object(vrms_scene_t* vrms_scene, vrms_data_type_t type, uint32_t fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
-    void* address;
-    void* buffer;
-    int32_t seals;
-    vrms_object_t* vrms_object;
-
-    buffer = malloc(size);
-    seals = fcntl(fd, F_GET_SEALS);
-    if (!(seals & F_SEAL_SHRINK)) {
-        fprintf(stderr, "got non-sealed memfd\n");
-        return 0;
-    }
-
-    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-    if (MAP_FAILED == address) {
-        fprintf(stderr, "memory map failed\n");
-        return 0;
-    }
-
-    memcpy(buffer, &((char*)address)[offset], size);
-
-    vrms_object = vrms_object_create(vrms_scene);
-    vrms_object->type = VRMS_OBJECT_DATA;
-
-    vrms_object_data_t* object_data = malloc(sizeof(vrms_object_data_t));
-    memset(object_data, 0, sizeof(vrms_object_data_t));
-
-    object_data->type = type;
-    object_data->size = size;
-    object_data->nr_strides = nr_strides;
-    object_data->stride = stride;
-    vrms_object->object.object_data = object_data;
-
-    if (VRMS_MATRIX == type) {
-        fprintf(stderr, "allocating local space for matrix data\n");
-        object_data->local_storage = buffer;
-    }
-    else {
-        vrms_queue_add_data_load(vrms_scene, size, &object_data->gl_id, type, buffer);
-    }
-
-    return vrms_object->id;
-}
-
-uint32_t vrms_create_geometry_object(vrms_scene_t* vrms_scene, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id) {
-    vrms_object_t* vrms_object;
-    vrms_object = vrms_object_create(vrms_scene);
-    vrms_object->type = VRMS_OBJECT_GEOMETRY;
-
-    vrms_object_geometry_t* object_geometry = malloc(sizeof(vrms_object_geometry_t));
-    object_geometry->vertex_id = vertex_id;
-    object_geometry->normal_id = normal_id;
-    object_geometry->index_id = index_id;
-
-    vrms_object->object.object_geometry = object_geometry;
-
-    return vrms_object->id;
-}
-
-uint32_t vrms_create_mesh_color(vrms_scene_t* vrms_scene, uint32_t geometry_id, float r, float g, float b, float a) {
-    vrms_object_t* vrms_object;
-    vrms_object = vrms_object_create(vrms_scene);
-    vrms_object->type = VRMS_OBJECT_MESH_COLOR;
-
-    vrms_object_mesh_color_t* object_mesh_color = malloc(sizeof(vrms_object_mesh_color_t));
-    object_mesh_color->geometry_id = geometry_id;
-    object_mesh_color->r = r;
-    object_mesh_color->g = g;
-    object_mesh_color->b = b;
-    object_mesh_color->a = a;
-
-    vrms_object->object.object_mesh_color = object_mesh_color;
-
-    return vrms_object->id;
-}
-
-uint32_t vrms_create_mesh_texture(vrms_scene_t* vrms_scene, uint32_t geometry_id, uint32_t uv_id, uint32_t texture_id) {
-    vrms_object_t* vrms_object;
-    vrms_object = vrms_object_create(vrms_scene);
-    vrms_object->type = VRMS_OBJECT_MESH_TEXTURE;
-
-    vrms_object_mesh_texture_t* object_mesh_texture = malloc(sizeof(vrms_object_mesh_texture_t));
-    object_mesh_texture->geometry_id = geometry_id;
-    object_mesh_texture->uv_id = uv_id;
-    object_mesh_texture->texture_id = texture_id;
-
-    vrms_object->object.object_mesh_texture = object_mesh_texture;
-
-    return vrms_object->id;
-}
-
-uint32_t vrms_set_render_buffer(vrms_scene_t* vrms_scene, uint32_t fd, uint32_t nr_objects) {
-    void* address;
-    int32_t seals;
-    size_t size;
-
-    size = (sizeof(uint32_t) * 3) * nr_objects;
-    seals = fcntl(fd, F_GET_SEALS);
-    if (!(seals & F_SEAL_SHRINK)) {
-        fprintf(stderr, "got non-sealed memfd\n");
-        return 0;
-    }
-
-    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-    if (MAP_FAILED == address) {
-        fprintf(stderr, "memory map failed\n");
-        return 0;
-    }
-
-    pthread_mutex_lock(vrms_scene->render_buffer_lock);
-    if (NULL != vrms_scene->render_buffer) {
-        free(vrms_scene->render_buffer);
-    }
-    vrms_scene->render_buffer = malloc(size);
-    vrms_scene->render_buffer_nr_objects = nr_objects;
-    memcpy(vrms_scene->render_buffer, (char*)address, size);
-    pthread_mutex_unlock(vrms_scene->render_buffer_lock);
-
-    return 1;
 }
 
 void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
@@ -432,9 +221,6 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     mvp_matrix = esmCreateCopy(projection_matrix);
     esmMultiply(mvp_matrix, view_matrix);
     esmMultiply(mvp_matrix, model_matrix);
-
-esmDump(mv_matrix, "mv_matrix");
-esmDump(mvp_matrix, "mvp_matrix");
 
     glBindBuffer(GL_ARRAY_BUFFER, vertex->gl_id);
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
