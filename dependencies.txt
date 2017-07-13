@@ -1,0 +1,4 @@
+protobuf-c-compiler
+freeglut3-dev
+libconfig8-dev
+libev-dev
