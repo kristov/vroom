@@ -13,6 +13,7 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
+#include "safe_malloc.h"
 #include "vroom.pb-c.h"
 #include "vrms_client.h"
 
@@ -118,7 +119,7 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     msg.name = name;
     length = create_scene__get_packed_size(&msg);
   
-    buf = malloc(length);
+    buf = SAFEMALLOC(length);
     create_scene__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATESCENE, buf, length, 0);
@@ -148,7 +149,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
 
     length = create_data_object__get_packed_size(&msg);
 
-    buf = malloc(length);
+    buf = SAFEMALLOC(length);
     create_data_object__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, shm_fd);
@@ -170,7 +171,7 @@ uint32_t vrms_client_create_geometry_object(vrms_client_t* client, uint32_t vert
 
     length = create_geometry_object__get_packed_size(&msg);
   
-    buf = malloc(length);
+    buf = SAFEMALLOC(length);
     create_geometry_object__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATEGEOMETRYOBJECT, buf, length, 0);
@@ -194,7 +195,7 @@ uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_
 
     length = create_mesh_color__get_packed_size(&msg);
   
-    buf = malloc(length);
+    buf = SAFEMALLOC(length);
     create_mesh_color__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATEMESHCOLOR, buf, length, 0);
@@ -214,7 +215,7 @@ uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t shm_fd, ui
 
     length = set_render_buffer__get_packed_size(&msg);
 
-    buf = malloc(length);
+    buf = SAFEMALLOC(length);
     set_render_buffer__pack(&msg, buf);
 
     ret = vrms_client_send_message(client, VRMS_SETRENDERBUFFER, buf, length, shm_fd);
@@ -242,7 +243,7 @@ int32_t vrms_client_connect_socket(vrms_client_t* client) {
 }
 
 vrms_client_t* vrms_connect() {
-    vrms_client_t* client = malloc(sizeof(vrms_client_t));
+    vrms_client_t* client = SAFEMALLOC(sizeof(vrms_client_t));
     if (vrms_client_connect_socket(client)) {
         return NULL;
     }

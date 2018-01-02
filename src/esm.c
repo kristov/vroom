@@ -7,6 +7,7 @@
 #else /* not RASPBERRYPI */
 #include <GL/gl.h>
 #endif /* RASPBERRYPI */
+#include "safe_malloc.h"
 #include "esm.h"
 
 #define PI 3.1415926535f
@@ -229,8 +230,8 @@ void esmOrthof(float* M, float left, float right, float bottom, float top, float
 */
 
 float* esmNormalMatrixFromProjection(float* M) {
-    float* tmp = malloc(sizeof(float) * 16);
-    float* N = malloc(sizeof(float) * 9);
+    float* tmp = SAFEMALLOC(sizeof(float) * 16);
+    float* N = SAFEMALLOC(sizeof(float) * 9);
 
     float a00 = M[0], a01 = M[1], a02 = M[2], a03 = M[3],
             a10 = M[4], a11 = M[5], a12 = M[6], a13 = M[7],
@@ -311,7 +312,7 @@ void esmLoadIdentity(float* M) {
 }
 
 float* esmCreate() {
-    float* M = malloc(sizeof(float) * 16);
+    float* M = SAFEMALLOC(sizeof(float) * 16);
     esm_set_identity(M);
     return M;
 }
@@ -336,7 +337,7 @@ void esmCopy(float* dst, float* src) {
 }
 
 float* esmCreateCopy(float* M) {
-    float* N = malloc(sizeof(float) * 16);
+    float* N = SAFEMALLOC(sizeof(float) * 16);
     N[0] = M[0];
     N[1] = M[1];
     N[2] = M[2];

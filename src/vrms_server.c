@@ -22,6 +22,8 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
+
+#include "safe_malloc.h"
 #include "vrms_object.h"
 #include "vrms_scene.h"
 #include "vrms_server.h"
@@ -97,16 +99,17 @@ int VprintGlError(char *file, int line) {
 #define printOpenGLError() VprintGlError(__FILE__, __LINE__)
 
 vrms_server_t* vrms_server_create() {
-    vrms_server_t* server = malloc(sizeof(vrms_server_t));
+    vrms_server_t* server = SAFEMALLOC(sizeof(vrms_server_t));
+    //vrms_server_t* server = SAFEMALLOC(-1UL);
 
-    server->scenes = malloc(sizeof(vrms_scene_t) * 10);
+    server->scenes = SAFEMALLOC(sizeof(vrms_scene_t) * 10);
     memset(server->scenes, 0, sizeof(vrms_scene_t) * 10);
     server->next_scene_id = 1;
 
-    server->inbound_queue = malloc(sizeof(vrms_queue_item_t) * 10);
+    server->inbound_queue = SAFEMALLOC(sizeof(vrms_queue_item_t) * 10);
     memset(server->inbound_queue, 0, sizeof(vrms_queue_item_t) * 10);
     server->inbound_queue_index = 0;
-    server->inbound_queue_lock = malloc(sizeof(pthread_mutex_t));
+    server->inbound_queue_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(server->inbound_queue_lock, 0, sizeof(pthread_mutex_t));
 
     return server;
@@ -151,10 +154,10 @@ void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
 }
 
 void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
-    vrms_queue_item_scene_destroy_t* scene_destroy = malloc(sizeof(vrms_queue_item_scene_destroy_t));
+    vrms_queue_item_scene_destroy_t* scene_destroy = SAFEMALLOC(sizeof(vrms_queue_item_scene_destroy_t));
     memset(scene_destroy, 0, sizeof(vrms_queue_item_scene_destroy_t));
 
-    vrms_queue_item_t* queue_item = malloc(sizeof(vrms_queue_item_t));
+    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
     memset(queue_item, 0, sizeof(vrms_queue_item_t));
     queue_item->type = VRMS_QUEUE_SCENE_DESTROY;
 
@@ -167,7 +170,7 @@ void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
 }
 
 void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
-    vrms_queue_item_data_load_t* data_load = malloc(sizeof(vrms_queue_item_data_load_t));
+    vrms_queue_item_data_load_t* data_load = SAFEMALLOC(sizeof(vrms_queue_item_data_load_t));
     memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
 
     data_load->size = size;
@@ -175,7 +178,7 @@ void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuin
     data_load->type = type;
     data_load->buffer = buffer;
 
-    vrms_queue_item_t* queue_item = malloc(sizeof(vrms_queue_item_t));
+    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
     memset(queue_item, 0, sizeof(vrms_queue_item_t));
     queue_item->type = VRMS_QUEUE_DATA_LOAD;
 

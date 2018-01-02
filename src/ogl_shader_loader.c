@@ -7,6 +7,7 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #endif /* RASPBERRYPI */
+#include "safe_malloc.h"
 
 GLchar *file_contents(const char *filename, GLint *length) {
     char *buffer = 0;
@@ -16,7 +17,7 @@ GLchar *file_contents(const char *filename, GLint *length) {
         fseek(f, 0, SEEK_END);
         *length = ftell(f);
         fseek(f, 0, SEEK_SET);
-        buffer = malloc(*length);
+        buffer = SAFEMALLOC(*length);
         if (buffer) {
             fread(buffer, 1, *length, f);
         }
@@ -34,7 +35,7 @@ static void show_shader_info_log(const char* filename, GLuint object) {
     GLint log_length;
     char *log;
     glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
-    log = malloc(log_length);
+    log = SAFEMALLOC(log_length);
     glGetShaderInfoLog(object, log_length, NULL, log);
     fprintf(stderr, "%s: %s\n", filename, log);
     free(log);
@@ -44,7 +45,7 @@ static void show_program_info_log(GLuint object) {
     GLint log_length;
     char *log;
     glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
-    log = malloc(log_length);
+    log = SAFEMALLOC(log_length);
     glGetProgramInfoLog(object, log_length, NULL, log);
     fprintf(stderr, "PROGRAM: %s\n", log);
     free(log);

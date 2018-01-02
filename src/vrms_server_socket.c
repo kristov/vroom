@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include "array-heap.h"
 #include "vroom.pb-c.h"
+
+#include "safe_malloc.h"
 #include "vrms_server.h"
 #include "vrms_scene.h"
 #include "vrms_hmd.h"
@@ -274,7 +276,7 @@ void send_reply(int32_t fd, int32_t id, int32_t error) {
 
     re_msg.id = id;
     length = reply__get_packed_size(&re_msg);
-    out_buf = malloc(length);
+    out_buf = SAFEMALLOC(length);
 
     re_msg.error_code = (int32_t)error;
     reply__pack(&re_msg, out_buf);

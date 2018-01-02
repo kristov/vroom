@@ -11,6 +11,7 @@
 #include <GL/glut.h>
 #endif /* RASPBERRYPI */
 #define DTR 0.0174532925
+#include "safe_malloc.h"
 #include "opengl_stereo.h"
 #include "ogl_shader_loader.h"
 #include "esm.h"
@@ -92,9 +93,9 @@ void opengl_stereo_store_screen_plane(opengl_stereo* ostereo) {
 
     ostereo->screen_text_offset = vert_size;
 
-    verts = malloc(vert_size);
-    uvs = malloc(text_size);
-    indicies = malloc(indi_size);
+    verts = SAFEMALLOC(vert_size);
+    uvs = SAFEMALLOC(text_size);
+    indicies = SAFEMALLOC(indi_size);
 
     voff = 0;
 
@@ -417,7 +418,7 @@ void opengl_stereo_set_config_value(opengl_stereo* ostereo, char* name, double v
     }
 
     if (needs_save) {
-        char* filename = malloc(sizeof(char) * 200);
+        char* filename = SAFEMALLOC(sizeof(char) * 200);
         int written = snprintf(filename, 200, "/home/%s/.openglstereorc", getenv("USER"));
         if (written == 200) {
             fprintf(stderr, "path to .openglstereorc is too long!\n");
@@ -466,7 +467,7 @@ void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
         needs_save = 1;
 
     if (needs_save) {
-        char* filename = malloc(sizeof(char) * 200);
+        char* filename = SAFEMALLOC(sizeof(char) * 200);
         int written = snprintf(filename, 200, "/home/%s/.openglstereorc", getenv("USER"));
         if (written == 200) {
             fprintf(stderr, "path to .openglstereorc is too long!\n");
@@ -478,10 +479,10 @@ void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
 
 void opengl_stereo_load_config(opengl_stereo* ostereo) {
     config_t* config;
-    config = malloc(sizeof(config_t));
+    config = SAFEMALLOC(sizeof(config_t));
     config_init(config);
 
-    char* filename = malloc(sizeof(char) * 200);
+    char* filename = SAFEMALLOC(sizeof(char) * 200);
     int written = snprintf(filename, 200, "/home/%s/.openglstereorc", getenv("USER"));
     if (written == 200) {
         fprintf(stderr, "path to .openglstereorc is too long %d!\n", written);
@@ -520,7 +521,7 @@ void opengl_stereo_init(opengl_stereo* ostereo) {
 }
 
 opengl_stereo_camera* opengl_stereo_camera_new() {
-    opengl_stereo_camera* camera = malloc(sizeof(opengl_stereo_camera));
+    opengl_stereo_camera* camera = SAFEMALLOC(sizeof(opengl_stereo_camera));
     camera->left_frustum = 0;
     camera->right_frustum = 0;
     camera->bottom_frustum = 0;
@@ -530,14 +531,14 @@ opengl_stereo_camera* opengl_stereo_camera_new() {
 }
 
 opengl_stereo_buffer_store* opengl_stereo_buffer_store_new() {
-    opengl_stereo_buffer_store* buffer = malloc(sizeof(opengl_stereo_buffer_store));
+    opengl_stereo_buffer_store* buffer = SAFEMALLOC(sizeof(opengl_stereo_buffer_store));
     buffer->buffer = 0;
     buffer->rendered_texture = 0;
     return buffer;
 }
 
 opengl_stereo* opengl_stereo_new() {
-    opengl_stereo* ostereo = malloc(sizeof(opengl_stereo));
+    opengl_stereo* ostereo = SAFEMALLOC(sizeof(opengl_stereo));
     ostereo->width = 0;
     ostereo->height = 0;
     ostereo->left_camera = NULL;

@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "safe_malloc.h"
 #include "vrms.h"
 #include "vrms_object.h"
 
 vrms_object_t* vrms_object_create() {
-    vrms_object_t* vrms_object = malloc(sizeof(vrms_object_t));
+    vrms_object_t* vrms_object = SAFEMALLOC(sizeof(vrms_object_t));
     vrms_object->type = VRMS_OBJECT_INVALID;
     return vrms_object;
 }
@@ -14,7 +15,7 @@ vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uin
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_DATA;
 
-    vrms_object_data_t* object_data = malloc(sizeof(vrms_object_data_t));
+    vrms_object_data_t* object_data = SAFEMALLOC(sizeof(vrms_object_data_t));
     memset(object_data, 0, sizeof(vrms_object_data_t));
 
     object_data->type = type;
@@ -30,7 +31,7 @@ vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_i
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_GEOMETRY;
 
-    vrms_object_geometry_t* object_geometry = malloc(sizeof(vrms_object_geometry_t));
+    vrms_object_geometry_t* object_geometry = SAFEMALLOC(sizeof(vrms_object_geometry_t));
     memset(object_geometry, 0, sizeof(vrms_object_geometry_t));
 
     object_geometry->vertex_id = vertex_id;
@@ -45,7 +46,7 @@ vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, floa
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MESH_COLOR;
 
-    vrms_object_mesh_color_t* object_mesh_color = malloc(sizeof(vrms_object_mesh_color_t));
+    vrms_object_mesh_color_t* object_mesh_color = SAFEMALLOC(sizeof(vrms_object_mesh_color_t));
     memset(object_mesh_color, 0, sizeof(vrms_object_mesh_color_t));
     object_mesh_color->geometry_id = geometry_id;
     object_mesh_color->r = r;
@@ -61,7 +62,7 @@ vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t uv
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MESH_TEXTURE;
 
-    vrms_object_mesh_texture_t* object_mesh_texture = malloc(sizeof(vrms_object_mesh_texture_t));
+    vrms_object_mesh_texture_t* object_mesh_texture = SAFEMALLOC(sizeof(vrms_object_mesh_texture_t));
     memset(object_mesh_texture, 0, sizeof(vrms_object_mesh_texture_t));
     object_mesh_texture->geometry_id = geometry_id;
     object_mesh_texture->uv_id = uv_id;

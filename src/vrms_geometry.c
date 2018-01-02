@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "safe_malloc.h"
 #include "vrms_client.h"
 #include "vrms_geometry.h"
 
@@ -303,11 +304,11 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     nr_verticies = 4 * 6;
     nr_vert_floats = 3 * nr_verticies;
 
-    verts = malloc(sizeof(float) * nr_vert_floats);
-    norms = malloc(sizeof(float) * nr_vert_floats);
+    verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
 
     nr_indicies = 6 * 6;
-    indicies = malloc(sizeof(unsigned short) * nr_indicies);
+    indicies = SAFEMALLOC(sizeof(unsigned short) * nr_indicies);
 
     std_cube_generate_verticies(verts, x, y, z);
     std_cube_generate_normals(norms);
@@ -413,11 +414,11 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     nr_verticies = 4;
     nr_vert_floats = 3 * nr_verticies;
 
-    verts = malloc(sizeof(float) * nr_vert_floats);
-    norms = malloc(sizeof(float) * nr_vert_floats);
+    verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
 
     nr_indicies = 6;
-    indicies = malloc(sizeof(unsigned short) * nr_indicies);
+    indicies = SAFEMALLOC(sizeof(unsigned short) * nr_indicies);
 
     std_plane_generate_verticies(verts, x, y);
     std_plane_generate_normals(norms);

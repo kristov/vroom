@@ -12,20 +12,21 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
+#include "safe_malloc.h"
 #include "vrms_object.h"
 #include "vrms_scene.h"
 #include "esm.h"
 
 vrms_scene_t* vrms_scene_create(char* name) {
-    vrms_scene_t* scene = malloc(sizeof(vrms_scene_t));
+    vrms_scene_t* scene = SAFEMALLOC(sizeof(vrms_scene_t));
     memset(scene, 0, sizeof(vrms_scene_t));
 
-    scene->objects = malloc(sizeof(vrms_object_t) * 10);
+    scene->objects = SAFEMALLOC(sizeof(vrms_object_t) * 10);
     memset(scene->objects, 0, sizeof(vrms_object_t) * 10);
     scene->next_object_id = 1;
 
     scene->render_buffer_nr_objects = 0;
-    scene->render_buffer_lock = malloc(sizeof(pthread_mutex_t));
+    scene->render_buffer_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
 
     return scene;
@@ -101,7 +102,7 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
     void* buffer;
     int32_t seals;
 
-    buffer = malloc(size);
+    buffer = SAFEMALLOC(size);
     seals = fcntl(fd, F_GET_SEALS);
     if (!(seals & F_SEAL_SHRINK)) {
         fprintf(stderr, "got non-sealed memfd\n");
@@ -170,7 +171,7 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t fd, uint32_t
     if (NULL != scene->render_buffer) {
         free(scene->render_buffer);
     }
-    scene->render_buffer = malloc(size);
+    scene->render_buffer = SAFEMALLOC(size);
     scene->render_buffer_nr_objects = nr_objects;
     memcpy(scene->render_buffer, (char*)address, size);
     pthread_mutex_unlock(scene->render_buffer_lock);

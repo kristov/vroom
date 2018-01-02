@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <openhmd/openhmd.h>
 #include <time.h>
+#include "safe_malloc.h"
 #include "esm.h"
 #include "vrms_hmd.h"
 
@@ -12,9 +13,9 @@
 const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
 vrms_hmd_t* vrms_hmd_create() {
-    vrms_hmd_t* hmd = malloc(sizeof(vrms_hmd_t));
+    vrms_hmd_t* hmd = SAFEMALLOC(sizeof(vrms_hmd_t));
     memset(hmd, 0, sizeof(vrms_hmd_t));
-    hmd->matrix_lock = malloc(sizeof(pthread_mutex_t));
+    hmd->matrix_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(hmd->matrix_lock, 0, sizeof(pthread_mutex_t));
     hmd->matrix = esmCreate();
     return hmd;

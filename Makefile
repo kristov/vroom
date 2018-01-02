@@ -1,6 +1,6 @@
 CC := gcc
-CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o
-SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o lib/vrms_server_socket.o lib/array_heap.o
+CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o lib/safe_malloc.o
+SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
@@ -65,6 +65,9 @@ lib/opengl_stereo.o: src/opengl_stereo.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/ogl_shader_loader.o: src/ogl_shader_loader.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
+lib/safe_malloc.o: src/safe_malloc.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/array_heap.o: src/array-heap.c
