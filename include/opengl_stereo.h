@@ -9,10 +9,8 @@ typedef struct opengl_stereo_camera {
 } opengl_stereo_camera;
 
 typedef struct opengl_stereo_buffer_store {
-    GLuint left_buffer;
-    GLuint right_buffer;
-    GLuint rendered_texture_left;
-    GLuint rendered_texture_right;
+    GLuint buffer;
+    GLuint rendered_texture;
 } opengl_stereo_buffer_store;
 
 typedef struct opengl_stereo opengl_stereo;

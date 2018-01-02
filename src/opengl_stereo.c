@@ -167,15 +167,14 @@ void opengl_stereo_render_screen_plane(opengl_stereo* ostereo) {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 }
 
-void opengl_stereo_create_render_textures(opengl_stereo* ostereo) {
-    GLuint depthRenderBufferLeft;
-    GLuint depthRenderBufferRight;
+void opengl_stereo_create_render_texture(opengl_stereo* ostereo) {
+    GLuint depthRenderBuffer;
     GLenum status;
 
-    glGenFramebuffers(1, &ostereo->screen_buffers->left_buffer);
-    glGenTextures(1, &ostereo->screen_buffers->rendered_texture_left);
-    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->left_buffer);
-    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_left);
+    glGenFramebuffers(1, &ostereo->screen_buffers->buffer);
+    glGenTextures(1, &ostereo->screen_buffers->rendered_texture);
+    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
+    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -184,38 +183,15 @@ void opengl_stereo_create_render_textures(opengl_stereo* ostereo) {
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ostereo->width / 2, ostereo->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glGenRenderbuffers(1, &depthRenderBufferLeft);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBufferLeft);
+    glGenRenderbuffers(1, &depthRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, ostereo->width / 2, ostereo->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBufferLeft);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_left, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture, 0);
 
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        fprintf(stderr, "FRAMEBUFFER [left] incomplete: %d\n", (int)status);
-    }
-
-    glGenFramebuffers(1, &ostereo->screen_buffers->right_buffer);
-    glGenTextures(1, &ostereo->screen_buffers->rendered_texture_right);
-    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->right_buffer);
-    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_right);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ostereo->width / 2, ostereo->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-    glGenRenderbuffers(1, &depthRenderBufferRight);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthRenderBufferRight);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, ostereo->width / 2, ostereo->height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthRenderBufferRight);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_right, 0);
-
-    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE) {
-        fprintf(stderr, "FRAMEBUFFER [right] incomplete: %d\n", (int)status);
+        fprintf(stderr, "FRAMEBUFFER incomplete: %d\n", (int)status);
     }
 
     return;
@@ -250,8 +226,12 @@ void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h) {
     opengl_stereo_set_frustum(ostereo);
 }
 
-void opengl_stereo_render_scene_to_left_buffer(opengl_stereo* ostereo) {
-    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->left_buffer);
+void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
+    GLint tex0;
+    GLuint m_projection;
+
+    glUseProgram(ostereo->default_scene_shader_program_id);
+    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -265,11 +245,39 @@ void opengl_stereo_render_scene_to_left_buffer(opengl_stereo* ostereo) {
                 ostereo->nearZ, ostereo->farZ);
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+
     ostereo->draw_scene_function(ostereo);
+
+    glUseProgram(ostereo->screen_shader_program_id);
+
+    ostereo->barrel_power_id = glGetUniformLocation(ostereo->screen_shader_program_id, "barrel_power");
+    glUniform1f(ostereo->barrel_power_id, 1.1f);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
+    //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+    esmLoadIdentity(ostereo->screen_matrix);
+    esmTranslatef(ostereo->screen_matrix, -1.0 + ostereo->texture_shift, -1.0, 0.0);
+
+    m_projection = glGetUniformLocation(ostereo->screen_shader_program_id, "m_projection");
+    glUniformMatrix4fv(m_projection, 1, GL_FALSE, ostereo->screen_matrix);
+
+    glViewport(0, 0, ostereo->width / 2, ostereo->height);
+
+    tex0 = glGetUniformLocation(ostereo->screen_shader_program_id, "tex0");
+    glUniform1i(tex0, 0);
+    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture);
+
+    opengl_stereo_render_screen_plane(ostereo);
 }
 
-void opengl_stereo_render_scene_to_right_buffer(opengl_stereo* ostereo) {
-    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->right_buffer);
+void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
+    GLint texLoc;
+    GLuint m_projection;
+
+    glUseProgram(ostereo->default_scene_shader_program_id);
+    glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -283,41 +291,17 @@ void opengl_stereo_render_scene_to_right_buffer(opengl_stereo* ostereo) {
                 ostereo->nearZ, ostereo->farZ);
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
+
     ostereo->draw_scene_function(ostereo);
-}
 
-void opengl_stereo_render_scene_to_buffers(opengl_stereo* ostereo) {
-    glUseProgram(ostereo->default_scene_shader_program_id);
+    glUseProgram(ostereo->screen_shader_program_id);
 
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    ostereo->barrel_power_id = glGetUniformLocation(ostereo->screen_shader_program_id, "barrel_power");
+    glUniform1f(ostereo->barrel_power_id, 1.1f);
 
-    opengl_stereo_render_scene_to_left_buffer(ostereo);
-    opengl_stereo_render_scene_to_right_buffer(ostereo);
-}
-
-void opengl_stereo_render_left_buffer_to_window(opengl_stereo* ostereo) {
-    GLint tex0;
-    GLuint m_projection;
-
-    esmLoadIdentity(ostereo->screen_matrix);
-    esmTranslatef(ostereo->screen_matrix, -1.0 + ostereo->texture_shift, -1.0, 0.0);
-
-    m_projection = glGetUniformLocation(ostereo->screen_shader_program_id, "m_projection");
-    glUniformMatrix4fv(m_projection, 1, GL_FALSE, ostereo->screen_matrix);
-
-    glViewport(0, 0, ostereo->width / 2, ostereo->height);
-
-    tex0 = glGetUniformLocation(ostereo->screen_shader_program_id, "tex0");
-    glUniform1i(tex0, 0);
-    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_left);
-
-    opengl_stereo_render_screen_plane(ostereo);
-}
-
-void opengl_stereo_render_right_buffer_to_window(opengl_stereo* ostereo) {
-    GLint texLoc;
-    GLuint m_projection;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
+    //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     esmLoadIdentity(ostereo->screen_matrix);
     esmTranslatef(ostereo->screen_matrix, -1.0 - ostereo->texture_shift, -1.0, 0.0);
@@ -329,24 +313,18 @@ void opengl_stereo_render_right_buffer_to_window(opengl_stereo* ostereo) {
 
     texLoc = glGetUniformLocation(ostereo->screen_shader_program_id, "tex0");
     glUniform1i(texLoc, 0);
-    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture_right);
+    glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture);
 
     opengl_stereo_render_screen_plane(ostereo);
 }
 
-void opengl_stereo_render_buffers_to_window(opengl_stereo* ostereo) {
-
-    glUseProgram(ostereo->screen_shader_program_id);
-
-    ostereo->barrel_power_id = glGetUniformLocation(ostereo->screen_shader_program_id, "barrel_power");
-    glUniform1f(ostereo->barrel_power_id, 1.1f);
-
+void opengl_stereo_render_scene(opengl_stereo* ostereo) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    opengl_stereo_render_left_buffer_to_window(ostereo);
-    opengl_stereo_render_right_buffer_to_window(ostereo);
+    opengl_stereo_render_left_scene(ostereo);
+    opengl_stereo_render_right_scene(ostereo);
 }
 
 /*
@@ -377,8 +355,7 @@ void opengl_stereo_display(opengl_stereo* ostereo) {
         fprintf(stderr, "opengl_stereo_ERROR: draw_scene_function not attached\n");
         return;
     }
-    opengl_stereo_render_scene_to_buffers(ostereo);
-    opengl_stereo_render_buffers_to_window(ostereo);
+    opengl_stereo_render_scene(ostereo);
 }
 
 void initGL(opengl_stereo* ostereo) {
@@ -533,7 +510,7 @@ void opengl_stereo_init_system(opengl_stereo* ostereo) {
 
     opengl_stereo_load_screen_shader(ostereo);
     opengl_stereo_set_frustum(ostereo);
-    opengl_stereo_create_render_textures(ostereo);
+    opengl_stereo_create_render_texture(ostereo);
     opengl_stereo_store_screen_plane(ostereo);
 }
 
@@ -554,10 +531,8 @@ opengl_stereo_camera* opengl_stereo_camera_new() {
 
 opengl_stereo_buffer_store* opengl_stereo_buffer_store_new() {
     opengl_stereo_buffer_store* buffer = malloc(sizeof(opengl_stereo_buffer_store));
-    buffer->left_buffer = 0;
-    buffer->right_buffer = 0;
-    buffer->rendered_texture_left = 0;
-    buffer->rendered_texture_right = 0;
+    buffer->buffer = 0;
+    buffer->rendered_texture = 0;
     return buffer;
 }
 
