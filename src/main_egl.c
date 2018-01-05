@@ -2,14 +2,17 @@
 #include <stdlib.h>
 #include <errno.h>
 #ifdef RASPBERRYPI
-#include <GLES/gl.h>
+#include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
 #else /* not RASPBERRYPI */
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glut.h>
 #endif /* RASPBERRYPI */
+#include "bcm_host.h"
 #include "vrms_server_socket.h"
+
+#define NANO_SECOND_MULTIPLIER 1000000
+const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
 int32_t main(int argc, char **argv) {
     int minor_v, major_v;
