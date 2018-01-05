@@ -29,7 +29,7 @@ server: src/main_glut.c $(SERVEROBJS)
 #	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
 
 egl_server: src/main_egl.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o server $(SERVEROBJS) $<
 
 #egl_server: src/egl_server.c $(SERVEROBJS)
 #	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
