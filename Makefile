@@ -24,10 +24,10 @@ pre_work:
 	mkdir -p lib/
 
 server: src/main_glut.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 egl_server: src/main_egl.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
 
