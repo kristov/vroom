@@ -4,6 +4,7 @@ SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
+CLIENTS := bin/green_cube
 
 EXTGL := -lGL -lGLU -lglut
 INCLUDEDIRS :=
@@ -34,7 +35,9 @@ egl_server: src/main_egl.c $(SERVEROBJS)
 #egl_server: src/egl_server.c $(SERVEROBJS)
 #	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o $@ $(SERVEROBJS) src/array-heap.c $<
 
-client: src/client.c $(CLIENTOBJS)
+clients: $(CLIENTS)
+
+bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
 
 lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
@@ -85,4 +88,5 @@ vroom-protobuf: vroom.proto
 
 clean:
 	rm -f lib/*
-	rm -f server client
+	rm -f server
+	rm -f bin/*
