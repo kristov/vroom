@@ -142,8 +142,8 @@ struct  _CreateMeshTexture
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t geometry_id;
-  int32_t uv_id;
   int32_t texture_id;
+  int32_t uv_id;
 };
 #define CREATE_MESH_TEXTURE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_mesh_texture__descriptor) \

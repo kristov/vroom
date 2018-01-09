@@ -204,6 +204,28 @@ uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_
     return id;
 }
 
+uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
+    uint32_t id;
+    CreateMeshTexture msg = CREATE_MESH_TEXTURE__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.geometry_id = geometry_id;
+    msg.texture_id = texture_id;
+    msg.uv_id = uv_id;
+
+    length = create_mesh_texture__get_packed_size(&msg);
+  
+    buf = SAFEMALLOC(length);
+    create_mesh_texture__pack(&msg, buf);
+
+    id = vrms_client_send_message(client, VRMS_CREATEMESHTEXTURE, buf, length, 0);
+  
+    free(buf);
+    return id;
+}
+
 uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t shm_fd, uint32_t nr_items) {
     uint32_t ret;
     SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;

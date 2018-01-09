@@ -223,7 +223,7 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->uv_id, cs_msg->texture_id);
+        id = vrms_scene_create_object_mesh_texture(vrms_scene, cs_msg->geometry_id, cs_msg->texture_id, cs_msg->uv_id);
     }
 
     if (0 == id) {

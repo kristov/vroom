@@ -971,20 +971,8 @@ static const ProtobufCFieldDescriptor create_mesh_texture__field_descriptors[4] 
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "uv_id",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateMeshTexture, uv_id),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "texture_id",
-    4,
+    3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -994,12 +982,24 @@ static const ProtobufCFieldDescriptor create_mesh_texture__field_descriptors[4] 
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "uv_id",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateMeshTexture, uv_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned create_mesh_texture__field_indices_by_name[] = {
   1,   /* field[1] = geometry_id */
   0,   /* field[0] = scene_id */
-  3,   /* field[3] = texture_id */
-  2,   /* field[2] = uv_id */
+  2,   /* field[2] = texture_id */
+  3,   /* field[3] = uv_id */
 };
 static const ProtobufCIntRange create_mesh_texture__number_ranges[1 + 1] =
 {

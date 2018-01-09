@@ -58,6 +58,6 @@ message CreateMeshColor {
 message CreateMeshTexture {
     required int32 scene_id = 1;
     required int32 geometry_id = 2;
-    required int32 uv_id = 3;
-    required int32 texture_id = 4;
+    required int32 texture_id = 3;
+    required int32 uv_id = 4;
 }

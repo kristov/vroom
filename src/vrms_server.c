@@ -255,7 +255,70 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vrms_server_draw_mesh_texture(vrms_scene_t* vrms_scene, GLuint shader_id, vrms_object_mesh_texture_t* vrms_object_mesh_texture, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
+void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
+
+    GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
+    GLfloat* mvp_matrix;
+    GLfloat* mv_matrix;
+
+    vrms_object_t* object;
+    vrms_object_geometry_t* geometry;
+    vrms_object_data_t* vertex;
+    vrms_object_data_t* normal;
+    vrms_object_data_t* index;
+
+    object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
+    geometry = object->object.object_geometry;
+
+    object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
+    vertex = object->object.object_data;
+
+    object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
+    normal = object->object.object_data;
+
+    object = vrms_scene_get_object_by_id(scene, geometry->index_id);
+    index = object->object.object_data;
+
+    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id)) {
+        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id);
+        return;
+    }
+
+    mv_matrix = esmCreateCopy(view_matrix);
+    esmMultiply(mv_matrix, model_matrix);
+
+    mvp_matrix = esmCreateCopy(projection_matrix);
+    esmMultiply(mvp_matrix, view_matrix);
+    esmMultiply(mvp_matrix, model_matrix);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vertex->gl_id);
+    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
+    glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_vertex);
+
+    glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
+    b_normal = glGetAttribLocation(shader_id, "b_normal");
+    glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_normal);
+
+    u_color = glGetUniformLocation(shader_id, "u_color");
+    glUniform4f(u_color, 0.5f, 0.5f, 0.5f, 1.0f);
+    glEnableVertexAttribArray(u_color);
+
+    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
+    glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
+
+    m_mv = glGetUniformLocation(shader_id, "m_mv");
+    glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
+    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
+
+    esmDestroy(mvp_matrix);
+    esmDestroy(mv_matrix);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint32_t matrix_idx, uint32_t mesh_id, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {

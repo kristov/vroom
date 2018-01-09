@@ -143,8 +143,8 @@ uint32_t vrms_scene_create_object_mesh_color(vrms_scene_t* scene, uint32_t geome
     return object->id;
 }
 
-uint32_t vrms_scene_create_object_mesh_texture(vrms_scene_t* scene, uint32_t geometry_id, uint32_t uv_id, uint32_t texture_id) {
-    vrms_object_t* object = vrms_object_mesh_texture_create(geometry_id, uv_id, texture_id);
+uint32_t vrms_scene_create_object_mesh_texture(vrms_scene_t* scene, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
+    vrms_object_t* object = vrms_object_mesh_texture_create(geometry_id, texture_id, uv_id);
     vrms_scene_add_object(scene, object);
     return object->id;
 }
