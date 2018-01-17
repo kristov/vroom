@@ -19,13 +19,13 @@
 #ifdef RASPBERRYPI
 static char screen_vert[] = "shaders/100/screen_vert.glsl";
 static char screen_frag[] = "shaders/100/screen_frag.glsl";
-static char buffer_vert[] = "shaders/100/buffer_vert.glsl";
-static char buffer_frag[] = "shaders/100/buffer_frag.glsl";
+static char buffer_vert[] = "shaders/100/model/onecolor_vert.glsl";
+static char buffer_frag[] = "shaders/100/model/onecolor_frag.glsl";
 #else /* not RASPBERRYPI */
 static char screen_vert[] = "shaders/120/screen_vert.glsl";
 static char screen_frag[] = "shaders/120/screen_frag.glsl";
-static char buffer_vert[] = "shaders/120/buffer_vert.glsl";
-static char buffer_frag[] = "shaders/120/buffer_frag.glsl";
+static char buffer_vert[] = "shaders/120/model/onecolor_vert.glsl";
+static char buffer_frag[] = "shaders/120/model/onecolor_frag.glsl";
 #endif /* RASPBERRYPI */
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
