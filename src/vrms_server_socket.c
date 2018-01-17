@@ -351,7 +351,6 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     int32_t length_r;
     char type_c;
 
-    length_r = recv(client->fd, &type_c, 1, 0);
     if (NULL == client->server) {
         fprintf(stderr, "no server initialized\n");
         send_reply(client->fd, id, &error);
@@ -361,6 +360,8 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         fprintf(stderr, "no VRMS server initialized\n");
         send_reply(client->fd, id, &error);
     }
+
+    length_r = recv(client->fd, &type_c, 1, 0);
     if (length_r <= 0) {
         if (0 == length_r) {
             printf("orderly disconnect\n");
