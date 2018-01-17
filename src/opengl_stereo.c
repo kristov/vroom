@@ -19,13 +19,17 @@
 #ifdef RASPBERRYPI
 static char screen_vert[] = "shaders/100/screen_vert.glsl";
 static char screen_frag[] = "shaders/100/screen_frag.glsl";
-static char buffer_vert[] = "shaders/100/model/onecolor_vert.glsl";
-static char buffer_frag[] = "shaders/100/model/onecolor_frag.glsl";
+static char onecolor_vert[] = "shaders/100/model/onecolor_vert.glsl";
+static char onecolor_frag[] = "shaders/100/model/onecolor_frag.glsl";
+static char texture_vert[] = "shaders/100/model/texture_vert.glsl";
+static char texture_frag[] = "shaders/100/model/texture_frag.glsl";
 #else /* not RASPBERRYPI */
 static char screen_vert[] = "shaders/120/screen_vert.glsl";
 static char screen_frag[] = "shaders/120/screen_frag.glsl";
-static char buffer_vert[] = "shaders/120/model/onecolor_vert.glsl";
-static char buffer_frag[] = "shaders/120/model/onecolor_frag.glsl";
+static char onecolor_vert[] = "shaders/120/model/onecolor_vert.glsl";
+static char onecolor_frag[] = "shaders/120/model/onecolor_frag.glsl";
+static char texture_vert[] = "shaders/120/model/texture_vert.glsl";
+static char texture_frag[] = "shaders/120/model/texture_frag.glsl";
 #endif /* RASPBERRYPI */
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
@@ -76,7 +80,8 @@ closer than half the convergence distance are avoided in the scene.
 
 void opengl_stereo_load_screen_shader(opengl_stereo* ostereo) {
     ostereo->screen_shader_program_id = ogl_shader_loader_load(screen_vert, screen_frag);
-    ostereo->default_scene_shader_program_id = ogl_shader_loader_load(buffer_vert, buffer_frag);
+    ostereo->onecolor_shader_id = ogl_shader_loader_load(onecolor_vert, onecolor_frag);
+    ostereo->texture_shader_id = ogl_shader_loader_load(texture_vert, texture_frag);
 }
 
 void opengl_stereo_store_screen_plane(opengl_stereo* ostereo) {
@@ -231,7 +236,7 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     GLint tex0;
     GLuint m_projection;
 
-    glUseProgram(ostereo->default_scene_shader_program_id);
+    glUseProgram(ostereo->onecolor_shader_id);
     glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -277,7 +282,7 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     GLint texLoc;
     GLuint m_projection;
 
-    glUseProgram(ostereo->default_scene_shader_program_id);
+    glUseProgram(ostereo->onecolor_shader_id);
     glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);

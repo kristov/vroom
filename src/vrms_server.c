@@ -142,6 +142,8 @@ vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_i
 
 uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
     vrms_scene_t* scene = vrms_scene_create(name);
+    scene->onecolor_shader_id = server->onecolor_shader_id;
+    scene->texture_shader_id = server->texture_shader_id;
 
     scene->server = server;
 
@@ -312,7 +314,7 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
 
 void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
 
-    GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
+    GLuint b_vertex, b_normal, b_uv, s_tex, m_mvp, m_mv;
     GLfloat* mvp_matrix;
     GLfloat* mv_matrix;
 
@@ -364,9 +366,14 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
 
-    u_color = glGetUniformLocation(shader_id, "u_color");
-    glUniform4f(u_color, 0.5f, 0.5f, 0.5f, 1.0f);
-    glEnableVertexAttribArray(u_color);
+    glBindBuffer(GL_ARRAY_BUFFER, uv->gl_id);
+    b_uv = glGetAttribLocation(shader_id, "b_uv");
+    glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_uv);
+
+    s_tex = glGetUniformLocation(shader_id, "s_tex");
+    glUniform1i(s_tex, 0);
+    glBindTexture(GL_TEXTURE_2D, texture->gl_id);
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
@@ -384,7 +391,7 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint32_t matrix_idx, uint32_t mesh_id, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint32_t matrix_idx, uint32_t mesh_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
     vrms_object_t* matrix_object;
     vrms_object_t* mesh_object;
     vrms_object_data_t* matrix;
@@ -413,14 +420,14 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint
     mesh_object = vrms_scene_get_object_by_id(scene, mesh_id);
 
     if (VRMS_OBJECT_MESH_COLOR == mesh_object->type) {
-        vrms_server_draw_mesh_color(scene, shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+        vrms_server_draw_mesh_color(scene, scene->onecolor_shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
     }
     else if (VRMS_OBJECT_MESH_TEXTURE == mesh_object->type) {
-        vrms_server_draw_mesh_texture(scene, shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+        vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
     }
 }
 
-void vrms_server_draw_scene_buffer(vrms_scene_t* scene, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix) {
     uint32_t matrix_id, matrix_idx, mesh_id;
 
     if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
@@ -430,7 +437,7 @@ void vrms_server_draw_scene_buffer(vrms_scene_t* scene, GLuint shader_id, float*
             matrix_id = scene->render_buffer[idx + 0];
             matrix_idx = scene->render_buffer[idx + 1];
             mesh_id = scene->render_buffer[idx + 2];
-            vrms_server_draw_scene_object(scene, matrix_id, matrix_idx, mesh_id, shader_id, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_scene_object(scene, matrix_id, matrix_idx, mesh_id, projection_matrix, view_matrix, model_matrix);
             idx += 3;
         }
         pthread_mutex_unlock(scene->render_buffer_lock);
@@ -440,14 +447,14 @@ void vrms_server_draw_scene_buffer(vrms_scene_t* scene, GLuint shader_id, float*
     }
 }
 
-void vrms_server_draw_scenes(vrms_server_t* server, GLuint shader_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix) {
     int si;//, oi;
     vrms_scene_t* scene;
 
     for (si = 1; si < server->next_scene_id; si++) {
         scene = server->scenes[si];
         if (NULL != scene) {
-            vrms_server_draw_scene_buffer(scene, shader_id, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_scene_buffer(scene, projection_matrix, view_matrix, model_matrix);
         }
         if (si >= 2000) break;
     }

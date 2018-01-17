@@ -569,7 +569,6 @@ void* start_socket_thread(void* ptr) {
 
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
 
-    vrms_server = vrms_server_create();
     if (NULL == vrms_server) {
         fprintf(stderr, "error creating server\n");
         return NULL;
@@ -593,11 +592,20 @@ void* start_hmd_thread(void* ptr) {
 }
 
 void draw_scene(opengl_stereo* ostereo) {
-    vrms_server_draw_scenes(vrms_server, ostereo->default_scene_shader_program_id, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+    if (NULL != vrms_server) {
+        vrms_server_draw_scenes(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+    }
 }
 
 void vrms_server_socket_init(int width, int height, double physical_width) {
     int32_t thread_ret;
+
+    ostereo = opengl_stereo_create(width, height, physical_width);
+    ostereo->draw_scene_function = &draw_scene;
+
+    vrms_server = vrms_server_create();
+    vrms_server->onecolor_shader_id = ostereo->onecolor_shader_id;
+    vrms_server->texture_shader_id = ostereo->texture_shader_id;
 
     thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
     if (thread_ret != 0) {
@@ -610,9 +618,6 @@ void vrms_server_socket_init(int width, int height, double physical_width) {
         fprintf(stderr, "unable to start hmd thread\n");
         exit(1);
     }
-
-    ostereo = opengl_stereo_create(width, height, physical_width);
-    ostereo->draw_scene_function = &draw_scene;
 }
 
 void vrms_server_socket_display() {

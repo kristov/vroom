@@ -32,7 +32,8 @@ typedef struct opengl_stereo {
     GLuint screen_text_offset;
     GLfloat* screen_matrix;
     GLuint screen_shader_program_id;
-    GLuint default_scene_shader_program_id;
+    GLuint onecolor_shader_id;
+    GLuint texture_shader_id;
     GLfloat* model_matrix;
     GLfloat* view_matrix;
     GLfloat* hmd_matrix;
