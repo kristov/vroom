@@ -13,8 +13,10 @@
 #include <unistd.h>
 #include "memfd.h"
 #include "safe_malloc.h"
+#include "vrms.h"
 #include "vrms_object.h"
 #include "vrms_scene.h"
+#include "vrms_server.h"
 #include "esm.h"
 
 vrms_scene_t* vrms_scene_create(char* name) {
@@ -127,6 +129,34 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
     else {
         vrms_server_queue_add_data_load(scene->server, size, &object->object.object_data->gl_id, type, buffer);
     }
+
+    return object->id;
+}
+
+uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t fd, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+    void* address;
+    void* buffer;
+    int32_t seals;
+
+    buffer = SAFEMALLOC(size);
+    seals = fcntl(fd, F_GET_SEALS);
+    if (!(seals & F_SEAL_SHRINK)) {
+        fprintf(stderr, "got non-sealed memfd\n");
+        return 0;
+    }
+
+    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == address) {
+        fprintf(stderr, "memory map failed\n");
+        return 0;
+    }
+
+    memcpy(buffer, &((char*)address)[offset], size);
+
+    vrms_object_t* object = vrms_object_texture_create(size, width, height, format);
+    vrms_scene_add_object(scene, object);
+
+    vrms_server_queue_add_texture_load(scene->server, size, &object->object.object_data->gl_id, width, height, format, buffer);
 
     return object->id;
 }

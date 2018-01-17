@@ -6,7 +6,6 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
 #endif /* RASPBERRYPI */
-
 #include "vrms.h"
 
 typedef struct vrms_object_data {
@@ -17,6 +16,14 @@ typedef struct vrms_object_data {
     GLuint gl_id;
     void* local_storage;
 } vrms_object_data_t;
+
+typedef struct vrms_object_texture {
+    uint32_t size;
+    uint32_t width;
+    uint32_t height;
+    uint32_t format;
+    GLuint gl_id;
+} vrms_object_texture_t;
 
 typedef struct vrms_object_geometry {
     uint32_t id;
@@ -51,6 +58,7 @@ typedef struct vrms_object {
     vrms_object_type_t type;
     union {
         vrms_object_data_t* object_data;
+        vrms_object_texture_t* object_texture;
         vrms_object_geometry_t* object_geometry;
         vrms_object_mesh_color_t* object_mesh_color;
         vrms_object_mesh_texture_t* object_mesh_texture;
@@ -59,6 +67,7 @@ typedef struct vrms_object {
 
 vrms_object_t* vrms_object_create();
 vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uint32_t nr_strides, uint32_t stride);
+vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, uint32_t format);
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, float g, float b, float a);
 vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);

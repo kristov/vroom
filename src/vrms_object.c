@@ -27,6 +27,22 @@ vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uin
     return object;
 }
 
+vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+    vrms_object_t* object = vrms_object_create();
+    object->type = VRMS_OBJECT_TEXTURE;
+
+    vrms_object_texture_t* object_texture = SAFEMALLOC(sizeof(vrms_object_texture_t));
+    memset(object_texture, 0, sizeof(vrms_object_texture_t));
+
+    object_texture->size = size;
+    object_texture->width = width;
+    object_texture->height = height;
+    object_texture->format = format;
+    object->object.object_texture = object_texture;
+
+    return object;
+}
+
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_GEOMETRY;

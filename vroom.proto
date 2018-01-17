@@ -15,11 +15,10 @@ message CreateDataObject {
     enum Type {
         UV = 0;
         COLOR = 1;
-        TEXTURE = 2;
-        VERTEX = 3;
-        NORMAL = 4;
-        INDEX = 5;
-        MATRIX = 6;
+        VERTEX = 2;
+        NORMAL = 3;
+        INDEX = 4;
+        MATRIX = 5;
     }
     required int32 scene_id = 1;
     required Type type = 2;
@@ -27,6 +26,19 @@ message CreateDataObject {
     required int32 size = 4;
     required int32 nr_strides = 5;
     required int32 stride = 6;
+}
+
+message CreateTextureObject {
+    enum Format {
+        RGBA_8 = 0;
+    }
+    required int32 scene_id = 1;
+    required int32 offset = 3;
+    required int32 size = 4;
+    required int32 width = 5;
+    required int32 height = 6;
+    required Format format = 7;
+    required int32 type = 8;
 }
 
 message SetRenderBuffer {

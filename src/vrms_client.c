@@ -23,16 +23,19 @@
 uint32_t type_map[] = {
     CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
     CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
-    CREATE_DATA_OBJECT__TYPE__TEXTURE,  // VRMS_TEXTURE
     CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
     CREATE_DATA_OBJECT__TYPE__NORMAL,   // VRMS_NORMAL
     CREATE_DATA_OBJECT__TYPE__INDEX,    // VRMS_INDEX
     CREATE_DATA_OBJECT__TYPE__MATRIX    // VRMS_MATRIX
 };
 
+uint32_t format_map[] = {
+    CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8  // VRMS_RGB_8
+};
+
 uint32_t vrms_client_receive_reply(vrms_client_t* client) {
     int32_t id = 0;
-    int count_recv;
+    size_t count_recv;
     uint8_t in_buf[MAX_MSG_SIZE];
     Reply* re_msg;
 
@@ -42,14 +45,14 @@ uint32_t vrms_client_receive_reply(vrms_client_t* client) {
             fprintf(stderr, "orderly disconnect\n");
         }
         else {
-            fprintf(stderr, "recv\n");
+            fprintf(stderr, "recv error: %zu\n", count_recv);
         }
         return 0;
     }
 
     re_msg = reply__unpack(NULL, count_recv, in_buf);   
-    if (re_msg == NULL) {
-        fprintf(stderr, "error unpacking incoming message\n");
+    if (NULL == re_msg) {
+        fprintf(stderr, "error unpacking incoming message from length: %zu\n", count_recv);
         return 0;
     }
 
@@ -153,6 +156,36 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     create_data_object__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, shm_fd);
+
+    free(buf);
+    return id;
+}
+
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t shm_fd, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+    uint32_t id;
+    CreateTextureObject msg = CREATE_TEXTURE_OBJECT__INIT;
+    void* buf;
+    uint32_t length;
+
+    uint32_t format_map_index = (uint32_t)format;
+    if (format_map_index < 0 || format_map_index > 0) {
+        return 0;
+    }
+    uint32_t pb_format = format_map[format_map_index];
+
+    msg.scene_id = client->scene_id;
+    msg.offset = offset;
+    msg.size = size;
+    msg.width = width;
+    msg.height = height;
+    msg.format = pb_format;
+
+    length = create_texture_object__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    create_texture_object__pack(&msg, buf);
+
+    id = vrms_client_send_message(client, VRMS_CREATETEXTUREOBJECT, buf, length, shm_fd);
 
     free(buf);
     return id;

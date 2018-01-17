@@ -179,6 +179,49 @@ void   create_data_object__free_unpacked
   assert(message->base.descriptor == &create_data_object__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   create_texture_object__init
+                     (CreateTextureObject         *message)
+{
+  static CreateTextureObject init_value = CREATE_TEXTURE_OBJECT__INIT;
+  *message = init_value;
+}
+size_t create_texture_object__get_packed_size
+                     (const CreateTextureObject *message)
+{
+  assert(message->base.descriptor == &create_texture_object__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t create_texture_object__pack
+                     (const CreateTextureObject *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &create_texture_object__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t create_texture_object__pack_to_buffer
+                     (const CreateTextureObject *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &create_texture_object__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+CreateTextureObject *
+       create_texture_object__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (CreateTextureObject *)
+     protobuf_c_message_unpack (&create_texture_object__descriptor,
+                                allocator, len, data);
+}
+void   create_texture_object__free_unpacked
+                     (CreateTextureObject *message,
+                      ProtobufCAllocator *allocator)
+{
+  assert(message->base.descriptor == &create_texture_object__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   set_render_buffer__init
                      (SetRenderBuffer         *message)
 {
@@ -521,28 +564,26 @@ const ProtobufCMessageDescriptor destroy_scene__descriptor =
   (ProtobufCMessageInit) destroy_scene__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue create_data_object__type__enum_values_by_number[7] =
+const ProtobufCEnumValue create_data_object__type__enum_values_by_number[6] =
 {
   { "UV", "CREATE_DATA_OBJECT__TYPE__UV", 0 },
   { "COLOR", "CREATE_DATA_OBJECT__TYPE__COLOR", 1 },
-  { "TEXTURE", "CREATE_DATA_OBJECT__TYPE__TEXTURE", 2 },
-  { "VERTEX", "CREATE_DATA_OBJECT__TYPE__VERTEX", 3 },
-  { "NORMAL", "CREATE_DATA_OBJECT__TYPE__NORMAL", 4 },
-  { "INDEX", "CREATE_DATA_OBJECT__TYPE__INDEX", 5 },
-  { "MATRIX", "CREATE_DATA_OBJECT__TYPE__MATRIX", 6 },
+  { "VERTEX", "CREATE_DATA_OBJECT__TYPE__VERTEX", 2 },
+  { "NORMAL", "CREATE_DATA_OBJECT__TYPE__NORMAL", 3 },
+  { "INDEX", "CREATE_DATA_OBJECT__TYPE__INDEX", 4 },
+  { "MATRIX", "CREATE_DATA_OBJECT__TYPE__MATRIX", 5 },
 };
 static const ProtobufCIntRange create_data_object__type__value_ranges[] = {
-{0, 0},{0, 7}
+{0, 0},{0, 6}
 };
-const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[7] =
+const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[6] =
 {
   { "COLOR", 1 },
-  { "INDEX", 5 },
-  { "MATRIX", 6 },
-  { "NORMAL", 4 },
-  { "TEXTURE", 2 },
+  { "INDEX", 4 },
+  { "MATRIX", 5 },
+  { "NORMAL", 3 },
   { "UV", 0 },
-  { "VERTEX", 3 },
+  { "VERTEX", 2 },
 };
 const ProtobufCEnumDescriptor create_data_object__type__descriptor =
 {
@@ -551,9 +592,9 @@ const ProtobufCEnumDescriptor create_data_object__type__descriptor =
   "Type",
   "CreateDataObject__Type",
   "",
-  7,
+  6,
   create_data_object__type__enum_values_by_number,
-  7,
+  6,
   create_data_object__type__enum_values_by_name,
   1,
   create_data_object__type__value_ranges,
@@ -660,6 +701,149 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   create_data_object__field_indices_by_name,
   1,  create_data_object__number_ranges,
   (ProtobufCMessageInit) create_data_object__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[1] =
+{
+  { "RGBA_8", "CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8", 0 },
+};
+static const ProtobufCIntRange create_texture_object__format__value_ranges[] = {
+{0, 0},{0, 1}
+};
+const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[1] =
+{
+  { "RGBA_8", 0 },
+};
+const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "CreateTextureObject.Format",
+  "Format",
+  "CreateTextureObject__Format",
+  "",
+  1,
+  create_texture_object__format__enum_values_by_number,
+  1,
+  create_texture_object__format__enum_values_by_name,
+  1,
+  create_texture_object__format__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
+static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[7] =
+{
+  {
+    "scene_id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "offset",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, offset),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "width",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, width),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "height",
+    6,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, height),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "format",
+    7,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, format),
+    &create_texture_object__format__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "type",
+    8,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, type),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned create_texture_object__field_indices_by_name[] = {
+  5,   /* field[5] = format */
+  4,   /* field[4] = height */
+  1,   /* field[1] = offset */
+  0,   /* field[0] = scene_id */
+  2,   /* field[2] = size */
+  6,   /* field[6] = type */
+  3,   /* field[3] = width */
+};
+static const ProtobufCIntRange create_texture_object__number_ranges[2 + 1] =
+{
+  { 1, 0 },
+  { 3, 1 },
+  { 0, 7 }
+};
+const ProtobufCMessageDescriptor create_texture_object__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "CreateTextureObject",
+  "CreateTextureObject",
+  "CreateTextureObject",
+  "",
+  sizeof(CreateTextureObject),
+  7,
+  create_texture_object__field_descriptors,
+  create_texture_object__field_indices_by_name,
+  2,  create_texture_object__number_ranges,
+  (ProtobufCMessageInit) create_texture_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[2] =

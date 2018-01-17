@@ -482,7 +482,7 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
     fread(buffer, data_pos, image_size, file);
     fclose(file);
 
-    uint32_t texture_id = vrms_client_create_data_object(client, VRMS_TEXTURE, shm_fd, 0, image_size, image_size, 3);
+    uint32_t texture_id = vrms_client_create_texture_object(client, shm_fd, 0, image_size, width, height, VRMS_RGBA_8);
 
     return texture_id;
 }

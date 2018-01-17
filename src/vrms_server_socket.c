@@ -59,20 +59,22 @@ uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32
     CreateScene* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_scene__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        fprintf(stderr, "error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
     id = vrms_server_create_scene(vrms_server, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create scene: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -87,14 +89,15 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
     CreateDataObject* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_data_object__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
@@ -105,9 +108,6 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
         break;
         case CREATE_DATA_OBJECT__TYPE__COLOR:
             vrms_type = VRMS_COLOR;
-        break;
-        case CREATE_DATA_OBJECT__TYPE__TEXTURE:
-            vrms_type = VRMS_TEXTURE;
         break;
         case CREATE_DATA_OBJECT__TYPE__VERTEX:
             vrms_type = VRMS_VERTEX;
@@ -131,7 +131,44 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
     }
 
     if (0 == id) {
+        fprintf(stderr, "create object data: out of memory\n");
         *error = VRMS_OUTOFMEMORY;
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return id;
+}
+
+uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+    uint32_t id;
+    CreateTextureObject* cs_msg;
+
+    if (NULL == vrms_server) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    cs_msg = create_texture_object__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        fprintf(stderr, "unpacking incoming message\n");
+        *error = VRMS_INVALIDREQUEST;
+        return 0;
+    }
+
+    vrms_texture_format_t format = cs_msg->format;
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_scene_create_object_texture(vrms_scene, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format);
+    }
+
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create object texture: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -146,14 +183,15 @@ uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_
     CreateGeometryObject* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_geometry_object__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
@@ -164,6 +202,7 @@ uint32_t receive_create_geometry_object(vrms_server_t* vrms_server, uint8_t* in_
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create object geometry: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -178,14 +217,15 @@ uint32_t receive_create_mesh_color(vrms_server_t* vrms_server, uint8_t* in_buf, 
     CreateMeshColor* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_mesh_color__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
@@ -196,6 +236,7 @@ uint32_t receive_create_mesh_color(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create object mesh color: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -210,14 +251,15 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
     CreateMeshTexture* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_mesh_texture__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
@@ -228,6 +270,7 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create object mesh texture: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -242,14 +285,15 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
     SetRenderBuffer* cs_msg;
 
     if (NULL == vrms_server) {
-        fprintf(stderr, "error server not initialized\n");
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = set_render_buffer__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
-        printf("error unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
@@ -260,6 +304,7 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "set render buffer: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -269,16 +314,17 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
     return id;
 }
 
-void send_reply(int32_t fd, int32_t id, int32_t error) {
+void send_reply(int32_t fd, int32_t id, vrms_error_t* error) {
     void *out_buf;
-    int32_t length;
+    size_t length;
     Reply re_msg = REPLY__INIT;
 
     re_msg.id = id;
     length = reply__get_packed_size(&re_msg);
     out_buf = SAFEMALLOC(length);
 
-    re_msg.error_code = (int32_t)error;
+    re_msg.error_code = (int32_t)*error;
+
     reply__pack(&re_msg, out_buf);
     if (send(fd, out_buf, length, 0) < 0) {
         fprintf(stderr, "error sending reply to client\n");
@@ -307,10 +353,13 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     length_r = recv(client->fd, &type_c, 1, 0);
     if (NULL == client->server) {
-        printf("no server initialized\n");
+        fprintf(stderr, "no server initialized\n");
+        send_reply(client->fd, id, &error);
+        return;
     }
     if (NULL == client->server->vrms_server) {
-        printf("no vrms_server initialized\n");
+        fprintf(stderr, "no VRMS server initialized\n");
+        send_reply(client->fd, id, &error);
     }
     if (length_r <= 0) {
         if (0 == length_r) {
@@ -325,7 +374,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             printf("should never get in this state with libev\n");
         }
         else {
-            perror("recv");
+            perror("recv\n");
         }
         return;
     }
@@ -343,27 +392,34 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     length_r = recvmsg(client->fd, &msgh, 0);
     if (-1 == length_r) {
-        fprintf(stderr, "Error receiving control fd\n");
+        fprintf(stderr, "receiving control fd\n");
+        send_reply(client->fd, id, &error);
         return;
     }
 
     if (MAX_MSG_SIZE == length_r) {
-        fprintf(stderr, "maximum message length exceeded: %d\n", length_r);
+        fprintf(stderr, "maximum message length exceeded\n");
+        send_reply(client->fd, id, &error);
         return;
     }
 
     cmsgh = CMSG_FIRSTHDR(&msgh);
     if (!cmsgh) {
-        fprintf(stderr, "Expected one recvmsg() header with a passed memfd fd. Got zero headers!\n");
+        fprintf(stderr, "expected one recvmsg header with an fd but got zero headers\n");
+        send_reply(client->fd, id, &error);
         return;
     }
 
     if (cmsgh->cmsg_level != SOL_SOCKET) {
-        fprintf(stderr, "invalid cmsg_level %d", cmsgh->cmsg_level);
+        fprintf(stderr, "invalid cmsg_level\n");
+        send_reply(client->fd, id, &error);
+        return;
     }
 
     if (cmsgh->cmsg_type != SCM_RIGHTS) {
-        fprintf(stderr, "invalid cmsg_type %d", cmsgh->cmsg_type);
+        fprintf(stderr, "invalid cmsg_type\n");
+        send_reply(client->fd, id, &error);
+        return;
     }
 
     shm_fd = *((int *)CMSG_DATA(cmsgh));
@@ -371,10 +427,12 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     switch (type) {
         case VRMS_REPLY:
             error = VRMS_INVALIDREQUEST;
+            fprintf(stderr, "received a reply message as a request\n");
         break;
         case VRMS_CREATESCENE:
             if (client->vrms_scene_id > 0) {
                 error = VRMS_INVALIDREQUEST;
+                fprintf(stderr, "connection already associated with a scene\n");
                 id = 0;
             }
             else {
@@ -391,6 +449,11 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         break;
         case VRMS_DESTROYDATAOBJECT:
         break;
+        case VRMS_CREATETEXTUREOBJECT:
+            id = receive_create_texture_object(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
+        break;
+        case VRMS_DESTROYTEXTUREOBJECT:
+        break;
         case VRMS_CREATEGEOMETRYOBJECT:
             id = receive_create_geometry_object(client->server->vrms_server, in_buf, length_r, &error);
         break;
@@ -406,10 +469,11 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         default:
             id = 0;
             error = VRMS_INVALIDREQUEST;
+            fprintf(stderr, "unknown error\n");
         break;
     }
 
-    send_reply(client->fd, id, error);
+    send_reply(client->fd, id, &error);
 }
 
 int setnonblock(int fd) {
@@ -463,7 +527,7 @@ int unix_socket_init(struct sockaddr_un* socket_un, char* sock_path, int max_que
 
     fd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (-1 == fd) {
-        fprintf(stderr, "error creating server socket");
+        fprintf(stderr, "error creating server socket\n");
         exit(1);
     }
 

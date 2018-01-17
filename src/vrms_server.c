@@ -31,6 +31,7 @@
 
 typedef enum vrms_queue_item_type {
     VRMS_QUEUE_DATA_LOAD,
+    VRMS_QUEUE_TEXTURE_LOAD,
     VRMS_QUEUE_SCENE_DESTROY,
     VRMS_QUEUE_EVENT
 } vrms_queue_item_type_t;
@@ -46,6 +47,15 @@ typedef struct vrms_queue_item_data_load {
     uint32_t size;
 } vrms_queue_item_data_load_t;
 
+typedef struct vrms_queue_item_texture_load {
+    GLuint* destination;
+    void* buffer;
+    uint32_t size;
+    uint32_t width;
+    uint32_t height;
+    vrms_texture_format_t format;
+} vrms_queue_item_texture_load_t;
+
 typedef struct vrms_queue_item_event {
     char* data;
 } vrms_queue_item_event_t;
@@ -54,6 +64,7 @@ typedef struct vrms_queue_item {
     vrms_queue_item_type_t type;
     union {
         vrms_queue_item_data_load_t* data_load;
+        vrms_queue_item_texture_load_t* texture_load;
         vrms_queue_item_scene_destroy_t* scene_destroy;
         vrms_queue_item_event_t* event;
     } item;
@@ -190,6 +201,50 @@ void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuin
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
+void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, void* buffer) {
+    vrms_queue_item_texture_load_t* texture_load = SAFEMALLOC(sizeof(vrms_queue_item_texture_load_t));
+    memset(texture_load, 0, sizeof(vrms_queue_item_texture_load_t));
+
+    texture_load->size = size;
+    texture_load->destination = gl_id_ref;
+    texture_load->width = width;
+    texture_load->height = height;
+    texture_load->format = format;
+    texture_load->buffer = buffer;
+
+    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
+    memset(queue_item, 0, sizeof(vrms_queue_item_t));
+    queue_item->type = VRMS_QUEUE_TEXTURE_LOAD;
+
+    queue_item->item.texture_load = texture_load;
+
+    pthread_mutex_lock(server->inbound_queue_lock);
+    server->inbound_queue[server->inbound_queue_index] = queue_item;
+    server->inbound_queue_index++;
+    pthread_mutex_unlock(server->inbound_queue_lock);
+}
+
+void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
+    vrms_queue_item_data_load_t* data_load = SAFEMALLOC(sizeof(vrms_queue_item_data_load_t));
+    memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
+
+    data_load->size = size;
+    data_load->destination = gl_id_ref;
+    data_load->type = type;
+    data_load->buffer = buffer;
+
+    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
+    memset(queue_item, 0, sizeof(vrms_queue_item_t));
+    queue_item->type = VRMS_QUEUE_DATA_LOAD;
+
+    queue_item->item.data_load = data_load;
+
+    pthread_mutex_lock(server->inbound_queue_lock);
+    server->inbound_queue[server->inbound_queue_index] = queue_item;
+    server->inbound_queue_index++;
+    pthread_mutex_unlock(server->inbound_queue_lock);
+}
+
 void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
     GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
     GLfloat* mvp_matrix;
@@ -266,6 +321,8 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     vrms_object_data_t* vertex;
     vrms_object_data_t* normal;
     vrms_object_data_t* index;
+    vrms_object_data_t* uv;
+    vrms_object_texture_t* texture;
 
     object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
     geometry = object->object.object_geometry;
@@ -279,8 +336,14 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     object = vrms_scene_get_object_by_id(scene, geometry->index_id);
     index = object->object.object_data;
 
-    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id)) {
-        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id);
+    object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
+    uv = object->object.object_data;
+
+    object = vrms_scene_get_object_by_id(scene, mesh->texture_id);
+    texture = object->object.object_texture;
+
+    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id) || (0 == uv->gl_id) || (0 == texture->gl_id)) {
+        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d] U[%d] T[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id, uv->gl_id, texture->gl_id);
         return;
     }
 
@@ -395,11 +458,26 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
-        printOpenGLError();
         if (0 == *data_load->destination) {
             fprintf(stderr, "unable to load gl element buffer");
+            printOpenGLError();
         }
         free(data_load->buffer);
+    }
+}
+
+void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_load) {
+    if (NULL != texture_load->buffer) {
+        glGenTextures(1, texture_load->destination);
+        glBindTexture(GL_TEXTURE_2D, *texture_load->destination);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        if (0 == *texture_load->destination) {
+            fprintf(stderr, "unable to load gl texture buffer");
+            printOpenGLError();
+        }
+        free(texture_load->buffer);
     }
 }
 
@@ -408,9 +486,9 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
         glGenBuffers(1, data_load->destination);
         glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
-        printOpenGLError();
         if (0 == *data_load->destination) {
             fprintf(stderr, "unable to load gl buffer");
+            printOpenGLError();
         }
         free(data_load->buffer);
     }
@@ -426,6 +504,10 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
             vrms_queue_load_gl_buffer(data_load);
         }
         free(data_load);
+    }
+    else if (VRMS_QUEUE_TEXTURE_LOAD == queue_item->type) {
+        vrms_queue_item_texture_load_t* texture_load = queue_item->item.texture_load;
+        vrms_queue_load_gl_texture_buffer(texture_load);
     }
     else if (VRMS_QUEUE_SCENE_DESTROY == queue_item->type) {
         vrms_queue_item_scene_destroy_t* scene_destroy = queue_item->item.scene_destroy;
