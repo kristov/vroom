@@ -236,7 +236,6 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     GLint tex0;
     GLuint m_projection;
 
-    glUseProgram(ostereo->onecolor_shader_id);
     glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -272,6 +271,7 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     glViewport(0, 0, ostereo->width / 2, ostereo->height);
 
     tex0 = glGetUniformLocation(ostereo->screen_shader_program_id, "tex0");
+    glActiveTexture(GL_TEXTURE0);
     glUniform1i(tex0, 0);
     glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture);
 
@@ -282,7 +282,6 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     GLint texLoc;
     GLuint m_projection;
 
-    glUseProgram(ostereo->onecolor_shader_id);
     glBindFramebuffer(GL_FRAMEBUFFER, ostereo->screen_buffers->buffer);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
@@ -318,6 +317,7 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     glViewport(ostereo->width / 2, 0, ostereo->width / 2, ostereo->height);
 
     texLoc = glGetUniformLocation(ostereo->screen_shader_program_id, "tex0");
+    glActiveTexture(GL_TEXTURE0);
     glUniform1i(texLoc, 0);
     glBindTexture(GL_TEXTURE_2D, ostereo->screen_buffers->rendered_texture);
 
@@ -368,6 +368,7 @@ void initGL(opengl_stereo* ostereo) {
     glEnable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     glMatrixMode(GL_MODELVIEW);
+    glEnable(GL_TEXTURE_2D);
     glLoadIdentity();
 }
 

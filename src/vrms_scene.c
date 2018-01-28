@@ -117,7 +117,55 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
         return 0;
     }
 
-    memcpy(buffer, &((char*)address)[offset], size);
+    memcpy(buffer, &((unsigned char*)address)[offset], size);
+
+/*
+    char* label = "VRMS_XX____";
+    switch (type) {
+        case VRMS_UV:
+            label = "VRMS_UV____";
+            break;
+        case VRMS_VERTEX:
+            label = "VRMS_VERTEX";
+            break;
+        case VRMS_NORMAL:
+            label = "VRMS_NORMAL";
+            break;
+        case VRMS_INDEX:
+            label = "VRMS_INDEX_";
+            break;
+        case VRMS_COLOR:
+            label = "VRMS_COLOR_";
+            break;
+        case VRMS_MATRIX:
+            label = "VRMS_MATRIX";
+            break;
+    }
+
+    fprintf(stderr, "%s - offset: %d, size: %d, nr_strides: %d, stride: %d\n", label, offset, size, nr_strides, stride);
+    if (type == VRMS_UV || type == VRMS_VERTEX || type == VRMS_NORMAL) {
+        uint32_t i, j, k;
+        k = 0;
+        for (i = 0; i < nr_strides; i++) {
+            for (j = 0; j < stride; j++) {
+                fprintf(stderr, "%0.1f ", ((float*)buffer)[k]);
+                k++;
+            }
+            fprintf(stderr, "\n");
+        }
+    }
+    else if (type == VRMS_INDEX) {
+        uint32_t i, j, k;
+        k = 0;
+        for (i = 0; i < nr_strides; i++) {
+            for (j = 0; j < stride; j++) {
+                fprintf(stderr, "%hu ", ((unsigned short*)buffer)[k]);
+                k++;
+            }
+            fprintf(stderr, "\n");
+        }
+    }
+*/
 
     vrms_object_t* object = vrms_object_data_create(type, size, nr_strides, stride);
     vrms_scene_add_object(scene, object);
@@ -151,7 +199,19 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t fd, uint
         return 0;
     }
 
-    memcpy(buffer, &((char*)address)[offset], size);
+    memcpy(buffer, &((unsigned char*)address)[offset], size);
+
+/*
+    uint32_t i, j, k;
+    k = 0;
+    for (i = 0; i < width; i++) {
+        for (j = 0; j < height; j++) {
+            fprintf(stderr, "[%02x,%02x,%02x] ", ((unsigned char*)buffer)[k], ((unsigned char*)buffer)[k+1], ((unsigned char*)buffer)[k+2]);
+            k += 3;
+        }
+        fprintf(stderr, "\n");
+    }
+*/
 
     vrms_object_t* object = vrms_object_texture_create(size, width, height, format);
     vrms_scene_add_object(scene, object);
@@ -203,7 +263,7 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t fd, uint32_t
     }
     scene->render_buffer = SAFEMALLOC(size);
     scene->render_buffer_nr_objects = nr_objects;
-    memcpy(scene->render_buffer, (char*)address, size);
+    memcpy(scene->render_buffer, (unsigned char*)address, size);
     pthread_mutex_unlock(scene->render_buffer_lock);
 
     return 1;

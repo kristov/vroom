@@ -4,7 +4,7 @@ SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
-CLIENTS := bin/green_cube bin/textured_cube
+CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square
 
 EXTGL := -lGL -lGLU -lglut
 INCLUDEDIRS :=
@@ -35,6 +35,12 @@ bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
 
 bin/textured_cube: src/client/textured_cube.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
+
+bin/red_square: src/client/red_square.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
+
+bin/textured_square: src/client/textured_square.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
 
 lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h

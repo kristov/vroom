@@ -443,13 +443,13 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
 }
 
 uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
-    unsigned char header[54];
-    unsigned int data_pos;
-    unsigned int width, height;
-    unsigned int image_size;
+    uint8_t header[54];
+    uint8_t data_pos;
+    uint32_t width, height;
+    uint32_t image_size;
     int32_t shm_fd;
     void* address = NULL;
-    char* buffer = NULL;
+    uint8_t* buffer = NULL;
 
     FILE* file = fopen(filename, "rb");
     if (NULL == file) {
@@ -478,9 +478,21 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
         return 0;
     }
 
-    buffer = (char*)address;
+    buffer = (uint8_t*)address;
     fread(buffer, data_pos, image_size, file);
     fclose(file);
+
+/*
+    int y = 0;
+    int x = 0;
+    uint8_t i = 0;
+    for (y = 0; y < width; y++) {
+        for (x = 0; x < height; x++) {
+            printf("%x %x %x\n", ((uint8_t*)address)[i], ((uint8_t*)address)[i+1], ((uint8_t*)address)[i+2]);
+            i += 3;
+        }
+    }
+*/
 
     uint32_t texture_id = vrms_client_create_texture_object(client, shm_fd, 0, image_size, width, height, VRMS_RGBA_8);
 
@@ -494,7 +506,7 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
 
     int32_t shm_fd;
     void* address = NULL;
-    char* buffer = NULL;
+    unsigned char* buffer = NULL;
 
     float* verts;
     float* norms;
@@ -527,7 +539,7 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
         return 0;
     }
 
-    buffer = (char*)address;
+    buffer = (unsigned char*)address;
 
     buff_off = 0;
     memcpy(&buffer[buff_off], verts, size_of_verts);
@@ -577,9 +589,6 @@ void std_plane_generate_verticies(float* verts, uint32_t x, uint32_t y) {
 void std_plane_generate_normals(float* norms) {
     uint32_t off = 0;
 
-    // [+-1, 0, 0],   [0,+-1,0],    [0,0,+-1]
-    // (Left/Right), (Top/Bottom), (Front/Back)
-
     norms[off + 0] = 0.0f; // 0
     norms[off + 1] = 0.0f;
     norms[off + 2] = -1.0f;
@@ -607,6 +616,25 @@ void std_plane_generate_indicies(unsigned short* indicies) {
     indicies[off + 3] = 1;
     indicies[off + 4] = 2;
     indicies[off + 5] = 3;
+    off += 6;
+}
+
+void std_plane_generate_uvs(float* uvs) {
+    uint32_t off = 0;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    uvs[off + 2] = 1.0f;
+    uvs[off + 3] = 0.0f;
+    uvs[off + 4] = 0.0f;
+    uvs[off + 5] = 1.0f;
+    off += 6;
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    uvs[off + 2] = 0.0f;
+    uvs[off + 3] = 1.0f;
+    uvs[off + 4] = 1.0f;
+    uvs[off + 5] = 1.0f;
     off += 6;
 }
 
@@ -643,9 +671,6 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
         return 0;
     }
 
-    //msync(result, size, MS_SYNC);
-    //munmap(result, size);
-
     buffer = (char*)address;
     memcpy(buffer, verts, size_of_verts);
     memcpy(&buffer[size_of_verts], norms, size_of_verts);
@@ -658,6 +683,71 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 
     uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
+
+    return mesh_id;
+}
+
+uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_t y, const char* filename) {
+    uint32_t nr_verticies, nr_indicies, nr_vert_floats, nr_uv_floats;
+    size_t size_of_verts, size_of_norms, size_of_indicies, size_of_uvs, size_total;
+    uint32_t buff_off;
+
+    int32_t shm_fd;
+    void* address = NULL;
+    char* buffer = NULL;
+
+    float* verts;
+    float* norms;
+    unsigned short* indicies;
+    float* uvs;
+
+    nr_verticies = 4;
+    nr_vert_floats = 3 * nr_verticies;
+    nr_indicies = 6;
+    nr_uv_floats = nr_indicies * 2;
+
+    verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    indicies = SAFEMALLOC(sizeof(unsigned short) * nr_indicies);
+    uvs = SAFEMALLOC(sizeof(float) * nr_uv_floats);
+
+    std_plane_generate_verticies(verts, x, y);
+    std_plane_generate_normals(norms);
+    std_plane_generate_indicies(indicies);
+    std_plane_generate_uvs(uvs);
+
+    size_of_verts = sizeof(float) * nr_vert_floats;
+    size_of_norms = size_of_verts;
+    size_of_indicies = sizeof(unsigned short) * nr_indicies;
+    size_of_uvs = sizeof(float) * nr_uv_floats;
+    size_total = size_of_verts + size_of_norms + size_of_indicies + size_of_uvs;
+
+    shm_fd = vrms_create_memory(size_total, &address);
+    if (-1 == shm_fd) {
+        return 0;
+    }
+
+    buffer = (unsigned char*)address;
+
+    buff_off = 0;
+    memcpy(&buffer[buff_off], verts, size_of_verts);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, shm_fd, 0, size_of_verts, nr_verticies, 3);
+
+    buff_off += size_of_verts;
+    memcpy(&buffer[buff_off], norms, size_of_verts);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, shm_fd, buff_off, size_of_verts, nr_verticies, 3);
+
+    buff_off += size_of_verts;
+    memcpy(&buffer[buff_off], indicies, size_of_indicies);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, shm_fd, buff_off, size_of_indicies, nr_indicies, 1);
+
+    buff_off += size_of_indicies;
+    memcpy(&buffer[buff_off], uvs, size_of_uvs);
+    uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, shm_fd, buff_off, size_of_uvs, nr_indicies, 2);
+
+    uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
+    uint32_t texture_id = vrms_load_texture(client, filename);
+    uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
 
     return mesh_id;
 }

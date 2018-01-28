@@ -275,6 +275,8 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
         return;
     }
 
+    glUseProgram(shader_id);
+
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
 
@@ -349,6 +351,8 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
         return;
     }
 
+    glUseProgram(shader_id);
+
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
 
@@ -360,20 +364,26 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
+printOpenGLError(); // DEBUG
 
     glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
+printOpenGLError(); // DEBUG
 
     glBindBuffer(GL_ARRAY_BUFFER, uv->gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
+printOpenGLError(); // DEBUG
 
+//glEnable(GL_TEXTURE_2D); // "If you use GLSL shaders in OpenGL the call glEnable(GL_TEXTURE) has not influence." -- https://stackoverflow.com/questions/4041124/should-glenablegl-texture2d-be-applied-per-texture-unit
     s_tex = glGetUniformLocation(shader_id, "s_tex");
-    glUniform1i(s_tex, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, texture->gl_id);
+printOpenGLError(); // DEBUG
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
@@ -383,6 +393,7 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
     glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
+printOpenGLError(); // DEBUG
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -477,9 +488,13 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_l
     if (NULL != texture_load->buffer) {
         glGenTextures(1, texture_load->destination);
         glBindTexture(GL_TEXTURE_2D, *texture_load->destination);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
         if (0 == *texture_load->destination) {
             fprintf(stderr, "unable to load gl texture buffer");
             printOpenGLError();
