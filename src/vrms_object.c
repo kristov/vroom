@@ -74,7 +74,7 @@ vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, floa
     return object;
 }
 
-vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t uv_id, uint32_t texture_id) {
+vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MESH_TEXTURE;
 

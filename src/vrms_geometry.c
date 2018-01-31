@@ -694,7 +694,7 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
 
     int32_t shm_fd;
     void* address = NULL;
-    char* buffer = NULL;
+    unsigned char* buffer = NULL;
 
     float* verts;
     float* norms;

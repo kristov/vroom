@@ -364,26 +364,21 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
-printOpenGLError(); // DEBUG
 
     glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
-printOpenGLError(); // DEBUG
 
     glBindBuffer(GL_ARRAY_BUFFER, uv->gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
-printOpenGLError(); // DEBUG
 
-//glEnable(GL_TEXTURE_2D); // "If you use GLSL shaders in OpenGL the call glEnable(GL_TEXTURE) has not influence." -- https://stackoverflow.com/questions/4041124/should-glenablegl-texture2d-be-applied-per-texture-unit
     s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, texture->gl_id);
-printOpenGLError(); // DEBUG
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
@@ -393,11 +388,12 @@ printOpenGLError(); // DEBUG
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
     glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
-printOpenGLError(); // DEBUG
+
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
 
+    glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }

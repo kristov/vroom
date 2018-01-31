@@ -324,6 +324,26 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     opengl_stereo_render_screen_plane(ostereo);
 }
 
+void opengl_stereo_render_mono_scene(opengl_stereo* ostereo) {
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glViewport(0, 0, ostereo->width, ostereo->height);
+
+    esmLoadIdentity(ostereo->view_matrix);
+    esmLoadIdentity(ostereo->model_matrix);
+
+    esmFrustumf(ostereo->projection_matrix, ostereo->left_camera->left_frustum, ostereo->left_camera->right_frustum,
+                ostereo->left_camera->bottom_frustum, ostereo->left_camera->top_frustum,
+                ostereo->nearZ, ostereo->farZ);
+    esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
+    esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+
+    ostereo->draw_scene_function(ostereo);
+}
+
 void opengl_stereo_render_scene(opengl_stereo* ostereo) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
@@ -331,6 +351,7 @@ void opengl_stereo_render_scene(opengl_stereo* ostereo) {
 
     opengl_stereo_render_left_scene(ostereo);
     opengl_stereo_render_right_scene(ostereo);
+    //opengl_stereo_render_mono_scene(ostereo);
 }
 
 /*
