@@ -247,10 +247,10 @@ void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, GLu
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
+void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
     GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
-    GLfloat* mvp_matrix;
-    GLfloat* mv_matrix;
+    float* mvp_matrix;
+    float* mv_matrix;
 
     vrms_object_t* object;
     vrms_object_geometry_t* geometry;
@@ -314,11 +314,11 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, GLfloat* projection_matrix, GLfloat* view_matrix, GLfloat* model_matrix) {
+void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
 
     GLuint b_vertex, b_normal, b_uv, s_tex, m_mvp, m_mv;
-    GLfloat* mvp_matrix;
-    GLfloat* mv_matrix;
+    float* mvp_matrix;
+    float* mv_matrix;
 
     vrms_object_t* object;
     vrms_object_geometry_t* geometry;
