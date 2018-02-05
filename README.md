@@ -10,6 +10,7 @@ The general idea is that clients set up data buffers of geometry, transformation
 ## Dependencies
 
 * protobuf-c-compiler - Client/Server communication
+* libprotobuf-c-dev - Headers required for compiling protobuf C programs
 * freeglut3-dev - OpenGL
 * libconfig8-dev - HMD configuration file (~/.vroomrc)
 * libev-dev - Event handling
@@ -27,10 +28,19 @@ Follow the instructions for building OpenHMD. They boil down to:
   make
   sudo make install
 
-Then this little ditty:
+You then need to make the user that you are running vroom as able to read input. There are several ways to do this: a) run vroom as root (not recommended), b) select a group your user is already likely to be in (ie: plugdev) and add udev rules that assign that group ownership to the devices, c) add your user to the "input" group (recommended).
 
-  echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="2833", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/83-hmd.rules
-  udevadm control --reload-rules
+For option b) this is an example for the Oculus Rift DK1:
+
+  sudo echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="2833", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/83-hmd.rules
+  sudo udevadm control --reload-rules
+
+Which basically means when a usb device is plugged in with a vendor id of 2833, set it's group ownership to "plugdev" and set the device permissions to readable by everyone. Obviously you would need to do this for each device you want to expose to your user. Also I believe the 0666 permission is too open here and actualy negates the group ownership anyway since all users can now read this device.
+
+For option c) this is the course of action:
+
+  sudo gpasswd -a $USER input
+  sudo echo 'SUBSYSTEM=="usb", MODE="0660", GROUP="input"' >> /etc/udev/rules.d/99-hid.rules
 
 Then to compile vroom:
 

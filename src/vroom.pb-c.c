@@ -564,7 +564,7 @@ const ProtobufCMessageDescriptor destroy_scene__descriptor =
   (ProtobufCMessageInit) destroy_scene__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue create_data_object__type__enum_values_by_number[6] =
+static const ProtobufCEnumValue create_data_object__type__enum_values_by_number[6] =
 {
   { "UV", "CREATE_DATA_OBJECT__TYPE__UV", 0 },
   { "COLOR", "CREATE_DATA_OBJECT__TYPE__COLOR", 1 },
@@ -576,7 +576,7 @@ const ProtobufCEnumValue create_data_object__type__enum_values_by_number[6] =
 static const ProtobufCIntRange create_data_object__type__value_ranges[] = {
 {0, 0},{0, 6}
 };
-const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[6] =
+static const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[6] =
 {
   { "COLOR", 1 },
   { "INDEX", 4 },
@@ -703,14 +703,14 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   (ProtobufCMessageInit) create_data_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[1] =
+static const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[1] =
 {
   { "RGBA_8", "CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8", 0 },
 };
 static const ProtobufCIntRange create_texture_object__format__value_ranges[] = {
 {0, 0},{0, 1}
 };
-const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[1] =
+static const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[1] =
 {
   { "RGBA_8", 0 },
 };

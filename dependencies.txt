@@ -1,4 +1,5 @@
 protobuf-c-compiler
+libprotobuf-c-dev
 freeglut3-dev
 libconfig8-dev
 libev-dev
