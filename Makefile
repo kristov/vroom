@@ -5,6 +5,7 @@ CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
 CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed
+TESTS := test/test_hid_parse
 
 EXTGL := -lGL -lGLU -lglut
 INCLUDEDIRS :=
@@ -30,6 +31,11 @@ egl_server: src/main_egl.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
+
+tests: $(TESTS)
+
+test/test_hid_parse: lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
+	$(CC) -D_GNU_SOURCE -Iinclude -o $@ lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
 
 bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
@@ -85,6 +91,12 @@ lib/array_heap.o: src/array-heap.c
 lib/vrms_server_socket.o: src/vrms_server_socket.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
+lib/hid_parse.o: src/hid_parse.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
+lib/test_harness.o: src/test_harness.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
 src/vroom.pb-c.c: vroom-protobuf
 include/vroom.pb-c.h: vroom-protobuf
 vroom-protobuf: vroom.proto
@@ -94,5 +106,6 @@ vroom-protobuf: vroom.proto
 
 clean:
 	rm -f lib/*
-	rm -f server
+	rm -f vroom-server
 	rm -f bin/*
+	rm -f test/*
