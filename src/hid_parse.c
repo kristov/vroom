@@ -7,6 +7,9 @@
 #include <string.h>
 #include "hid_parse.h"
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
 char* hid_get_usage_text(uint32_t usagePage, uint32_t usage);
 
 #define HID_RD_USAGE_PAGE 0x04
@@ -215,6 +218,7 @@ void hid_context_copy_report_item_usages(hid_report_context_t* context, hid_inpu
     }
 
     hid_context_array_destroy(context->usages);
+    context->usages = NULL;
 }
 
 void hid_context_new_report_item(hid_report_context_t* context, uint8_t input_flags) {
@@ -270,6 +274,7 @@ void hid_context_copy_report_items(hid_report_context_t* context, hid_input_repo
     }
 
     hid_context_array_destroy(context->report_items);
+    context->report_items = NULL;
 }
 
 void hid_context_new_report(hid_report_context_t* context, uint32_t report_id) {
@@ -313,6 +318,20 @@ void hid_context_copy_reports(hid_report_context_t* context, hid_input_device_t*
     hid_context_array_destroy(context->reports);
 }
 
+void hid_context_clear(hid_report_context_t* context) {
+    context->usage_page = 0;
+    context->usage = 0;
+    context->usage_minimum = 0;
+    context->usage_maximum = 0;
+    context->report_id = 0;
+    context->report_count = 0;
+    context->report_size = 0;
+    context->logical_maximum = 0;
+    context->logical_minimum = 0;
+    context->bit_offset = 0;
+    context->bit_size = 0;
+}
+
 uint32_t hid_input_extract_data_from_buffer(uint8_t* buffer, uint32_t index, uint8_t bSize) {
     uint32_t value;
     switch (bSize) {
@@ -322,11 +341,14 @@ uint32_t hid_input_extract_data_from_buffer(uint8_t* buffer, uint32_t index, uin
         case 0x02:
             value = ((buffer[index + 1] << 8) | (buffer[index] & 0xff));
             break;
+        case 0x03:
+            value = ((buffer[index + 2] << 16) | (buffer[index + 1] << 8) | (buffer[index] & 0xff));
+            break;
         case 0x04:
             value = ((buffer[index + 3] << 24) | (buffer[index + 2] << 16) | (buffer[index + 1] << 8) | (buffer[index] & 0xff));
             break;
         default:
-            fprintf(stderr, "unknown size: %d\n", bSize);
+            debug_print("unknown size: %d\n", bSize);
             break;
     }
     return value;
@@ -337,6 +359,7 @@ uint32_t hid_parse_report_item(uint8_t* buffer, uint32_t index, hid_report_conte
     uint8_t byte;
     uint8_t code;
     uint8_t bSize;
+    char* description;
 
     uint32_t value;
 
@@ -349,46 +372,48 @@ uint32_t hid_parse_report_item(uint8_t* buffer, uint32_t index, hid_report_conte
 
     switch (code) {
         case HID_RD_USAGE_PAGE:
-            //fprintf(stderr, "HID_RD_USAGE_PAGE:\n");
             context->usage_page = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            debug_print("HID_RD_USAGE_PAGE:\n");
             index += bSize;
             break;
         case HID_RD_USAGE:
-            //fprintf(stderr, "HID_RD_USAGE:\n");
             context->usage = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            description = hid_get_usage_text(context->usage_page, context->usage);
+            debug_print("HID_RD_USAGE: %04x [%s]\n", context->usage, description);
+            free(description);
             hid_context_new_report_item_usage(context);
             index += bSize;
             break;
         case HID_RD_LOGICAL_MINIMUM:
-            //fprintf(stderr, "HID_RD_LOGICAL_MINIMUM:\n");
+            debug_print("HID_RD_LOGICAL_MINIMUM:\n");
             context->logical_minimum = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_USAGE_MINIMUM:
-            //fprintf(stderr, "HID_RD_USAGE_MINIMUM:\n");
+            debug_print("HID_RD_USAGE_MINIMUM:\n");
             context->usage_minimum = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_LOGICAL_MAXIMUM:
-            //fprintf(stderr, "HID_RD_LOGICAL_MAXIMUM:\n");
+            debug_print("HID_RD_LOGICAL_MAXIMUM:\n");
             context->logical_maximum = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_USAGE_MAXIMUM:
-            //fprintf(stderr, "HID_RD_USAGE_MAXIMUM:\n");
+            debug_print("HID_RD_USAGE_MAXIMUM:\n");
             context->usage_maximum = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_REPORT_SIZE:
-            //fprintf(stderr, "HID_RD_REPORT_SIZE:\n");
+            debug_print("HID_RD_REPORT_SIZE:\n");
             context->report_size = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_INPUT:
             context->bit_size = (context->report_size * context->report_count);
-            //fprintf(stderr, "HID_RD_INPUT (%02x)\n", buffer[index]);
-            //fprintf(stderr, "  bit_offset: %d\n", context->bit_offset);
-            //fprintf(stderr, "    bit_size: %d\n", context->bit_size);
+            debug_print("HID_RD_INPUT (%02x)\n", buffer[index]);
+            debug_print("  bit_offset: %d\n", context->bit_offset);
+            debug_print("    bit_size: %d\n", context->bit_size);
 
             if (context->usage_maximum) {
                 // If there is a min and max, ignore any previous usages
@@ -411,57 +436,50 @@ uint32_t hid_parse_report_item(uint8_t* buffer, uint32_t index, hid_report_conte
             index += bSize;
             break;
         case HID_RD_REPORT_ID:
-            //fprintf(stderr, "HID_RD_REPORT_ID:\n");
+            debug_print("HID_RD_REPORT_ID:\n");
             context->report_id = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_OUTPUT:
             // Output not supported (sending data to the USB device)
-            //fprintf(stderr, "HID_RD_OUTPUT:\n");
+            debug_print("HID_RD_OUTPUT:\n");
             index += bSize;
             break;
         case HID_RD_REPORT_COUNT:
-            //fprintf(stderr, "HID_RD_REPORT_COUNT:\n");
+            debug_print("HID_RD_REPORT_COUNT:\n");
             context->report_count = hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_COLLECTION_START:
-            //fprintf(stderr, "HID_RD_COLLECTION_START: (add usages to reports/devices)\n");
+            debug_print("HID_RD_COLLECTION_START: (add usages to reports/devices)\n");
             index += bSize;
             break;
         case HID_RD_FEATURE:
             // Features not supported
-            //fprintf(stderr, "HID_RD_FEATURE:\n");
+            debug_print("HID_RD_FEATURE:\n");
             index += bSize;
             break;
         case HID_RD_COLLECTION_END:
-            //fprintf(stderr, "HID_RD_COLLECTION_END:\n");
+            debug_print("HID_RD_COLLECTION_END:\n");
             hid_context_new_report(context, context->report_id);
-            context->usage_page = 0;
-            context->usage = 0;
-            context->usage_minimum = 0;
-            context->usage_maximum = 0;
-            context->report_id = 0;
-            context->report_count = 0;
-            context->report_size = 0;
-            context->logical_maximum = 0;
-            context->logical_minimum = 0;
-            context->bit_offset = 0;
-            context->bit_size = 0;
-            context->usages = NULL;
-            context->report_items = NULL;
+            hid_context_clear(context);
             index += bSize;
             break;
         default:
-            value = hid_input_extract_data_from_buffer(buffer, index, bSize);
-            fprintf(stderr, "UNKNOWN CODE: %02x --> %032x\n", byte, value);
+            if (bSize > 0) {
+                value = hid_input_extract_data_from_buffer(buffer, index, bSize);
+                debug_print("UNKNOWN CODE: %02x --> %032x\n", byte, value);
+            }
+            else {
+                debug_print("UNKNOWN CODE: %02x --> [zero size]\n", byte);
+            }
             index += bSize;
             break;
     }
     return index;
 }
 
-void hid_dump_device(hid_input_device_t* device) {
+void hid_device_dump(hid_input_device_t* device) {
     hid_input_report_t report;
     hid_input_report_item_t report_item;
     hid_input_report_item_usage_t report_item_usage;

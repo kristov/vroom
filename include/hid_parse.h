@@ -42,5 +42,5 @@ struct hid_input_device {
 };
 
 hid_input_device_t* hid_parse_report_descriptor(uint8_t* buffer, uint32_t length);
-void hid_dump_device(hid_input_device_t* device);
+void hid_device_dump(hid_input_device_t* device);
 void hid_input_destroy_device(hid_input_device_t* device);
