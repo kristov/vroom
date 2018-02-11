@@ -34,6 +34,8 @@ For option b) this is an example for the Oculus Rift DK1:
 
   sudo echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="2833", MODE="0666", GROUP="plugdev"' >> /etc/udev/rules.d/83-hmd.rules
   sudo udevadm control --reload-rules
+  sudo udevadm info --query=property --name /dev/hidraw2 | grep DEVPATH
+  sudo udevadm test [that DEVPATH]
 
 Which basically means when a usb device is plugged in with a vendor id of 2833, set it's group ownership to "plugdev" and set the device permissions to readable by everyone. Obviously you would need to do this for each device you want to expose to your user. Also I believe the 0666 permission is too open here and actualy negates the group ownership anyway since all users can now read this device.
 
@@ -76,3 +78,8 @@ This is completely not finished, but some things I would like to do in the near 
 * Build a proper client library, and make bindings for other languages.
 * Build a nicer client library, using an external CSG library to do the heavy lifting
 
+## Input handling
+
+I want to be able to plug in any HID device, and use the report descriptor to expose data endpoints that can be bound to matrix transformations. For example pressing and holding the "w" key can be bound to increasing a Z axis (forward motion) transformation and moving the mouse can be bound to some rotation matrix for a pointer or body movement.
+
+First I investigated the hidapi library, however it has no function for extracting the report descriptor. I then tried using libusb and was able to get somewhere, however the raw communication with the device for reports was complicated (async interface). I considered using libusb for extracting the report descriptor, and then initializing hidapi but it was a bit Frankenstein-ish. I found hidraw examples that look clean but are not cross-platform.
