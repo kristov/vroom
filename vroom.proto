@@ -1,3 +1,5 @@
+syntax="proto2";
+
 message Reply {
     required int32 id = 1;
     required int32 error_code = 2;
