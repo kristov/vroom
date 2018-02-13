@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <sys/select.h>
 
-#include "hid_parse.h"
+#include "hid_device.h"
 #include <linux/hidraw.h>
 
 #define DEBUG 1
@@ -29,7 +29,7 @@ struct hid_monitor_device {
     int16_t vendor_id;
     int16_t product_id;
     char* devnode;
-    hid_input_device_t* hid_device;
+    hid_device_t* hid_device;
 };
 
 typedef struct hid_monitor hid_monitor_t;
@@ -166,7 +166,7 @@ void hid_monitor_populate_devices(hid_monitor_t* monitor) {
         }
 
         fprintf(stderr, "length: %d\n", rpt_desc.size);
-        device.hid_device = hid_parse_report_descriptor(rpt_desc.value, rpt_desc.size);
+        device.hid_device = hid_device_report_descriptor(rpt_desc.value, rpt_desc.size);
         device.vendor_id = info.vendor;
         device.product_id = info.product;
         device.devnode = malloc(strlen(devnode) + 1);

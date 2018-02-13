@@ -5,7 +5,7 @@ CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
 SRVCOM := -lopenhmd -lpthread
 CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed
-TESTS := test/test_hid_parse
+TESTS := test/test_hid_device test/test_hid_monitor
 
 EXTGL := -lGL -lGLU -lglut
 INCLUDEDIRS :=
@@ -34,11 +34,11 @@ clients: $(CLIENTS)
 
 tests: $(TESTS)
 
-test/test_hid_parse: lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
-	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
+test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
-test/test_hid_monitor: src/linux/hid_monitor.c lib/hid_parse.o
-	$(CC) $(CFLAGS) -D_DEBUG -Iinclude -ludev -o test/test_hid_monitor src/linux/hid_monitor.c lib/hid_parse.o
+test/test_hid_monitor: src/linux/hid_monitor.c lib/hid_device.o
+	$(CC) $(CFLAGS) -D_DEBUG -Iinclude -ludev -o test/test_hid_monitor src/linux/hid_monitor.c lib/hid_device.o
 
 bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
@@ -94,7 +94,7 @@ lib/array_heap.o: src/array-heap.c
 lib/vrms_server_socket.o: src/vrms_server_socket.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/hid_parse.o: src/hid_parse.c
+lib/hid_device.o: src/hid_device.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/test_harness.o: src/test_harness.c

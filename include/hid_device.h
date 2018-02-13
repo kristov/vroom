@@ -37,15 +37,15 @@ struct hid_input_report {
     hid_input_report_item_t* report_items;
 };
 
-typedef struct hid_input_device hid_input_device_t;
-struct hid_input_device {
+typedef struct hid_device hid_device_t;
+struct hid_device {
     unsigned char* description;
     uint32_t nr_reports;
     hid_input_report_t* reports;
     hid_input_report_t* report_id_lookup[HID_DEVICE_MAX_REPORT_ID];
 };
 
-hid_input_device_t* hid_parse_report_descriptor(uint8_t* buffer, uint32_t length);
-hid_input_report_t* hid_device_get_report_by_id(hid_input_device_t* device, uint32_t report_id);
-void hid_device_dump(hid_input_device_t* device);
-void hid_device_destroy(hid_input_device_t* device);
+hid_device_t* hid_device_report_descriptor(uint8_t* buffer, uint32_t length);
+hid_input_report_t* hid_device_get_report_by_id(hid_device_t* device, uint32_t report_id);
+void hid_device_dump(hid_device_t* device);
+void hid_device_destroy(hid_device_t* device);

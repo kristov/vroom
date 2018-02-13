@@ -1,8 +1,8 @@
-#include "hid_parse.h"
+#include "hid_device.h"
 #include "test_harness.h"
 
 void test_oculus_dk1_report_descriptor(test_harness_t* test) {
-    hid_input_device_t* device;
+    hid_device_t* device;
 
 /*
 device:
@@ -248,12 +248,12 @@ device:
     };
 
     test_harness_make_note(test, "Testing Oculus DK1");
-    device = hid_parse_report_descriptor(descriptor, 401);
+    device = hid_device_report_descriptor(descriptor, 401);
     hid_device_dump(device);
 }
 
 void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
-    hid_input_device_t* device;
+    hid_device_t* device;
     uint32_t failed;
 
     uint8_t descriptor[] = {
@@ -336,7 +336,7 @@ void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
     failed = test_harness_nr_failed_tests(test);
 
     test_harness_make_note(test, "Testing weird wireless mouse");
-    device = hid_parse_report_descriptor(descriptor, 142);
+    device = hid_device_report_descriptor(descriptor, 142);
 
     is_equal_uint32(test, device->nr_reports, 3, "device has 3 reports");
 	is_equal_uint32(test, device->reports[0].report_id, 1, "first report id is 1");
@@ -366,7 +366,7 @@ void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
 }
 
 void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
-    hid_input_device_t* device;
+    hid_device_t* device;
     uint32_t failed;
 
     uint8_t descriptor[] = {
@@ -408,7 +408,7 @@ void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
     failed = test_harness_nr_failed_tests(test);
 
     test_harness_make_note(test, "Testing descriptor from Dell Keyboard");
-    device = hid_parse_report_descriptor(descriptor, 65);
+    device = hid_device_report_descriptor(descriptor, 65);
 
     is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
 	hid_input_report_t report = device->reports[0];
@@ -438,7 +438,7 @@ void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
 }
 
 void test_sample_mouse_report_descriptor(test_harness_t* test) {
-    hid_input_device_t* device;
+    hid_device_t* device;
 
     uint8_t descriptor[] = {
         0x05, 0x01, // USAGE_PAGE (Generic Desktop)
@@ -470,7 +470,7 @@ void test_sample_mouse_report_descriptor(test_harness_t* test) {
     };
 
     test_harness_make_note(test, "Testing example descriptor for mouse");
-    device = hid_parse_report_descriptor(descriptor, 50);
+    device = hid_device_report_descriptor(descriptor, 50);
 
     is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
 	hid_input_report_t report = device->reports[0];
@@ -508,7 +508,7 @@ int main(void) {
     test_sample_mouse_report_descriptor(test);
     test_my_dell_keyboard_report_descriptor(test);
     test_my_wireless_mouse_report_descriptor(test);
-    //test_oculus_dk1_report_descriptor(test); /* hid_parse is BROKEN for this */
+    //test_oculus_dk1_report_descriptor(test); /* hid_device is BROKEN for this */
 
     test_harness_exit_with_status(test);
 }
