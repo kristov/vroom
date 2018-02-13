@@ -111,4 +111,4 @@ clean:
 	rm -f lib/*
 	rm -f vroom-server
 	rm -f bin/*
-	rm -f test/*
+	rm -f test/test_*
