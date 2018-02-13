@@ -7,7 +7,7 @@
 #include <string.h>
 #include "hid_parse.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
 char* hid_get_usage_text(uint32_t usagePage, uint32_t usage);
@@ -155,7 +155,7 @@ hid_input_device_t* hid_input_new_device() {
     return device;
 }
 
-void hid_input_destroy_device(hid_input_device_t* device) {
+void hid_device_destroy(hid_input_device_t* device) {
     uint32_t idx = 0;
 
     for (idx = 0; idx < device->nr_reports; idx++) {
@@ -225,10 +225,10 @@ void hid_context_new_report_item(hid_report_context_t* context, uint8_t input_fl
     hid_input_report_item_t* report_item = NULL;
     hid_context_array_t* array_item;
 
-    if (NULL == context->usages) {
-        // Do not add a report item that has no usages
-        return;
-    }
+    //if (NULL == context->usages) {
+    //    // Do not add a report item that has no usages
+    //    return;
+    //}
 
     report_item = hid_input_new_report_item();
     report_item->logical_maximum = context->logical_maximum;
@@ -260,6 +260,7 @@ void hid_context_copy_report_items(hid_report_context_t* context, hid_input_repo
     hid_context_array_t* head;
     hid_input_report_item_t* report_item;
     uint32_t count = 0;
+    uint32_t bit_count = 0;
 
     report->nr_report_items = hid_context_array_count(context->report_items);
     report->report_items = SAFEMALLOC(sizeof(hid_input_report_item_t) * report->nr_report_items);
@@ -267,11 +268,13 @@ void hid_context_copy_report_items(hid_report_context_t* context, hid_input_repo
     head = context->report_items;
     while (NULL != head) {
         report_item = (hid_input_report_item_t*)head->data;
+        bit_count += report_item->bit_size;
         memcpy(&report->report_items[count], report_item, sizeof(hid_input_report_item_t));
         free(report_item);
         count++;
         head = head->next;
     }
+    report->byte_size = bit_count / 8;
 
     hid_context_array_destroy(context->report_items);
     context->report_items = NULL;
@@ -301,15 +304,24 @@ void hid_context_new_report(hid_report_context_t* context, uint32_t report_id) {
 void hid_context_copy_reports(hid_report_context_t* context, hid_input_device_t* device) {
     hid_context_array_t* head;
     hid_input_report_t* report;
+    uint8_t populate_lookup;
     uint32_t count = 0;
 
     device->nr_reports = hid_context_array_count(context->reports);
     device->reports = SAFEMALLOC(sizeof(hid_input_report_t) * device->nr_reports);
 
+    populate_lookup = 0;
+    if (device->nr_reports > 1) {
+        populate_lookup = 1;
+    }
+
     head = context->reports;
     while (NULL != head) {
         report = (hid_input_report_t*)head->data;
         memcpy(&device->reports[count], report, sizeof(hid_input_report_t));
+        if (populate_lookup) {
+            device->report_id_lookup[report->report_id] = &device->reports[count];
+        }
         free(report);
         count++;
         head = head->next;
@@ -479,6 +491,15 @@ uint32_t hid_parse_report_item(uint8_t* buffer, uint32_t index, hid_report_conte
     return index;
 }
 
+hid_input_report_t* hid_device_get_report_by_id(hid_input_device_t* device, uint32_t report_id) {
+    if (report_id <= HID_DEVICE_MAX_REPORT_ID) {
+        if (NULL != device->report_id_lookup[report_id]) {
+            return device->report_id_lookup[report_id];
+        }
+    }
+    return NULL;
+}
+
 void hid_device_dump(hid_input_device_t* device) {
     hid_input_report_t report;
     hid_input_report_item_t report_item;
@@ -525,7 +546,7 @@ hid_input_device_t* hid_parse_report_descriptor(uint8_t* buffer, uint32_t length
     hid_context_copy_reports(&context, device);
 
     //hid_dump_device(device);
-    //hid_input_destroy_device(device);
+    //hid_device_destroy(device);
 
     return device;
 }

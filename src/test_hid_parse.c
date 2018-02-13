@@ -254,6 +254,7 @@ device:
 
 void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
     hid_input_device_t* device;
+    uint32_t failed;
 
     uint8_t descriptor[] = {
         0x05, 0x01,
@@ -332,6 +333,8 @@ void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
         0xc0
     };
 
+    failed = test_harness_nr_failed_tests(test);
+
     test_harness_make_note(test, "Testing weird wireless mouse");
     device = hid_parse_report_descriptor(descriptor, 142);
 
@@ -341,19 +344,30 @@ void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
 	is_equal_uint32(test, device->reports[2].report_id, 4, "third report id is 4");
 	
     hid_input_report_t report = device->reports[0];
-    is_equal_uint32(test, report.nr_report_items, 3, "first report has 3 report items");
+    is_equal_uint32(test, report.nr_report_items, 4, "first report has 4 report items");
     is_equal_uint32(test, report.report_items[0].report_size, 1, "report1 report_size");
     is_equal_uint32(test, report.report_items[0].report_count, 5, "report1 report_count");
-    is_equal_uint32(test, report.report_items[1].report_size, 8, "report2 report_size");
-    is_equal_uint32(test, report.report_items[1].report_count, 2, "report2 report_count");
-    is_equal_uint32(test, report.report_items[2].report_size, 8, "report3 report_size");
-    is_equal_uint32(test, report.report_items[2].report_count, 1, "report3 report_count");
 
-    hid_input_destroy_device(device);
+    is_equal_uint32(test, report.report_items[1].report_size, 3, "report2 report_size");
+    is_equal_uint32(test, report.report_items[1].report_count, 1, "report2 report_count");
+    is_equal_uint32(test, report.report_items[1].nr_usages, 0, "report2 nr usages is zero");
+
+    is_equal_uint32(test, report.report_items[2].report_size, 8, "report3 report_size");
+    is_equal_uint32(test, report.report_items[2].report_count, 2, "report3 report_count");
+
+    is_equal_uint32(test, report.report_items[3].report_size, 8, "report4 report_size");
+    is_equal_uint32(test, report.report_items[3].report_count, 1, "report4 report_count");
+
+    if (test_harness_nr_failed_tests(test) > failed) {
+        hid_device_dump(device);
+    }
+
+    hid_device_destroy(device);
 }
 
 void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
     hid_input_device_t* device;
+    uint32_t failed;
 
     uint8_t descriptor[] = {
         0x05, 0x01,
@@ -391,24 +405,36 @@ void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
         0xc0
     };
 
+    failed = test_harness_nr_failed_tests(test);
+
     test_harness_make_note(test, "Testing descriptor from Dell Keyboard");
     device = hid_parse_report_descriptor(descriptor, 65);
 
     is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
 	hid_input_report_t report = device->reports[0];
 	is_equal_uint32(test, report.report_id, 0, "report id is 0");
-    is_equal_uint32(test, report.nr_report_items, 2, "report has 2 items");
+    is_equal_uint32(test, report.nr_report_items, 3, "report has 3 items");
+
     is_equal_uint32(test, report.report_items[0].report_size, 1, "report1 report_size");
     is_equal_uint32(test, report.report_items[0].report_count, 8, "report1 report_count");
     is_equal_uint32(test, report.report_items[0].nr_usages, 8, "report1 nr_usages");
     is_equal_uint32(test, report.report_items[0].usages[0].usage_page, 7, "report1 usage1 usage_page");
     is_equal_uint32(test, report.report_items[0].usages[0].usage, 224, "report1 usage1 usage");
-    is_equal_uint32(test, report.report_items[1].report_size, 8, "report2 report_size");
-    is_equal_uint32(test, report.report_items[1].report_count, 6, "report2 report_count");
-    is_equal_uint32(test, report.report_items[1].usages[0].usage_page, 7, "report2 usage1 usage_page");
-    is_equal_uint32(test, report.report_items[1].usages[0].usage, 0, "report2 usage1 usage");
 
-    hid_input_destroy_device(device);
+    is_equal_uint32(test, report.report_items[1].report_size, 8, "report2 report_size");
+    is_equal_uint32(test, report.report_items[1].report_count, 1, "report2 report_count");
+	is_equal_uint32(test, report.report_items[1].nr_usages, 0, "report2 has zero usages");
+
+    is_equal_uint32(test, report.report_items[2].report_size, 8, "report3 report_size");
+    is_equal_uint32(test, report.report_items[2].report_count, 6, "report3 report_count");
+    is_equal_uint32(test, report.report_items[2].usages[0].usage_page, 7, "report3 usage1 usage_page");
+    is_equal_uint32(test, report.report_items[2].usages[0].usage, 0, "report3 usage1 usage");
+
+    if (test_harness_nr_failed_tests(test) > failed) {
+        hid_device_dump(device);
+    }
+
+    hid_device_destroy(device);
 }
 
 void test_sample_mouse_report_descriptor(test_harness_t* test) {
@@ -449,7 +475,8 @@ void test_sample_mouse_report_descriptor(test_harness_t* test) {
     is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
 	hid_input_report_t report = device->reports[0];
 	is_equal_uint32(test, report.report_id, 0, "report id is 0");
-    is_equal_uint32(test, report.nr_report_items, 2, "report has 2 items");
+    is_equal_uint32(test, report.nr_report_items, 3, "report has 3 items");
+
     is_equal_uint32(test, report.report_items[0].report_size, 1, "report1 report_size");
     is_equal_uint32(test, report.report_items[0].report_count, 3, "report1 report_count");
     is_equal_uint32(test, report.report_items[0].nr_usages, 3, "report1 nr_usages");
@@ -459,14 +486,19 @@ void test_sample_mouse_report_descriptor(test_harness_t* test) {
     is_equal_uint32(test, report.report_items[0].usages[1].usage, 2, "report1 usage2 usage");
     is_equal_uint32(test, report.report_items[0].usages[2].usage_page, 9, "report1 usage3 usage_page");
     is_equal_uint32(test, report.report_items[0].usages[2].usage, 3, "report1 usage3 usage");
-    is_equal_uint32(test, report.report_items[1].report_size, 8, "report2 report_size");
-    is_equal_uint32(test, report.report_items[1].report_count, 2, "report2 report_count");
-    is_equal_uint32(test, report.report_items[1].usages[0].usage_page, 1, "report2 usage1 usage_page");
-    is_equal_uint32(test, report.report_items[1].usages[0].usage, 48, "report2 usage1 usage");
-    is_equal_uint32(test, report.report_items[1].usages[1].usage_page, 1, "report2 usage2 usage_page");
-    is_equal_uint32(test, report.report_items[1].usages[1].usage, 49, "report2 usage2 usage");
 
-    hid_input_destroy_device(device);
+    is_equal_uint32(test, report.report_items[1].report_size, 5, "report2 report_size");
+    is_equal_uint32(test, report.report_items[1].report_count, 1, "report2 report_count");
+	is_equal_uint32(test, report.report_items[1].nr_usages, 0, "report2 has zero usages");
+
+    is_equal_uint32(test, report.report_items[2].report_size, 8, "report3 report_size");
+    is_equal_uint32(test, report.report_items[2].report_count, 2, "report3 report_count");
+    is_equal_uint32(test, report.report_items[2].usages[0].usage_page, 1, "report3 usage1 usage_page");
+    is_equal_uint32(test, report.report_items[2].usages[0].usage, 48, "report3 usage1 usage");
+    is_equal_uint32(test, report.report_items[2].usages[1].usage_page, 1, "report3 usage2 usage_page");
+    is_equal_uint32(test, report.report_items[2].usages[1].usage, 49, "report3 usage2 usage");
+
+    hid_device_destroy(device);
 }
 
 int main(void) {

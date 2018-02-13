@@ -37,6 +37,10 @@ void test_harness_exit_with_status(test_harness_t* test) {
     exit(exit_code);
 }
 
+uint32_t test_harness_nr_failed_tests(test_harness_t* test) {
+    return test->failures;
+}
+
 void test_harness_destroy(test_harness_t* test) {
     free(test);
 }

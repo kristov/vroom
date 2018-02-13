@@ -35,7 +35,10 @@ clients: $(CLIENTS)
 tests: $(TESTS)
 
 test/test_hid_parse: lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
-	$(CC) -D_GNU_SOURCE -Iinclude -o $@ lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_parse.o lib/test_harness.o src/test_hid_parse.c
+
+test/test_hid_monitor: src/linux/hid_monitor.c lib/hid_parse.o
+	$(CC) $(CFLAGS) -D_DEBUG -Iinclude -ludev -o test/test_hid_monitor src/linux/hid_monitor.c lib/hid_parse.o
 
 bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
