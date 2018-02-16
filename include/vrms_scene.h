@@ -32,3 +32,4 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, u
 
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id);
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
+vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id);

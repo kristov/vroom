@@ -42,15 +42,25 @@ typedef struct vrms_object_mesh_texture {
     uint32_t geometry_id;
     uint32_t texture_id;
     uint32_t uv_id;
+    GLuint vertex_gl_id;
+    GLuint normal_gl_id;
+    GLuint index_gl_id;
+    GLuint texture_gl_id;
+    GLuint uv_gl_id;
+    uint32_t nr_indicies;
 } vrms_object_mesh_texture_t;
 
 typedef struct vrms_object_mesh_color {
     uint32_t id;
     uint32_t geometry_id;
+    GLuint vertex_gl_id;
+    GLuint normal_gl_id;
+    GLuint index_gl_id;
     GLfloat r;
     GLfloat g;
     GLfloat b;
     GLfloat a;
+    uint32_t nr_indicies;
 } vrms_object_mesh_color_t;
 
 typedef struct vrms_object_matrix {

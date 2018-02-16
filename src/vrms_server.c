@@ -33,6 +33,7 @@ typedef enum vrms_queue_item_type {
     VRMS_QUEUE_DATA_LOAD,
     VRMS_QUEUE_TEXTURE_LOAD,
     VRMS_QUEUE_SCENE_DESTROY,
+    VRMS_QUEUE_UPDATE_SYSTEM_MATRIX,
     VRMS_QUEUE_EVENT
 } vrms_queue_item_type_t;
 
@@ -46,6 +47,12 @@ typedef struct vrms_queue_item_data_load {
     void* buffer;
     uint32_t size;
 } vrms_queue_item_data_load_t;
+
+typedef struct vrms_queue_item_update_system_matrix {
+    vrms_matrix_type_t matrix_type;
+    vrms_update_type_t update_type;
+    void* buffer;
+} vrms_queue_item_update_system_matrix_t;
 
 typedef struct vrms_queue_item_texture_load {
     GLuint* destination;
@@ -66,6 +73,7 @@ typedef struct vrms_queue_item {
         vrms_queue_item_data_load_t* data_load;
         vrms_queue_item_texture_load_t* texture_load;
         vrms_queue_item_scene_destroy_t* scene_destroy;
+        vrms_queue_item_update_system_matrix_t* update_system_matrix;
         vrms_queue_item_event_t* event;
     } item;
 } vrms_queue_item_t;
@@ -247,33 +255,30 @@ void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, GLu
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
+void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, void* buffer) {
+    vrms_queue_item_update_system_matrix_t* update_system_matrix = SAFEMALLOC(sizeof(vrms_queue_item_update_system_matrix_t));
+    memset(update_system_matrix, 0, sizeof(vrms_queue_item_update_system_matrix_t));
+
+    update_system_matrix->matrix_type = matrix_type;
+    update_system_matrix->update_type = update_type;
+    update_system_matrix->buffer = buffer;
+
+    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
+    memset(queue_item, 0, sizeof(vrms_queue_item_t));
+    queue_item->type = VRMS_QUEUE_UPDATE_SYSTEM_MATRIX;
+
+    queue_item->item.update_system_matrix = update_system_matrix;
+
+    pthread_mutex_lock(server->inbound_queue_lock);
+    server->inbound_queue[server->inbound_queue_index] = queue_item;
+    server->inbound_queue_index++;
+    pthread_mutex_unlock(server->inbound_queue_lock);
+}
+
 void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
     GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
     float* mvp_matrix;
     float* mv_matrix;
-
-    vrms_object_t* object;
-    vrms_object_geometry_t* geometry;
-    vrms_object_data_t* vertex;
-    vrms_object_data_t* normal;
-    vrms_object_data_t* index;
-
-    object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
-    geometry = object->object.object_geometry;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
-    vertex = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
-    normal = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->index_id);
-    index = object->object.object_data;
-
-    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id)) {
-        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id);
-        return;
-    }
 
     glUseProgram(shader_id);
 
@@ -284,12 +289,12 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     esmMultiply(mvp_matrix, view_matrix);
     esmMultiply(mvp_matrix, model_matrix);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex->gl_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_gl_id);
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
 
-    glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
@@ -304,8 +309,8 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
-    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
+    glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -320,37 +325,6 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     float* mvp_matrix;
     float* mv_matrix;
 
-    vrms_object_t* object;
-    vrms_object_geometry_t* geometry;
-    vrms_object_data_t* vertex;
-    vrms_object_data_t* normal;
-    vrms_object_data_t* index;
-    vrms_object_data_t* uv;
-    vrms_object_texture_t* texture;
-
-    object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
-    geometry = object->object.object_geometry;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
-    vertex = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
-    normal = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, geometry->index_id);
-    index = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
-    uv = object->object.object_data;
-
-    object = vrms_scene_get_object_by_id(scene, mesh->texture_id);
-    texture = object->object.object_texture;
-
-    if ((0 == vertex->gl_id) || (0 == normal->gl_id) || (0 == index->gl_id) || (0 == uv->gl_id) || (0 == texture->gl_id)) {
-        fprintf(stderr, "request to render unrealized geometry: V[%d] N[%d] I[%d] U[%d] T[%d]\n", vertex->gl_id, normal->gl_id, index->gl_id, uv->gl_id, texture->gl_id);
-        return;
-    }
-
     glUseProgram(shader_id);
 
     mv_matrix = esmCreateCopy(view_matrix);
@@ -360,17 +334,17 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     esmMultiply(mvp_matrix, view_matrix);
     esmMultiply(mvp_matrix, model_matrix);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex->gl_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_gl_id);
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
 
-    glBindBuffer(GL_ARRAY_BUFFER, normal->gl_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
 
-    glBindBuffer(GL_ARRAY_BUFFER, uv->gl_id);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
@@ -378,7 +352,7 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
-    glBindTexture(GL_TEXTURE_2D, texture->gl_id);
+    glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
@@ -386,9 +360,8 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index->gl_id);
-    glDrawElements(GL_TRIANGLES, index->nr_strides, GL_UNSIGNED_SHORT, NULL);
-
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
+    glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -424,13 +397,20 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint
         esmMultiply(model_matrix, matrix_buffer);
     }
 
-    mesh_object = vrms_scene_get_object_by_id(scene, mesh_id);
-
-    if (VRMS_OBJECT_MESH_COLOR == mesh_object->type) {
-        vrms_server_draw_mesh_color(scene, scene->onecolor_shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+    mesh_object = vrms_scene_get_mesh_by_id(scene, mesh_id);
+    if (NULL == mesh_object) {
+        return;
     }
-    else if (VRMS_OBJECT_MESH_TEXTURE == mesh_object->type) {
-        vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+
+    switch (mesh_object->type) {
+        case VRMS_OBJECT_MESH_COLOR:
+            vrms_server_draw_mesh_color(scene, scene->onecolor_shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+            break;
+        case VRMS_OBJECT_MESH_TEXTURE:
+            vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+            break;
+        default:
+            break;
     }
 }
 
@@ -476,7 +456,6 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
             fprintf(stderr, "unable to load gl element buffer");
             printOpenGLError();
         }
-        free(data_load->buffer);
     }
 }
 
@@ -495,7 +474,6 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_l
             fprintf(stderr, "unable to load gl texture buffer");
             printOpenGLError();
         }
-        free(texture_load->buffer);
     }
 }
 
@@ -508,36 +486,43 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
             fprintf(stderr, "unable to load gl buffer");
             printOpenGLError();
         }
-        free(data_load->buffer);
     }
 }
 
 void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* queue_item) {
-    if (VRMS_QUEUE_DATA_LOAD == queue_item->type) {
-        vrms_queue_item_data_load_t* data_load = queue_item->item.data_load;
-        if (VRMS_INDEX == data_load->type) {
-            vrms_queue_load_gl_element_buffer(data_load);
-        }
-        else {
-            vrms_queue_load_gl_buffer(data_load);
-        }
-        free(data_load);
+    vrms_queue_item_data_load_t* data_load;
+    vrms_queue_item_texture_load_t* texture_load;
+    vrms_queue_item_scene_destroy_t* scene_destroy;
+
+    switch (queue_item->type) {
+        case VRMS_QUEUE_DATA_LOAD:
+            data_load = queue_item->item.data_load;
+            if (VRMS_INDEX == data_load->type) {
+                vrms_queue_load_gl_element_buffer(data_load);
+            }
+            else {
+                vrms_queue_load_gl_buffer(data_load);
+            }
+            free(data_load);
+            break;
+        case VRMS_QUEUE_TEXTURE_LOAD:
+            texture_load = queue_item->item.texture_load;
+            vrms_queue_load_gl_texture_buffer(texture_load);
+            break;
+        case VRMS_QUEUE_SCENE_DESTROY:
+            scene_destroy = queue_item->item.scene_destroy;
+            vrms_server_destroy_scene(server, scene_destroy->scene_id);
+            free(scene_destroy);
+            break;
+        case VRMS_QUEUE_UPDATE_SYSTEM_MATRIX:
+            break;
+        case VRMS_QUEUE_EVENT:
+            fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");
+            break;
+        default:
+            fprintf(stderr, "unknown queue type!!\n");
     }
-    else if (VRMS_QUEUE_TEXTURE_LOAD == queue_item->type) {
-        vrms_queue_item_texture_load_t* texture_load = queue_item->item.texture_load;
-        vrms_queue_load_gl_texture_buffer(texture_load);
-    }
-    else if (VRMS_QUEUE_SCENE_DESTROY == queue_item->type) {
-        vrms_queue_item_scene_destroy_t* scene_destroy = queue_item->item.scene_destroy;
-        vrms_server_destroy_scene(server, scene_destroy->scene_id);
-        free(scene_destroy);
-    }
-    else if (VRMS_QUEUE_EVENT == queue_item->type) {
-        fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");
-    }
-    else {
-        fprintf(stderr, "unknown queue type!!\n");
-    }
+
     free(queue_item);
 }
 

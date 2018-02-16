@@ -143,4 +143,3 @@ void vrms_object_destroy(vrms_object_t* object) {
         vrms_object_mesh_texture_destroy(object->object.object_mesh_texture);
     }
 }
-
