@@ -57,6 +57,10 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     }
 
     object = vrms_scene_get_object_by_id(scene, memory_id);
+    if (NULL == object) {
+        return NULL;
+    }
+
     if (VRMS_OBJECT_MEMORY != object->type) {
         fprintf(stderr, "vrms_scene_get_memory_object_by_id: asked for an id that is not a memory object\n");
         return NULL;
