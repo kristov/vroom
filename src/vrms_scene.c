@@ -34,18 +34,35 @@ vrms_scene_t* vrms_scene_create(char* name) {
     return scene;
 }
 
-vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* vrms_scene, uint32_t id) {
+vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
-    if (vrms_scene->next_object_id <= id) {
+    if (scene->next_object_id <= id) {
         fprintf(stderr, "id out of range\n");
         return NULL;
     }
-    vrms_object = vrms_scene->objects[id];
+    vrms_object = scene->objects[id];
     if (NULL == vrms_object) {
-        fprintf(stderr, "undefined object ofr id: %d\n", id);
+        fprintf(stderr, "undefined object for id: %d\n", id);
         return NULL;
     }
     return vrms_object;
+}
+
+vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, uint32_t memory_id) {
+    vrms_object_t* object;
+
+    if (0 == memory_id) {
+        fprintf(stderr, "vrms_scene_get_memory_object_by_id: no memory id passed\n");
+        return NULL;
+    }
+
+    object = vrms_scene_get_object_by_id(scene, memory_id);
+    if (VRMS_OBJECT_MEMORY != object->type) {
+        fprintf(stderr, "vrms_scene_get_memory_object_by_id: asked for an id that is not a memory object\n");
+        return NULL;
+    }
+
+    return object->object.object_memory;
 }
 
 void vrms_scene_destroy_objects(vrms_scene_t* scene) {
@@ -99,12 +116,10 @@ void vrms_scene_destroy(vrms_scene_t* scene) {
     free(scene);
 }
 
-uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t type, uint32_t fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t size) {
     void* address;
-    void* buffer;
     int32_t seals;
 
-    buffer = SAFEMALLOC(size);
     seals = fcntl(fd, F_GET_SEALS);
     if (!(seals & F_SEAL_SHRINK)) {
         fprintf(stderr, "got non-sealed memfd\n");
@@ -117,7 +132,27 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
         return 0;
     }
 
-    memcpy(buffer, &((unsigned char*)address)[offset], size);
+    vrms_object_t* object = vrms_object_memory_create(address, size);
+    vrms_scene_add_object(scene, object);
+
+    return object->id;
+}
+
+uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t type, uint32_t memory_id, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+    void* buffer;
+    vrms_object_memory_t* memory;
+
+    memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
+    if (NULL == memory) {
+        return 0;
+    }
+
+    if ((offset + size) > memory->size) {
+        fprintf(stderr, "create_data_object: read beyond memory size!\n");
+    }
+
+    buffer = SAFEMALLOC(size);
+    memcpy(buffer, &((unsigned char*)memory->address)[offset], size);
 
 /*
     char* label = "VRMS_XX____";
@@ -181,25 +216,21 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
     return object->id;
 }
 
-uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t fd, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
-    void* address;
+uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
     void* buffer;
-    int32_t seals;
+    vrms_object_memory_t* memory;
+
+    memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
+    if (NULL == memory) {
+        return 0;
+    }
+
+    if ((offset + size) > memory->size) {
+        fprintf(stderr, "create_data_object: read beyond memory size!\n");
+    }
 
     buffer = SAFEMALLOC(size);
-    seals = fcntl(fd, F_GET_SEALS);
-    if (!(seals & F_SEAL_SHRINK)) {
-        fprintf(stderr, "got non-sealed memfd\n");
-        return 0;
-    }
-
-    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-    if (MAP_FAILED == address) {
-        fprintf(stderr, "memory map failed\n");
-        return 0;
-    }
-
-    memcpy(buffer, &((unsigned char*)address)[offset], size);
+    memcpy(buffer, &((unsigned char*)memory->address)[offset], size);
 
 /*
     uint32_t i, j, k;
@@ -239,22 +270,38 @@ uint32_t vrms_scene_create_object_mesh_texture(vrms_scene_t* scene, uint32_t geo
     return object->id;
 }
 
-uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t fd, uint32_t nr_objects) {
-    void* address;
-    int32_t seals;
-    size_t size;
+uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
+    void* buffer;
+    vrms_object_memory_t* memory;
 
-    size = (sizeof(uint32_t) * 3) * nr_objects;
-    seals = fcntl(fd, F_GET_SEALS);
-    if (!(seals & F_SEAL_SHRINK)) {
-        fprintf(stderr, "got non-sealed memfd\n");
+    memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
+    if (NULL == memory) {
         return 0;
     }
 
-    address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-    if (MAP_FAILED == address) {
-        fprintf(stderr, "memory map failed\n");
+    if ((offset + size) > memory->size) {
+        fprintf(stderr, "vrms_scene_update_system_matrix: read beyond memory size!\n");
+    }
+
+    buffer = SAFEMALLOC(size);
+    memcpy(buffer, &((unsigned char*)memory->address)[offset], size);
+
+    return 1;
+}
+
+uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t nr_objects) {
+    size_t size;
+    vrms_object_memory_t* memory;
+
+    size = (sizeof(uint32_t) * 3) * nr_objects;
+
+    memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
+    if (NULL == memory) {
         return 0;
+    }
+
+    if (size > memory->size) {
+        fprintf(stderr, "vrms_scene_set_render_buffer: read beyond memory size!\n");
     }
 
     pthread_mutex_lock(scene->render_buffer_lock);
@@ -263,7 +310,7 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t fd, uint32_t
     }
     scene->render_buffer = SAFEMALLOC(size);
     scene->render_buffer_nr_objects = nr_objects;
-    memcpy(scene->render_buffer, (unsigned char*)address, size);
+    memcpy(scene->render_buffer, (unsigned char*)memory->address, size);
     pthread_mutex_unlock(scene->render_buffer_lock);
 
     return 1;

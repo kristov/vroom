@@ -136,6 +136,49 @@ void   destroy_scene__free_unpacked
   assert(message->base.descriptor == &destroy_scene__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   create_memory__init
+                     (CreateMemory         *message)
+{
+  static CreateMemory init_value = CREATE_MEMORY__INIT;
+  *message = init_value;
+}
+size_t create_memory__get_packed_size
+                     (const CreateMemory *message)
+{
+  assert(message->base.descriptor == &create_memory__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t create_memory__pack
+                     (const CreateMemory *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &create_memory__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t create_memory__pack_to_buffer
+                     (const CreateMemory *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &create_memory__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+CreateMemory *
+       create_memory__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (CreateMemory *)
+     protobuf_c_message_unpack (&create_memory__descriptor,
+                                allocator, len, data);
+}
+void   create_memory__free_unpacked
+                     (CreateMemory *message,
+                      ProtobufCAllocator *allocator)
+{
+  assert(message->base.descriptor == &create_memory__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   create_data_object__init
                      (CreateDataObject         *message)
 {
@@ -263,6 +306,49 @@ void   set_render_buffer__free_unpacked
                       ProtobufCAllocator *allocator)
 {
   assert(message->base.descriptor == &set_render_buffer__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   update_system_matrix__init
+                     (UpdateSystemMatrix         *message)
+{
+  static UpdateSystemMatrix init_value = UPDATE_SYSTEM_MATRIX__INIT;
+  *message = init_value;
+}
+size_t update_system_matrix__get_packed_size
+                     (const UpdateSystemMatrix *message)
+{
+  assert(message->base.descriptor == &update_system_matrix__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t update_system_matrix__pack
+                     (const UpdateSystemMatrix *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &update_system_matrix__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t update_system_matrix__pack_to_buffer
+                     (const UpdateSystemMatrix *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &update_system_matrix__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+UpdateSystemMatrix *
+       update_system_matrix__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (UpdateSystemMatrix *)
+     protobuf_c_message_unpack (&update_system_matrix__descriptor,
+                                allocator, len, data);
+}
+void   update_system_matrix__free_unpacked
+                     (UpdateSystemMatrix *message,
+                      ProtobufCAllocator *allocator)
+{
+  assert(message->base.descriptor == &update_system_matrix__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   destroy_data_object__init
@@ -564,6 +650,57 @@ const ProtobufCMessageDescriptor destroy_scene__descriptor =
   (ProtobufCMessageInit) destroy_scene__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const ProtobufCFieldDescriptor create_memory__field_descriptors[2] =
+{
+  {
+    "scene_id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateMemory, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateMemory, size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned create_memory__field_indices_by_name[] = {
+  0,   /* field[0] = scene_id */
+  1,   /* field[1] = size */
+};
+static const ProtobufCIntRange create_memory__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor create_memory__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "CreateMemory",
+  "CreateMemory",
+  "CreateMemory",
+  "",
+  sizeof(CreateMemory),
+  2,
+  create_memory__field_descriptors,
+  create_memory__field_indices_by_name,
+  1,  create_memory__number_ranges,
+  (ProtobufCMessageInit) create_memory__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCEnumValue create_data_object__type__enum_values_by_number[6] =
 {
   { "UV", "CREATE_DATA_OBJECT__TYPE__UV", 0 },
@@ -600,7 +737,7 @@ const ProtobufCEnumDescriptor create_data_object__type__descriptor =
   create_data_object__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
+static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
 {
   {
     "scene_id",
@@ -615,8 +752,20 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "type",
+    "memory_id",
     2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateDataObject, memory_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "type",
+    3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_ENUM,
     0,   /* quantifier_offset */
@@ -628,7 +777,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
   {
     "offset",
-    3,
+    4,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -640,7 +789,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
   {
     "size",
-    4,
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -652,7 +801,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
   {
     "nr_strides",
-    5,
+    6,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -664,7 +813,7 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
   {
     "stride",
-    6,
+    7,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -676,17 +825,18 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[6] =
   },
 };
 static const unsigned create_data_object__field_indices_by_name[] = {
-  4,   /* field[4] = nr_strides */
-  2,   /* field[2] = offset */
+  1,   /* field[1] = memory_id */
+  5,   /* field[5] = nr_strides */
+  3,   /* field[3] = offset */
   0,   /* field[0] = scene_id */
-  3,   /* field[3] = size */
-  5,   /* field[5] = stride */
-  1,   /* field[1] = type */
+  4,   /* field[4] = size */
+  6,   /* field[6] = stride */
+  2,   /* field[2] = type */
 };
 static const ProtobufCIntRange create_data_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 6 }
+  { 0, 7 }
 };
 const ProtobufCMessageDescriptor create_data_object__descriptor =
 {
@@ -696,7 +846,7 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   "CreateDataObject",
   "",
   sizeof(CreateDataObject),
-  6,
+  7,
   create_data_object__field_descriptors,
   create_data_object__field_indices_by_name,
   1,  create_data_object__number_ranges,
@@ -729,7 +879,7 @@ const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
   create_texture_object__format__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[7] =
+static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[8] =
 {
   {
     "scene_id",
@@ -738,6 +888,18 @@ static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[7
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
     offsetof(CreateTextureObject, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_id",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(CreateTextureObject, memory_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -817,19 +979,19 @@ static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[7
   },
 };
 static const unsigned create_texture_object__field_indices_by_name[] = {
-  5,   /* field[5] = format */
-  4,   /* field[4] = height */
-  1,   /* field[1] = offset */
+  6,   /* field[6] = format */
+  5,   /* field[5] = height */
+  1,   /* field[1] = memory_id */
+  2,   /* field[2] = offset */
   0,   /* field[0] = scene_id */
-  2,   /* field[2] = size */
-  6,   /* field[6] = type */
-  3,   /* field[3] = width */
+  3,   /* field[3] = size */
+  7,   /* field[7] = type */
+  4,   /* field[4] = width */
 };
-static const ProtobufCIntRange create_texture_object__number_ranges[2 + 1] =
+static const ProtobufCIntRange create_texture_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 3, 1 },
-  { 0, 7 }
+  { 0, 8 }
 };
 const ProtobufCMessageDescriptor create_texture_object__descriptor =
 {
@@ -839,14 +1001,14 @@ const ProtobufCMessageDescriptor create_texture_object__descriptor =
   "CreateTextureObject",
   "",
   sizeof(CreateTextureObject),
-  7,
+  8,
   create_texture_object__field_descriptors,
   create_texture_object__field_indices_by_name,
-  2,  create_texture_object__number_ranges,
+  1,  create_texture_object__number_ranges,
   (ProtobufCMessageInit) create_texture_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[2] =
+static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[3] =
 {
   {
     "scene_id",
@@ -861,8 +1023,20 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[2] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "nr_objects",
+    "memory_id",
     2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SetRenderBuffer, memory_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "nr_objects",
+    3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
@@ -874,13 +1048,14 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[2] =
   },
 };
 static const unsigned set_render_buffer__field_indices_by_name[] = {
-  1,   /* field[1] = nr_objects */
+  1,   /* field[1] = memory_id */
+  2,   /* field[2] = nr_objects */
   0,   /* field[0] = scene_id */
 };
 static const ProtobufCIntRange set_render_buffer__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 2 }
+  { 0, 3 }
 };
 const ProtobufCMessageDescriptor set_render_buffer__descriptor =
 {
@@ -890,11 +1065,170 @@ const ProtobufCMessageDescriptor set_render_buffer__descriptor =
   "SetRenderBuffer",
   "",
   sizeof(SetRenderBuffer),
-  2,
+  3,
   set_render_buffer__field_descriptors,
   set_render_buffer__field_indices_by_name,
   1,  set_render_buffer__number_ranges,
   (ProtobufCMessageInit) set_render_buffer__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCEnumValue update_system_matrix__matrix_type__enum_values_by_number[2] =
+{
+  { "HEAD", "UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD", 0 },
+  { "BODY", "UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY", 1 },
+};
+static const ProtobufCIntRange update_system_matrix__matrix_type__value_ranges[] = {
+{0, 0},{0, 2}
+};
+static const ProtobufCEnumValueIndex update_system_matrix__matrix_type__enum_values_by_name[2] =
+{
+  { "BODY", 1 },
+  { "HEAD", 0 },
+};
+const ProtobufCEnumDescriptor update_system_matrix__matrix_type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "UpdateSystemMatrix.MatrixType",
+  "MatrixType",
+  "UpdateSystemMatrix__MatrixType",
+  "",
+  2,
+  update_system_matrix__matrix_type__enum_values_by_number,
+  2,
+  update_system_matrix__matrix_type__enum_values_by_name,
+  1,
+  update_system_matrix__matrix_type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
+static const ProtobufCEnumValue update_system_matrix__update_type__enum_values_by_number[2] =
+{
+  { "MULTIPLY", "UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY", 0 },
+  { "SET", "UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET", 1 },
+};
+static const ProtobufCIntRange update_system_matrix__update_type__value_ranges[] = {
+{0, 0},{0, 2}
+};
+static const ProtobufCEnumValueIndex update_system_matrix__update_type__enum_values_by_name[2] =
+{
+  { "MULTIPLY", 0 },
+  { "SET", 1 },
+};
+const ProtobufCEnumDescriptor update_system_matrix__update_type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "UpdateSystemMatrix.UpdateType",
+  "UpdateType",
+  "UpdateSystemMatrix__UpdateType",
+  "",
+  2,
+  update_system_matrix__update_type__enum_values_by_number,
+  2,
+  update_system_matrix__update_type__enum_values_by_name,
+  1,
+  update_system_matrix__update_type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
+static const ProtobufCFieldDescriptor update_system_matrix__field_descriptors[6] =
+{
+  {
+    "scene_id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_id",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, memory_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "matrix_type",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, matrix_type),
+    &update_system_matrix__matrix_type__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "update_type",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_ENUM,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, update_type),
+    &update_system_matrix__update_type__descriptor,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "offset",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, offset),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "size",
+    6,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(UpdateSystemMatrix, size),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned update_system_matrix__field_indices_by_name[] = {
+  2,   /* field[2] = matrix_type */
+  1,   /* field[1] = memory_id */
+  4,   /* field[4] = offset */
+  0,   /* field[0] = scene_id */
+  5,   /* field[5] = size */
+  3,   /* field[3] = update_type */
+};
+static const ProtobufCIntRange update_system_matrix__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 6 }
+};
+const ProtobufCMessageDescriptor update_system_matrix__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "UpdateSystemMatrix",
+  "UpdateSystemMatrix",
+  "UpdateSystemMatrix",
+  "",
+  sizeof(UpdateSystemMatrix),
+  6,
+  update_system_matrix__field_descriptors,
+  update_system_matrix__field_indices_by_name,
+  1,  update_system_matrix__number_ranges,
+  (ProtobufCMessageInit) update_system_matrix__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor destroy_data_object__field_descriptors[2] =

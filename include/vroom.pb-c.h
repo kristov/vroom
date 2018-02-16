@@ -18,9 +18,11 @@ PROTOBUF_C__BEGIN_DECLS
 typedef struct _Reply Reply;
 typedef struct _CreateScene CreateScene;
 typedef struct _DestroyScene DestroyScene;
+typedef struct _CreateMemory CreateMemory;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _CreateTextureObject CreateTextureObject;
 typedef struct _SetRenderBuffer SetRenderBuffer;
+typedef struct _UpdateSystemMatrix UpdateSystemMatrix;
 typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
 typedef struct _CreateMeshColor CreateMeshColor;
@@ -42,6 +44,16 @@ typedef enum _CreateTextureObject__Format {
   CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8 = 0
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_TEXTURE_OBJECT__FORMAT)
 } CreateTextureObject__Format;
+typedef enum _UpdateSystemMatrix__MatrixType {
+  UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD = 0,
+  UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(UPDATE_SYSTEM_MATRIX__MATRIX_TYPE)
+} UpdateSystemMatrix__MatrixType;
+typedef enum _UpdateSystemMatrix__UpdateType {
+  UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY = 0,
+  UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(UPDATE_SYSTEM_MATRIX__UPDATE_TYPE)
+} UpdateSystemMatrix__UpdateType;
 
 /* --- messages --- */
 
@@ -76,10 +88,22 @@ struct  _DestroyScene
     , 0 }
 
 
+struct  _CreateMemory
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t size;
+};
+#define CREATE_MEMORY__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_memory__descriptor) \
+    , 0, 0 }
+
+
 struct  _CreateDataObject
 {
   ProtobufCMessage base;
   int32_t scene_id;
+  int32_t memory_id;
   CreateDataObject__Type type;
   int32_t offset;
   int32_t size;
@@ -88,13 +112,14 @@ struct  _CreateDataObject
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  _CreateTextureObject
 {
   ProtobufCMessage base;
   int32_t scene_id;
+  int32_t memory_id;
   int32_t offset;
   int32_t size;
   int32_t width;
@@ -104,18 +129,34 @@ struct  _CreateTextureObject
 };
 #define CREATE_TEXTURE_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_texture_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  _SetRenderBuffer
 {
   ProtobufCMessage base;
   int32_t scene_id;
+  int32_t memory_id;
   int32_t nr_objects;
 };
 #define SET_RENDER_BUFFER__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&set_render_buffer__descriptor) \
-    , 0, 0 }
+    , 0, 0, 0 }
+
+
+struct  _UpdateSystemMatrix
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t memory_id;
+  UpdateSystemMatrix__MatrixType matrix_type;
+  UpdateSystemMatrix__UpdateType update_type;
+  int32_t offset;
+  int32_t size;
+};
+#define UPDATE_SYSTEM_MATRIX__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&update_system_matrix__descriptor) \
+    , 0, 0, 0, 0, 0, 0 }
 
 
 struct  _DestroyDataObject
@@ -227,6 +268,25 @@ DestroyScene *
 void   destroy_scene__free_unpacked
                      (DestroyScene *message,
                       ProtobufCAllocator *allocator);
+/* CreateMemory methods */
+void   create_memory__init
+                     (CreateMemory         *message);
+size_t create_memory__get_packed_size
+                     (const CreateMemory   *message);
+size_t create_memory__pack
+                     (const CreateMemory   *message,
+                      uint8_t             *out);
+size_t create_memory__pack_to_buffer
+                     (const CreateMemory   *message,
+                      ProtobufCBuffer     *buffer);
+CreateMemory *
+       create_memory__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   create_memory__free_unpacked
+                     (CreateMemory *message,
+                      ProtobufCAllocator *allocator);
 /* CreateDataObject methods */
 void   create_data_object__init
                      (CreateDataObject         *message);
@@ -283,6 +343,25 @@ SetRenderBuffer *
                       const uint8_t       *data);
 void   set_render_buffer__free_unpacked
                      (SetRenderBuffer *message,
+                      ProtobufCAllocator *allocator);
+/* UpdateSystemMatrix methods */
+void   update_system_matrix__init
+                     (UpdateSystemMatrix         *message);
+size_t update_system_matrix__get_packed_size
+                     (const UpdateSystemMatrix   *message);
+size_t update_system_matrix__pack
+                     (const UpdateSystemMatrix   *message,
+                      uint8_t             *out);
+size_t update_system_matrix__pack_to_buffer
+                     (const UpdateSystemMatrix   *message,
+                      ProtobufCBuffer     *buffer);
+UpdateSystemMatrix *
+       update_system_matrix__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   update_system_matrix__free_unpacked
+                     (UpdateSystemMatrix *message,
                       ProtobufCAllocator *allocator);
 /* DestroyDataObject methods */
 void   destroy_data_object__init
@@ -371,6 +450,9 @@ typedef void (*CreateScene_Closure)
 typedef void (*DestroyScene_Closure)
                  (const DestroyScene *message,
                   void *closure_data);
+typedef void (*CreateMemory_Closure)
+                 (const CreateMemory *message,
+                  void *closure_data);
 typedef void (*CreateDataObject_Closure)
                  (const CreateDataObject *message,
                   void *closure_data);
@@ -379,6 +461,9 @@ typedef void (*CreateTextureObject_Closure)
                   void *closure_data);
 typedef void (*SetRenderBuffer_Closure)
                  (const SetRenderBuffer *message,
+                  void *closure_data);
+typedef void (*UpdateSystemMatrix_Closure)
+                 (const UpdateSystemMatrix *message,
                   void *closure_data);
 typedef void (*DestroyDataObject_Closure)
                  (const DestroyDataObject *message,
@@ -401,11 +486,15 @@ typedef void (*CreateMeshTexture_Closure)
 extern const ProtobufCMessageDescriptor reply__descriptor;
 extern const ProtobufCMessageDescriptor create_scene__descriptor;
 extern const ProtobufCMessageDescriptor destroy_scene__descriptor;
+extern const ProtobufCMessageDescriptor create_memory__descriptor;
 extern const ProtobufCMessageDescriptor create_data_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
 extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
 extern const ProtobufCMessageDescriptor set_render_buffer__descriptor;
+extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
+extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
+extern const ProtobufCEnumDescriptor    update_system_matrix__update_type__descriptor;
 extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;

@@ -3,6 +3,7 @@
 typedef enum vrms_object_type {
     VRMS_OBJECT_INVALID,
     VRMS_OBJECT_SCENE,
+    VRMS_OBJECT_MEMORY,
     VRMS_OBJECT_DATA,
     VRMS_OBJECT_TEXTURE,
     VRMS_OBJECT_GEOMETRY,
@@ -27,6 +28,7 @@ typedef enum vrms_type {
     VRMS_REPLY,
     VRMS_CREATESCENE,
     VRMS_DESTROYSCENE,
+    VRMS_CREATEMEMORY,
     VRMS_CREATEDATAOBJECT,
     VRMS_CREATETEXTUREOBJECT,
     VRMS_DESTROYDATAOBJECT,
@@ -34,8 +36,19 @@ typedef enum vrms_type {
     VRMS_CREATEGEOMETRYOBJECT,
     VRMS_CREATEMESHCOLOR,
     VRMS_CREATEMESHTEXTURE,
-    VRMS_SETRENDERBUFFER
+    VRMS_SETRENDERBUFFER,
+    VRMS_UPDATESYSTEMMATRIX
 } vrms_type_t;
+
+typedef enum vrms_matrix_type {
+    VRMS_MATRIX_HEAD,
+    VRMS_MATRIX_BODY
+} vrms_matrix_type_t;
+
+typedef enum vrms_udate_type {
+    VRMS_UPDATE_MULTIPLY,
+    VRMS_UPDATE_SET
+} vrms_update_type_t;
 
 typedef enum vrms_error {
     VRMS_OK,

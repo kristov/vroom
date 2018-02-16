@@ -11,6 +11,20 @@ vrms_object_t* vrms_object_create() {
     return vrms_object;
 }
 
+vrms_object_t* vrms_object_memory_create(void* address, uint32_t size) {
+    vrms_object_t* object = vrms_object_create();
+    object->type = VRMS_OBJECT_MEMORY;
+
+    vrms_object_memory_t* object_memory = SAFEMALLOC(sizeof(vrms_object_memory_t));
+    memset(object_memory, 0, sizeof(vrms_object_memory_t));
+
+    object_memory->address = address;
+    object_memory->size = size;
+    object->object.object_memory = object_memory;
+
+    return object;
+}
+
 vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uint32_t nr_strides, uint32_t stride) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_DATA;

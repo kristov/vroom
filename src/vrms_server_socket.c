@@ -84,7 +84,41 @@ uint32_t receive_create_scene(vrms_server_t* vrms_server, uint8_t* in_buf, int32
     return id;
 }
 
-uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+uint32_t receive_create_memory(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+    uint32_t id;
+    CreateMemory* cs_msg;
+
+    if (NULL == vrms_server) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    cs_msg = create_memory__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_scene_create_memory(vrms_scene, shm_fd, cs_msg->size);
+    }
+
+    if (0 == id) {
+        fprintf(stderr, "create memory: out of memory\n");
+        *error = VRMS_OUTOFMEMORY;
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return id;
+}
+
+uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     CreateDataObject* cs_msg;
 
@@ -105,29 +139,29 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
     switch (cs_msg->type) {
         case CREATE_DATA_OBJECT__TYPE__UV:
             vrms_type = VRMS_UV;
-        break;
+            break;
         case CREATE_DATA_OBJECT__TYPE__COLOR:
             vrms_type = VRMS_COLOR;
-        break;
+            break;
         case CREATE_DATA_OBJECT__TYPE__VERTEX:
             vrms_type = VRMS_VERTEX;
-        break;
+            break;
         case CREATE_DATA_OBJECT__TYPE__NORMAL:
             vrms_type = VRMS_NORMAL;
-        break;
+            break;
         case CREATE_DATA_OBJECT__TYPE__INDEX:
             vrms_type = VRMS_INDEX;
-        break;
+            break;
         case CREATE_DATA_OBJECT__TYPE__MATRIX:
             vrms_type = VRMS_MATRIX;
-        break;
+            break;
         case _CREATE_DATA_OBJECT__TYPE_IS_INT_SIZE:
-        break;
+            break;
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_data(vrms_scene, vrms_type, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
+        id = vrms_scene_create_object_data(vrms_scene, vrms_type, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
     }
 
     if (0 == id) {
@@ -142,7 +176,7 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
     return id;
 }
 
-uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     CreateTextureObject* cs_msg;
 
@@ -163,7 +197,7 @@ uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_b
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_texture(vrms_scene, shm_fd, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format);
+        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format);
     }
 
     if (0 == id) {
@@ -280,7 +314,7 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
     return id;
 }
 
-uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error, int shm_fd) {
+uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
     SetRenderBuffer* cs_msg;
 
@@ -299,7 +333,7 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_set_render_buffer(vrms_scene, shm_fd, cs_msg->nr_objects);
+        id = vrms_scene_set_render_buffer(vrms_scene, cs_msg->memory_id, cs_msg->nr_objects);
     }
 
     if (0 == id) {
@@ -312,6 +346,65 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     free(cs_msg);
     return id;
+}
+
+uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+    uint32_t ok;
+    UpdateSystemMatrix* cs_msg;
+    vrms_matrix_type_t matrix_type;
+    vrms_update_type_t update_type;
+
+    if (NULL == vrms_server) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    cs_msg = update_system_matrix__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    switch (cs_msg->matrix_type) {
+        case UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD:
+            matrix_type = VRMS_MATRIX_HEAD;
+            break;
+        case UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY:
+            matrix_type = VRMS_MATRIX_BODY;
+            break;
+        case _UPDATE_SYSTEM_MATRIX__MATRIX_TYPE_IS_INT_SIZE:
+            break;
+    }
+
+    switch (cs_msg->update_type) {
+        case UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY:
+            update_type = VRMS_UPDATE_MULTIPLY;
+            break;
+        case UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET:
+            update_type = VRMS_UPDATE_SET;
+            break;
+        case _UPDATE_SYSTEM_MATRIX__UPDATE_TYPE_IS_INT_SIZE:
+            break;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        ok = vrms_scene_update_system_matrix(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, matrix_type, update_type);
+    }
+
+
+    if (0 == ok) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "set system matrix error\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return ok;
 }
 
 void send_reply(int32_t fd, int32_t id, vrms_error_t* error) {
@@ -350,6 +443,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     int32_t length_r;
     char type_c;
+    vrms_server_t* vrms_server;
 
     if (NULL == client->server) {
         fprintf(stderr, "no server initialized\n");
@@ -360,13 +454,14 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         fprintf(stderr, "no VRMS server initialized\n");
         send_reply(client->fd, id, &error);
     }
+    vrms_server = client->server->vrms_server;
 
     length_r = recv(client->fd, &type_c, 1, 0);
     if (length_r <= 0) {
         if (0 == length_r) {
             printf("orderly disconnect\n");
             if (client->vrms_scene_id > 0) {
-                vrms_server_destroy_scene(client->server->vrms_server, client->vrms_scene_id);
+                vrms_server_destroy_scene(vrms_server, client->vrms_scene_id);
             }
             ev_io_stop(EV_A_ &client->io);
             close(client->fd);
@@ -437,7 +532,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
                 id = 0;
             }
             else {
-                id = receive_create_scene(client->server->vrms_server, in_buf, length_r, &error);
+                id = receive_create_scene(vrms_server, in_buf, length_r, &error);
                 if (id > 0) {
                     client->vrms_scene_id = id;
                 }
@@ -445,27 +540,30 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         break;
         case VRMS_DESTROYSCENE:
         break;
+        case VRMS_CREATEMEMORY:
+            id = receive_create_memory(vrms_server, in_buf, length_r, &error, shm_fd);
+        break;
         case VRMS_CREATEDATAOBJECT:
-            id = receive_create_data_object(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
+            id = receive_create_data_object(vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_DESTROYDATAOBJECT:
         break;
         case VRMS_CREATETEXTUREOBJECT:
-            id = receive_create_texture_object(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
+            id = receive_create_texture_object(vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_DESTROYTEXTUREOBJECT:
         break;
         case VRMS_CREATEGEOMETRYOBJECT:
-            id = receive_create_geometry_object(client->server->vrms_server, in_buf, length_r, &error);
+            id = receive_create_geometry_object(vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_CREATEMESHCOLOR:
-            id = receive_create_mesh_color(client->server->vrms_server, in_buf, length_r, &error);
+            id = receive_create_mesh_color(vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_CREATEMESHTEXTURE:
-            id = receive_create_mesh_texture(client->server->vrms_server, in_buf, length_r, &error);
+            id = receive_create_mesh_texture(vrms_server, in_buf, length_r, &error);
         break;
         case VRMS_SETRENDERBUFFER:
-            id = receive_set_render_buffer(client->server->vrms_server, in_buf, length_r, &error, shm_fd);
+            id = receive_set_render_buffer(vrms_server, in_buf, length_r, &error);
         break;
         default:
             id = 0;

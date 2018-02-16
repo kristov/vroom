@@ -13,6 +13,11 @@ message DestroyScene {
     required int32 id = 1;
 }
 
+message CreateMemory {
+    required int32 scene_id = 1;
+    required int32 size = 2;
+}
+
 message CreateDataObject {
     enum Type {
         UV = 0;
@@ -23,11 +28,12 @@ message CreateDataObject {
         MATRIX = 5;
     }
     required int32 scene_id = 1;
-    required Type type = 2;
-    required int32 offset = 3;
-    required int32 size = 4;
-    required int32 nr_strides = 5;
-    required int32 stride = 6;
+    required int32 memory_id = 2;
+    required Type type = 3;
+    required int32 offset = 4;
+    required int32 size = 5;
+    required int32 nr_strides = 6;
+    required int32 stride = 7;
 }
 
 message CreateTextureObject {
@@ -35,6 +41,7 @@ message CreateTextureObject {
         RGBA_8 = 0;
     }
     required int32 scene_id = 1;
+    required int32 memory_id = 2;
     required int32 offset = 3;
     required int32 size = 4;
     required int32 width = 5;
@@ -45,7 +52,25 @@ message CreateTextureObject {
 
 message SetRenderBuffer {
     required int32 scene_id = 1;
-    required int32 nr_objects = 2;
+    required int32 memory_id = 2;
+    required int32 nr_objects = 3;
+}
+
+message UpdateSystemMatrix {
+    enum MatrixType {
+        HEAD = 0;
+        BODY = 1;
+    }
+    enum UpdateType {
+        MULTIPLY = 0;
+        SET = 1;
+    }
+    required int32 scene_id = 1;
+    required int32 memory_id = 2;
+    required MatrixType matrix_type = 3;
+    required UpdateType update_type = 4;
+    required int32 offset = 5;
+    required int32 size = 6;
 }
 
 message DestroyDataObject {

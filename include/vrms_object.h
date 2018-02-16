@@ -8,6 +8,11 @@
 #endif /* RASPBERRYPI */
 #include "vrms.h"
 
+typedef struct vrms_object_memory {
+    void* address;
+    uint32_t size;
+} vrms_object_memory_t;
+
 typedef struct vrms_object_data {
     vrms_data_type_t type;
     uint32_t size;
@@ -57,6 +62,7 @@ typedef struct vrms_object {
     uint32_t id;
     vrms_object_type_t type;
     union {
+        vrms_object_memory_t* object_memory;
         vrms_object_data_t* object_data;
         vrms_object_texture_t* object_texture;
         vrms_object_geometry_t* object_geometry;
@@ -66,6 +72,7 @@ typedef struct vrms_object {
 } vrms_object_t;
 
 vrms_object_t* vrms_object_create();
+vrms_object_t* vrms_object_memory_create(void* address, uint32_t size);
 vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uint32_t nr_strides, uint32_t stride);
 vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, uint32_t format);
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);

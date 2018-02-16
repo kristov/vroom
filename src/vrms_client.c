@@ -20,7 +20,7 @@
 #define SOCK_PATH "/tmp/libev-echo.sock"
 #define MAX_MSG_SIZE 1024
 
-uint32_t type_map[] = {
+uint32_t data_object_type_map[] = {
     CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
     CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
     CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
@@ -29,9 +29,24 @@ uint32_t type_map[] = {
     CREATE_DATA_OBJECT__TYPE__MATRIX    // VRMS_MATRIX
 };
 
+uint32_t matrix_type_map[] = {
+    UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD,
+    UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY
+};
+
+uint32_t update_type_map[] = {
+    UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY,
+    UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET
+};
+
 uint32_t format_map[] = {
     CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8  // VRMS_RGB_8
 };
+
+int32_t destroy_shared_memory(int32_t fd) {
+    close(fd);
+    return 0;
+}
 
 uint32_t vrms_client_receive_reply(vrms_client_t* client) {
     int32_t id = 0;
@@ -131,19 +146,66 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     return id;
 }
 
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t shm_fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+uint32_t vrms_client_create_memory(vrms_client_t* client, void** address, size_t size) {
+    int32_t fd = -1;
+    int32_t ret;
+    uint32_t id;
+    void* buf;
+    uint32_t length;
+
+    fd = memfd_create("VROOM memfd", MFD_ALLOW_SEALING);
+    if (fd <= 0) {
+        fprintf(stderr, "unable to create shared memory: %d\n", errno);
+        return -1;
+    }
+
+    ret = ftruncate(fd, size);
+    if (-1 == ret) {
+        fprintf(stderr, "unable to truncate memfd to size %zd\n", size);
+        return -1;
+    }
+
+    ret = fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK);
+    if (-1 == ret) {
+        fprintf(stderr, "failed to add seals to memfd\n");
+        return -1;
+    }
+
+    *address = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (MAP_FAILED == *address) {
+        fprintf(stderr, "unable to attach address\n");
+        return -1;
+    }
+
+    CreateMemory msg = CREATE_MEMORY__INIT;
+    msg.scene_id = client->scene_id;
+    msg.size = size;
+
+    length = create_memory__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    create_memory__pack(&msg, buf);
+
+    id = vrms_client_send_message(client, VRMS_CREATEMEMORY, buf, length, fd);
+
+    free(buf);
+    return id;
+}
+
+uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
     uint32_t id;
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
     void* buf;
     uint32_t length;
 
-    uint32_t type_map_index = (uint32_t)type;
-    if (type_map_index < 0 || type_map_index > 6) {
+    uint32_t data_object_type_map_index = (uint32_t)type;
+    if (data_object_type_map_index < 0 || data_object_type_map_index > 6) {
         return 0;
     }
-    uint32_t pb_type = type_map[type_map_index];
+    uint32_t pb_type = data_object_type_map[data_object_type_map_index];
 
     msg.scene_id = client->scene_id;
+    msg.memory_id = memory_id;
     msg.type = pb_type;
     msg.offset = offset;
     msg.size = size;
@@ -155,13 +217,13 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     buf = SAFEMALLOC(length);
     create_data_object__pack(&msg, buf);
 
-    id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, shm_fd);
+    id = vrms_client_send_message(client, VRMS_CREATEDATAOBJECT, buf, length, 0);
 
     free(buf);
     return id;
 }
 
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t shm_fd, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
     uint32_t id;
     CreateTextureObject msg = CREATE_TEXTURE_OBJECT__INIT;
     void* buf;
@@ -174,6 +236,7 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t shm_fd
     uint32_t pb_format = format_map[format_map_index];
 
     msg.scene_id = client->scene_id;
+    msg.memory_id = memory_id;
     msg.offset = offset;
     msg.size = size;
     msg.width = width;
@@ -185,7 +248,7 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t shm_fd
     buf = SAFEMALLOC(length);
     create_texture_object__pack(&msg, buf);
 
-    id = vrms_client_send_message(client, VRMS_CREATETEXTUREOBJECT, buf, length, shm_fd);
+    id = vrms_client_send_message(client, VRMS_CREATETEXTUREOBJECT, buf, length, 0);
 
     free(buf);
     return id;
@@ -259,13 +322,14 @@ uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometr
     return id;
 }
 
-uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t shm_fd, uint32_t nr_items) {
+uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t nr_items) {
     uint32_t ret;
     SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;
     void* buf;
     uint32_t length;
 
     msg.scene_id = client->scene_id;
+    msg.memory_id = memory_id;
     msg.nr_objects = nr_items;
 
     length = set_render_buffer__get_packed_size(&msg);
@@ -273,7 +337,43 @@ uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t shm_fd, ui
     buf = SAFEMALLOC(length);
     set_render_buffer__pack(&msg, buf);
 
-    ret = vrms_client_send_message(client, VRMS_SETRENDERBUFFER, buf, length, shm_fd);
+    ret = vrms_client_send_message(client, VRMS_SETRENDERBUFFER, buf, length, 0);
+
+    free(buf);
+    return ret;
+}
+
+uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, int32_t memory_id, uint32_t offset, uint32_t size) {
+    uint32_t ret;
+    UpdateSystemMatrix msg = UPDATE_SYSTEM_MATRIX__INIT;
+    void* buf;
+    uint32_t length;
+
+    uint32_t matrix_type_index = (uint32_t)matrix_type;
+    if (matrix_type_index < 0 || matrix_type_index > 1) {
+        return 0;
+    }
+    uint32_t pb_matrix_type = matrix_type_map[matrix_type_index];
+
+    uint32_t update_type_index = (uint32_t)update_type;
+    if (update_type_index < 0 || update_type_index > 1) {
+        return 0;
+    }
+    uint32_t pb_update_type = update_type_map[update_type_index];
+
+    msg.scene_id = client->scene_id;
+    msg.memory_id = memory_id;
+    msg.matrix_type = pb_matrix_type;
+    msg.update_type = pb_update_type;
+    msg.offset = offset;
+    msg.size = size;
+
+    length = update_system_matrix__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    update_system_matrix__pack(&msg, buf);
+
+    ret = vrms_client_send_message(client, VRMS_UPDATESYSTEMMATRIX, buf, length, 0);
 
     free(buf);
     return ret;
@@ -320,40 +420,3 @@ uint32_t vrms_destroy_scene(vrms_client_t* client) {
     free(client);
     return 0;
 }
-
-int32_t vrms_create_memory(size_t size, void** address) {
-    int32_t fd = -1;
-    int32_t ret;
-
-    fd = memfd_create("VROOM memfd", MFD_ALLOW_SEALING);
-    if (-1 == fd) {
-        fprintf(stderr, "unable to create shared memory: %d\n", errno);
-        return -1;
-    }
-
-    ret = ftruncate(fd, size);
-    if (-1 == ret) {
-        fprintf(stderr, "unable to truncate memfd\n");
-        return -1;
-    }
-
-    ret = fcntl(fd, F_ADD_SEALS, F_SEAL_SHRINK);
-    if (-1 == ret) {
-        fprintf(stderr, "failed to add seals to memfd\n");
-        return -1;
-    }
-
-    *address = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if (MAP_FAILED == *address) {
-        fprintf(stderr, "unable to attach address\n");
-        return -1;
-    }
-
-    return fd;
-}
-
-int32_t destroy_shared_memory(int32_t fd) {
-    close(fd);
-    return 0;
-}
-
