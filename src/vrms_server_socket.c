@@ -19,11 +19,9 @@
 #include <unistd.h>
 #include "array-heap.h"
 #include "vroom.pb-c.h"
-
 #include "safe_malloc.h"
 #include "vrms_server.h"
 #include "vrms_scene.h"
-#include "vrms_hmd.h"
 #include "esm.h"
 #include "opengl_stereo.h"
 #include "vrms.h"
@@ -32,10 +30,8 @@
 
 opengl_stereo* ostereo;
 vrms_server_t* vrms_server;
-vrms_hmd_t* vrms_hmd;
 
 pthread_t socket_thread;
-pthread_t hmd_thread;
 
 struct sock_ev_serv {
     ev_io io;
@@ -565,11 +561,14 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_SETRENDERBUFFER:
             id = receive_set_render_buffer(vrms_server, in_buf, length_r, &error);
         break;
+        case VRMS_UPDATESYSTEMMATRIX:
+            id = receive_update_system_matrix(vrms_server, in_buf, length_r, &error);
+            break;
         default:
             id = 0;
             error = VRMS_INVALIDREQUEST;
             fprintf(stderr, "unknown error\n");
-        break;
+            break;
     }
 
     send_reply(client->fd, id, &error);
@@ -682,17 +681,15 @@ void* start_socket_thread(void* ptr) {
     return NULL;
 }
 
-void* start_hmd_thread(void* ptr) {
-    vrms_hmd = vrms_hmd_create();
-    vrms_hmd_init(vrms_hmd);
-    vrms_hmd_run(vrms_hmd);
-    return NULL;
-}
-
 void draw_scene(opengl_stereo* ostereo) {
     if (NULL != vrms_server) {
         vrms_server_draw_scenes(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
     }
+}
+
+void vrms_server_socket_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+    fprintf(stderr, ".");
+    memcpy(ostereo->hmd_matrix, matrix, sizeof(float) * 16);
 }
 
 void vrms_server_socket_init(int width, int height, double physical_width) {
@@ -704,16 +701,11 @@ void vrms_server_socket_init(int width, int height, double physical_width) {
     vrms_server = vrms_server_create();
     vrms_server->onecolor_shader_id = ostereo->onecolor_shader_id;
     vrms_server->texture_shader_id = ostereo->texture_shader_id;
+    vrms_server->system_matrix_update = vrms_server_socket_system_matrix_update;
 
     thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start socket thread\n");
-        exit(1);
-    }
-
-    thread_ret = pthread_create(&hmd_thread, NULL, start_hmd_thread, NULL);
-    if (thread_ret != 0) {
-        fprintf(stderr, "unable to start hmd thread\n");
         exit(1);
     }
 }
@@ -728,15 +720,8 @@ void vrms_server_socket_reshape(int w, int h) {
 
 void vrms_server_socket_process() {
     vrms_server_process_queue(vrms_server);
-    if (vrms_hmd != NULL) {
-        if (!pthread_mutex_trylock(vrms_hmd->matrix_lock)) {
-            esmCopy(ostereo->hmd_matrix, vrms_hmd->matrix);
-            pthread_mutex_unlock(vrms_hmd->matrix_lock);
-        }
-    }
 }
 
 void vrms_server_socket_end() {
     pthread_join(socket_thread, NULL);
-    pthread_join(hmd_thread, NULL);
 }

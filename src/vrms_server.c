@@ -131,6 +131,9 @@ vrms_server_t* vrms_server_create() {
     server->inbound_queue_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(server->inbound_queue_lock, 0, sizeof(pthread_mutex_t));
 
+    server->head_matrix = esmCreate();
+    server->body_matrix = esmCreate();
+
     return server;
 }
 
@@ -489,10 +492,20 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
     }
 }
 
+void vrms_queue_update_system_matrix(vrms_server_t* server, vrms_queue_item_update_system_matrix_t* update_system_matrix) {
+    float* matrix;
+
+    matrix = update_system_matrix->buffer;
+    if (NULL != server->system_matrix_update) {
+        server->system_matrix_update(update_system_matrix->matrix_type, update_system_matrix->update_type, matrix);
+    }
+}
+
 void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* queue_item) {
     vrms_queue_item_data_load_t* data_load;
     vrms_queue_item_texture_load_t* texture_load;
     vrms_queue_item_scene_destroy_t* scene_destroy;
+    vrms_queue_item_update_system_matrix_t* update_system_matrix;
 
     switch (queue_item->type) {
         case VRMS_QUEUE_DATA_LOAD:
@@ -515,6 +528,8 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
             free(scene_destroy);
             break;
         case VRMS_QUEUE_UPDATE_SYSTEM_MATRIX:
+            update_system_matrix = queue_item->item.update_system_matrix;
+            vrms_queue_update_system_matrix(server, update_system_matrix);
             break;
         case VRMS_QUEUE_EVENT:
             fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");

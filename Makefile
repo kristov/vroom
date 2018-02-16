@@ -1,10 +1,10 @@
 CC := gcc
 CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o lib/safe_malloc.o
-SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_hmd.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
+SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
 CFLAGS := -Wall -Werror -ggdb
 EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
-SRVCOM := -lopenhmd -lpthread
-CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed
+SRVCOM := -lpthread
+CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed bin/input_openhmd
 TESTS := test/test_hid_device test/test_hid_monitor
 
 EXTGL := -lGL -lGLU -lglut
@@ -55,6 +55,9 @@ bin/textured_square: src/client/textured_square.c $(CLIENTOBJS)
 bin/mixed: src/client/mixed.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
 
+bin/input_openhmd: src/client/input_openhmd.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -lopenhmd -lprotobuf-c -lm -o $@ $(CLIENTOBJS) $<
+
 lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
 
@@ -74,9 +77,6 @@ lib/vrms_geometry.o: src/vrms_geometry.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/esm.o: src/esm.c
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_hmd.o: src/vrms_hmd.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/opengl_stereo.o: src/opengl_stereo.c
