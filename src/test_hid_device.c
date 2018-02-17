@@ -516,7 +516,7 @@ void test_my_wireless_mouse_report_descriptor(test_harness_t* test) {
     test_harness_make_note(test, "Testing weird wireless mouse");
     device = hid_device_report_descriptor(descriptor, 142);
 
-    is_equal_uint32(test, device->nr_reports, 3, "device has 3 reports");
+    is_equal_uint32(test, hid_device_nr_reports(device), 3, "device has 3 reports");
     is_equal_uint32(test, device->reports[0].report_id, 1, "first report id is 1");
     is_equal_uint32(test, device->reports[1].report_id, 3, "second report id is 3");
     is_equal_uint32(test, device->reports[2].report_id, 4, "third report id is 4");
@@ -588,7 +588,7 @@ void test_my_dell_keyboard_report_descriptor(test_harness_t* test) {
     test_harness_make_note(test, "Testing descriptor from Dell Keyboard");
     device = hid_device_report_descriptor(descriptor, 65);
 
-    is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
+    is_equal_uint32(test, hid_device_nr_reports(device), 1, "device has 1 report");
     hid_input_report_t report = device->reports[0];
     is_equal_uint32(test, report.report_id, 0, "report id is 0");
     is_equal_uint32(test, report.nr_report_items, 3, "report has 3 items");
@@ -650,7 +650,7 @@ void test_sample_mouse_report_descriptor(test_harness_t* test) {
     test_harness_make_note(test, "Testing example descriptor for mouse");
     device = hid_device_report_descriptor(descriptor, 50);
 
-    is_equal_uint32(test, device->nr_reports, 1, "device has 1 report");
+    is_equal_uint32(test, hid_device_nr_reports(device), 1, "device has 1 report");
     hid_input_report_t report = device->reports[0];
     is_equal_uint32(test, report.report_id, 0, "report id is 0");
     is_equal_uint32(test, report.nr_report_items, 3, "report has 3 items");

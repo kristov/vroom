@@ -49,3 +49,4 @@ hid_device_t* hid_device_report_descriptor(uint8_t* buffer, uint32_t length);
 hid_input_report_t* hid_device_get_report_by_id(hid_device_t* device, uint32_t report_id);
 void hid_device_dump(hid_device_t* device);
 void hid_device_destroy(hid_device_t* device);
+uint32_t hid_device_nr_reports(hid_device_t* device);

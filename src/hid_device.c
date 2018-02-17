@@ -47,8 +47,12 @@ struct hid_report_context {
     uint32_t report_size;
     uint32_t logical_maximum;
     uint32_t logical_minimum;
-    uint32_t bit_offset;
-    uint32_t bit_size;
+    uint32_t input_bit_offset;
+    uint32_t input_bit_size;
+    uint32_t output_bit_offset;
+    uint32_t output_bit_size;
+    uint32_t feature_bit_offset;
+    uint32_t feature_bit_size;
     uint32_t nr_usages;
     hid_context_array_t* usages;
     uint32_t nr_report_items;
@@ -235,8 +239,8 @@ void hid_context_new_report_item(hid_report_context_t* context, uint8_t input_fl
     report_item->logical_minimum = context->logical_minimum;
     report_item->report_count = context->report_count;
     report_item->report_size = context->report_size;
-    report_item->bit_offset = context->bit_offset;
-    report_item->bit_size = context->bit_size;
+    report_item->bit_offset = context->input_bit_offset;
+    report_item->bit_size = context->input_bit_size;
     report_item->is_data = (~input_flags & 0x01);
     report_item->is_array = (~(input_flags >> 1) & 0x01);
     report_item->is_absolute = (~(input_flags >> 2) & 0x01);
@@ -340,8 +344,12 @@ void hid_context_clear(hid_report_context_t* context) {
     context->report_size = 0;
     context->logical_maximum = 0;
     context->logical_minimum = 0;
-    context->bit_offset = 0;
-    context->bit_size = 0;
+    context->input_bit_offset = 0;
+    context->input_bit_size = 0;
+    context->output_bit_offset = 0;
+    context->output_bit_size = 0;
+    context->feature_bit_offset = 0;
+    context->feature_bit_size = 0;
 }
 
 uint32_t hid_input_extract_data_from_buffer(uint8_t* buffer, uint32_t index, uint8_t bSize) {
@@ -422,10 +430,10 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
             index += bSize;
             break;
         case HID_RD_INPUT:
-            context->bit_size = (context->report_size * context->report_count);
+            context->input_bit_size = (context->report_size * context->report_count);
             debug_print("HID_RD_INPUT (%02x)\n", buffer[index]);
-            debug_print("  bit_offset: %d\n", context->bit_offset);
-            debug_print("    bit_size: %d\n", context->bit_size);
+            debug_print("  input_bit_offset: %d\n", context->input_bit_offset);
+            debug_print("    input_bit_size: %d\n", context->input_bit_size);
 
             if (context->usage_maximum) {
                 // If there is a min and max, ignore any previous usages
@@ -442,9 +450,8 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
 
             context->usage_minimum = 0;
             context->usage_maximum = 0;
-            context->usages = NULL;
 
-            context->bit_offset += context->bit_size;
+            context->input_bit_offset += context->input_bit_size;
             index += bSize;
             break;
         case HID_RD_REPORT_ID:
@@ -453,8 +460,30 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
             index += bSize;
             break;
         case HID_RD_OUTPUT:
-            // Output not supported (sending data to the USB device)
-            debug_print("HID_RD_OUTPUT:\n");
+/*
+            context->output_bit_size = (context->report_size * context->report_count);
+            debug_print("HID_RD_OUTPUT (%02x)\n", buffer[index]);
+            debug_print("  output_bit_offset: %d\n", context->output_bit_offset);
+            debug_print("    output_bit_size: %d\n", context->output_bit_size);
+
+            if (context->usage_maximum) {
+                // If there is a min and max, ignore any previous usages
+                hid_context_destroy_report_item_usages(context);
+
+                for (idx = context->usage_minimum; idx <= context->usage_maximum; idx++) {
+                    context->usage = idx;
+                    hid_context_new_report_item_usage(context);
+                }
+            }
+
+            value = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            hid_context_new_output_item(context, value);
+
+            context->usage_minimum = 0;
+            context->usage_maximum = 0;
+
+            context->output_bit_offset += context->output_bit_size;
+*/
             index += bSize;
             break;
         case HID_RD_REPORT_COUNT:
@@ -467,8 +496,30 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
             index += bSize;
             break;
         case HID_RD_FEATURE:
-            // Features not supported
-            debug_print("HID_RD_FEATURE:\n");
+/*
+            context->feature_bit_size = (context->report_size * context->report_count);
+            debug_print("HID_RD_FEATURE (%02x)\n", buffer[index]);
+            debug_print("  feature_bit_offset: %d\n", context->feature_bit_offset);
+            debug_print("    feature_bit_size: %d\n", context->feature_bit_size);
+
+            if (context->usage_maximum) {
+                // If there is a min and max, ignore any previous usages
+                hid_context_destroy_report_item_usages(context);
+
+                for (idx = context->usage_minimum; idx <= context->usage_maximum; idx++) {
+                    context->usage = idx;
+                    hid_context_new_report_item_usage(context);
+                }
+            }
+
+            value = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            hid_context_new_feature_item(context, value);
+
+            context->usage_minimum = 0;
+            context->usage_maximum = 0;
+
+            context->feature_bit_offset += context->feature_bit_size;
+*/
             index += bSize;
             break;
         case HID_RD_COLLECTION_END:
@@ -498,6 +549,13 @@ hid_input_report_t* hid_device_get_report_by_id(hid_device_t* device, uint32_t r
         }
     }
     return NULL;
+}
+
+uint32_t hid_device_nr_reports(hid_device_t* device) {
+    if (NULL == device) {
+        return 0;
+    }
+    return device->nr_reports;
 }
 
 void hid_device_dump(hid_device_t* device) {
