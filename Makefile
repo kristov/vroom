@@ -1,92 +1,81 @@
 CC := gcc
 CFLAGS := -Wall -Werror -ggdb
 
-SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
+SRCDIR := src
+OBJDIR := lib
+BINDIR := bin
+TESTDIR := test
+INCLUDEDIR := include
+
+SERVEROBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_server_socket.o array_heap.o safe_malloc.o)
 SERVERLINKS := -lrt -lev -lprotobuf-c -lm -lpthread
 
-CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o lib/safe_malloc.o
+CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square mixed input_openhmd)
+CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o safe_malloc.o)
 CLIENTLINKS := -lprotobuf-c -lm
-CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed bin/input_openhmd
 
-TESTS := test/test_hid_device test/test_hid_monitor
+TESTS := $(addprefix $(TESTDIR)/, test_hid_device test_hid_monitor)
 
 EXTGL := -lGL -lGLU -lglut
-INCLUDEDIRS :=
+INCLUDEDIRS := -I$(INCLUDEDIR)
 LINKDIRS :=
 PREPROC :=
 
-rpi_egl : EXTGL := -lbcm_host -lEGL -lGLESv2
-rpi_egl : INCLUDEDIRS := -I/opt/vc/include
-rpi_egl : LINKDIRS := -L/opt/vc/lib
-rpi_egl : PREPROC := -DRASPBERRYPI
+egl_server : EXTGL := -lbcm_host -lEGL -lGLESv2
+egl_server : INCLUDEDIRS := -I/opt/vc/include -I$(INCLUDEDIR)
+egl_server : LINKDIRS := -L/opt/vc/lib
+egl_server : PREPROC := -DRASPBERRYPI
 
-rpi_egl: pre_work egl_server client
-
-all: pre_work server client
+all: server clients tests
 
 doc: Doxyfile
 	doxygen Doxyfile
 
-pre_work:
-	mkdir -p lib/
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
 
 server: src/main_glut.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 egl_server: src/main_egl.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
 
-bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+$(BINDIR)/input_openhmd : EXTRALINKS := -lopenhmd
+$(BINDIR)/input_usb     : EXTRALINKS := -ludev -lsqlite3 
 
-bin/textured_cube: src/client/textured_cube.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
-
-bin/red_square: src/client/red_square.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
-
-bin/textured_square: src/client/textured_square.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
-
-bin/mixed: src/client/mixed.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
-
-bin/input_openhmd: src/client/input_openhmd.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -lopenhmd $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
-
-bin/input_usb: src/client/input_usb.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -ludev -lsqlite3 $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+$(BINDIR)/%: $(SRCDIR)/client/%.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCLUDEDIRS) $(CLIENTLINKS) $(EXTRALINKS) -o $@ $(CLIENTOBJS) $<
 
 #### BEGIN TESTS ####
 tests: $(TESTS)
 
 test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
-	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_device.o lib/test_harness.o src/test_hid_device.c
+	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG $(INCLUDEDIRS) -o $@ lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
 test/test_hid_monitor: lib/hid_monitor.o src/test_hid_monitor.c
-	$(CC) $(CFLAGS) -ludev -Iinclude -o $@ lib/hid_monitor.o src/test_hid_monitor.c
+	$(CC) $(CFLAGS) -ludev $(INCLUDEDIRS) -o $@ lib/hid_monitor.o src/test_hid_monitor.c
 #### END TESTS ####
 
-lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
-
 lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
+	$(CC) $(CFLAGS) $(PREPROC) $(INCLUDEDIRS) -c -o $@ $<
 
-lib/%.o: src/%.c include/%.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCLUDEDIR)/%.h
+	$(CC) $(CFLAGS) $(PREPROC) $(INCLUDEDIRS) -c -o $@ $<
 
-src/vroom.pb-c.c: vroom-protobuf
-include/vroom.pb-c.h: vroom-protobuf
+src/vroom_pb.c: vroom-protobuf
+include/vroom_pb.h: vroom-protobuf
 vroom-protobuf: vroom.proto
 	protoc-c --c_out=. vroom.proto
-	mv vroom.pb-c.c src/
-	mv vroom.pb-c.h include/
+	mv vroom.pb-c.c src/vroom_pb.c
+	mv vroom.pb-c.h include/vroom_pb.h
 
 clean:
-	rm -f lib/*
+	rm -f $(OBJDIR)/*
 	rm -f vroom-server
-	rm -f bin/*
-	rm -f test/test_*
+	rm -f $(BINDIR)/*
+	rm -f $(TESTDIR)/test_*
