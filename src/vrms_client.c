@@ -14,7 +14,7 @@
 #include <unistd.h>
 #include "memfd.h"
 #include "safe_malloc.h"
-#include "vroom.pb-c.h"
+#include "vroom_pb.h"
 #include "vrms_client.h"
 
 #define SOCK_PATH "/tmp/libev-echo.sock"

@@ -71,8 +71,9 @@ src/vroom_pb.c: vroom-protobuf
 include/vroom_pb.h: vroom-protobuf
 vroom-protobuf: vroom.proto
 	protoc-c --c_out=. vroom.proto
-	mv vroom.pb-c.c src/vroom_pb.c
-	mv vroom.pb-c.h include/vroom_pb.h
+	mv vroom.pb-c.c $(SRCDIR)/vroom_pb.c
+	mv vroom.pb-c.h $(INCLUDEDIR)/vroom_pb.h
+	sed -i 's/vroom.pb-c.h/vroom_pb.h/g' $(SRCDIR)/vroom_pb.c
 
 clean:
 	rm -f $(OBJDIR)/*

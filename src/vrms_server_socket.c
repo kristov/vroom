@@ -18,7 +18,7 @@
 #include <ev.h>
 #include <unistd.h>
 #include "array_heap.h"
-#include "vroom.pb-c.h"
+#include "vroom_pb.h"
 #include "safe_malloc.h"
 #include "vrms_server.h"
 #include "vrms_scene.h"

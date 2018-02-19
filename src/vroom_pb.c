@@ -6,7 +6,7 @@
 #define PROTOBUF_C__NO_DEPRECATED
 #endif
 
-#include "vroom.pb-c.h"
+#include "vroom_pb.h"
 void   reply__init
                      (Reply         *message)
 {
