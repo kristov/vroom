@@ -4,9 +4,41 @@
  * @file hid_monitor.h
  * @author Chris Eade
  * @date 19th January 2018
+ *
  * @brief Monitor HID devices
  *
- * This defines the interface for receiving USB HID plug and unplug, and report events. 
+ * This defines the interface for receiving USB HID plug and unplug, and report events:
+ *
+ * @code
+ * int device_add_callback(hid_monitor_device_t* device) {
+ *     // Return 0 to ignore the device and not monitor it
+ *     return 1;
+ * }
+ * 
+ * int device_rem_callback(hid_monitor_device_t* device) {
+ *     // Return value is ignored
+ *     return 0;
+ * }
+ * 
+ * void report_callback(hid_monitor_device_t* device, void* data, uint32_t data_length) {
+ *     // Parse the report using the report descriptor and do something with the data
+ * }
+ * 
+ * int main (void) {
+ *     hid_monitor_t* monitor;
+ * 
+ *     monitor = hid_monitor_create();
+ * 
+ *     hid_monitor_set_device_add_callback(monitor, device_add_callback);
+ *     hid_monitor_set_device_rem_callback(monitor, device_rem_callback);
+ *     hid_monitor_set_report_callback(monitor, report_callback);
+ * 
+ *     hid_monitor_init(monitor);
+ *     hid_monitor_run(monitor);
+ * 
+ *     return 0;       
+ * }
+ * @endcode
  */
 
 typedef struct hid_monitor_device hid_monitor_device_t;
@@ -20,7 +52,26 @@ struct hid_monitor_device {
     char* devnode;
 };
 
-typedef int (*hid_monitor_device_plug_callback_t)(hid_monitor_device_t* device);
+/**
+ * @brief Specification for the device add/remove callback
+ *
+ * Attach a function of this specification to the add and remove callbacks (via
+ * {@link hid_monitor_set_device_add_callback} and {@link
+ * hid_monitor_set_device_rem_callback} respectively) to receive device add and
+ * removal events. The only argument to this function is the
+ * hid_monitor_device_t* that has either just been added, or is juat about to
+ * be destroyed.
+ */
+typedef int (*hid_monitor_device_callback_t)(hid_monitor_device_t* device);
+
+/**
+ * @brief Specification for the device report callback
+ *
+ * Attach a function of this specification to report callback (via {@link
+ * hid_monitor_set_device_report_callback}) to receive the device reports. The
+ * arguments to the callback are the {@link hid_monitor_device_t} the report is
+ * for, a data buffer of the raw report and the length of that buffer in bytes.
+ */
 typedef void (*hid_monitor_report_callback_t)(hid_monitor_device_t* device, void* data, uint32_t data_length);
 
 typedef struct hid_monitor hid_monitor_t;
@@ -30,8 +81,8 @@ struct hid_monitor {
     struct udev_monitor* udev_mon;
     fd_set* fds;
     int max_fd;
-    hid_monitor_device_plug_callback_t device_add_callback;
-    hid_monitor_device_plug_callback_t device_rem_callback;
+    hid_monitor_device_callback_t device_add_callback;
+    hid_monitor_device_callback_t device_rem_callback;
     hid_monitor_report_callback_t report_callback;
     uint16_t nr_devices;
     hid_monitor_device_t* devices;
@@ -88,8 +139,8 @@ void hid_monitor_process_events(hid_monitor_t* monitor);
 /**
  * @brief Run an infinite loop for event handling
  *
- * Internally calls {@link hid_monitor_process_events(monitor)} in a loop with
- * a delay of XXX.
+ * Internally calls {@link hid_monitor_process_events} in a loop with a delay
+ * of XXX.
  * @code{.c}
  * hid_monitor_run(monitor);
  * @endcode
@@ -120,7 +171,7 @@ void hid_monitor_dump_devices(hid_monitor_t* monitor);
  * @endcode
  * @note If this is not set, the default behaviour is to add all plugged in devices.
  */
-void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback);
+void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_callback_t callback);
 
 /**
  * @brief Set a callback for when a device is removed
@@ -134,7 +185,7 @@ void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_dev
  * hid_monitor_set_device_rem_callback(monitor, my_remove_func);
  * @endcode
  */
-void hid_monitor_set_device_rem_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback);
+void hid_monitor_set_device_rem_callback(hid_monitor_t* monitor, hid_monitor_device_callback_t callback);
 
 /**
  * @brief Set a callback for device reports

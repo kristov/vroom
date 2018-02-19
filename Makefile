@@ -21,6 +21,9 @@ rpi_egl: pre_work egl_server client
 
 all: pre_work server client
 
+doc: Doxyfile
+	doxygen Doxyfile
+
 pre_work:
 	mkdir -p lib/
 

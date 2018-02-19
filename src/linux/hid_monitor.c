@@ -415,13 +415,13 @@ void hid_monitor_run(hid_monitor_t* monitor) {
     }
 }
 
-void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback) {
+void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_callback_t callback) {
     if (NULL != monitor && NULL != callback) {
         monitor->device_add_callback = callback;
     }
 }
 
-void hid_monitor_set_device_rem_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback) {
+void hid_monitor_set_device_rem_callback(hid_monitor_t* monitor, hid_monitor_device_callback_t callback) {
     if (NULL != monitor && NULL != callback) {
         monitor->device_rem_callback = callback;
     }
