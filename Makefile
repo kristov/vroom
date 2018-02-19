@@ -1,10 +1,13 @@
 CC := gcc
-CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o lib/safe_malloc.o
-SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
 CFLAGS := -Wall -Werror -ggdb
-EXTCOM := -lrt -lev -lprotobuf-c -lconfig -lm
-SRVCOM := -lpthread
+
+SERVEROBJS := lib/vroom.pb.o lib/vrms_object.o lib/vrms_scene.o lib/vrms_server.o lib/opengl_stereo.o lib/ogl_shader_loader.o lib/esm.o lib/vrms_server_socket.o lib/array_heap.o lib/safe_malloc.o
+SERVERLINKS := -lrt -lev -lprotobuf-c -lm -lpthread
+
+CLIENTOBJS := lib/vroom.pb.o lib/vrms_client.o lib/vrms_geometry.o lib/esm.o lib/safe_malloc.o
+CLIENTLINKS := -lprotobuf-c -lm
 CLIENTS := bin/green_cube bin/textured_cube bin/red_square bin/textured_square bin/mixed bin/input_openhmd
+
 TESTS := test/test_hid_device test/test_hid_monitor
 
 EXTGL := -lGL -lGLU -lglut
@@ -28,13 +31,35 @@ pre_work:
 	mkdir -p lib/
 
 server: src/main_glut.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 egl_server: src/main_egl.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) $(SRVCOM) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
 
+bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/textured_cube: src/client/textured_cube.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/red_square: src/client/red_square.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/textured_square: src/client/textured_square.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/mixed: src/client/mixed.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/input_openhmd: src/client/input_openhmd.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -lopenhmd $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+bin/input_usb: src/client/input_usb.c $(CLIENTOBJS)
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -ludev -lsqlite3 $(CLIENTLINKS) -o $@ $(CLIENTOBJS) $<
+
+#### BEGIN TESTS ####
 tests: $(TESTS)
 
 test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
@@ -42,65 +67,48 @@ test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
 test/test_hid_monitor: src/test_hid_monitor.c lib/hid_monitor.o
 	$(CC) $(CFLAGS) -ludev -Iinclude -o test/test_hid_monitor src/test_hid_monitor.c lib/hid_monitor.o
-
-bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
-
-bin/textured_cube: src/client/textured_cube.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
-
-bin/red_square: src/client/red_square.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
-
-bin/textured_square: src/client/textured_square.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
-
-bin/mixed: src/client/mixed.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
-
-bin/input_openhmd: src/client/input_openhmd.c $(CLIENTOBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) -lopenhmd -lprotobuf-c -lm -o $@ $(CLIENTOBJS) $<
+#### END TESTS ####
 
 lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
 
-lib/vrms_server.o: src/vrms_server.c
+lib/vrms_server.o: src/vrms_server.c include/vrms_server.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/vrms_scene.o: src/vrms_scene.c
+lib/vrms_scene.o: src/vrms_scene.c include/vrms_scene.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/vrms_object.o: src/vrms_object.c
+lib/vrms_object.o: src/vrms_object.c include/vrms_object.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/vrms_client.o: src/vrms_client.c
+lib/vrms_client.o: src/vrms_client.c include/vrms_client.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/vrms_geometry.o: src/vrms_geometry.c
+lib/vrms_geometry.o: src/vrms_geometry.c include/vrms_geometry.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/esm.o: src/esm.c
+lib/esm.o: src/esm.c include/esm.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/opengl_stereo.o: src/opengl_stereo.c
+lib/opengl_stereo.o: src/opengl_stereo.c include/opengl_stereo.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/ogl_shader_loader.o: src/ogl_shader_loader.c
+lib/ogl_shader_loader.o: src/ogl_shader_loader.c include/ogl_shader_loader.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/safe_malloc.o: src/safe_malloc.c
+lib/safe_malloc.o: src/safe_malloc.c include/safe_malloc.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/array_heap.o: src/array-heap.c
+lib/array_heap.o: src/array-heap.c include/array-heap.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/vrms_server_socket.o: src/vrms_server_socket.c
+lib/vrms_server_socket.o: src/vrms_server_socket.c include/vrms_server_socket.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/hid_device.o: src/hid_device.c
+lib/hid_device.o: src/hid_device.c include/hid_device.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/test_harness.o: src/test_harness.c
+lib/test_harness.o: src/test_harness.c include/test_harness.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
