@@ -37,8 +37,8 @@ tests: $(TESTS)
 test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
-test/test_hid_monitor: src/linux/hid_monitor.c lib/hid_device.o
-	$(CC) $(CFLAGS) -D_DEBUG -Iinclude -ludev -o test/test_hid_monitor src/linux/hid_monitor.c lib/hid_device.o
+test/test_hid_monitor: src/test_hid_monitor.c lib/hid_monitor.o
+	$(CC) $(CFLAGS) -ludev -Iinclude -o test/test_hid_monitor src/test_hid_monitor.c lib/hid_monitor.o
 
 bin/green_cube: src/client/green_cube.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) -Iinclude $(INCLUDEDIRS) $(EXTCOM) -o $@ $(CLIENTOBJS) $<
@@ -98,6 +98,9 @@ lib/hid_device.o: src/hid_device.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 lib/test_harness.o: src/test_harness.c
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+
+lib/hid_monitor.o: src/linux/hid_monitor.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 src/vroom.pb-c.c: vroom-protobuf

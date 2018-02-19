@@ -10,39 +10,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/select.h>
-
-#include "hid_device.h"
 #include <linux/hidraw.h>
+#include "hid_monitor.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
 #define HID_MONITOR_MAX_DEVICE_FDS 255
 
 // sudo apt-get install libudev-dev
-
-typedef struct hid_monitor_device hid_monitor_device_t;
-struct hid_monitor_device {
-    struct udev_device* udev_dev;
-    int fd;
-    int16_t vendor_id;
-    int16_t product_id;
-    char* devnode;
-    hid_device_t* hid_device;
-};
-
-typedef struct hid_monitor hid_monitor_t;
-struct hid_monitor {
-    int hotplug_fd;
-    struct udev* udev;
-    struct udev_monitor* udev_mon;
-    fd_set* fds;
-    int max_fd;
-    uint16_t nr_devices;
-    hid_monitor_device_t* devices;
-    hid_monitor_device_t* fd_lookup[HID_MONITOR_MAX_DEVICE_FDS];
-};
 
 void hid_monitor_dump_devices(hid_monitor_t* monitor) {
     uint16_t idx;
@@ -60,8 +36,8 @@ void hid_monitor_dump_devices(hid_monitor_t* monitor) {
 }
 
 void hid_monitor_device_destroy(hid_monitor_device_t* device) {
-    if (NULL != device->hid_device) {
-        hid_device_destroy(device->hid_device);
+    if (NULL != device->report_desc) {
+        free(device->report_desc);
     }
 
     if (device->fd > 0) {
@@ -145,7 +121,7 @@ uint16_t hid_monitor_udev_device_remove(hid_monitor_t* monitor, struct udev_devi
     found_device = 0;
     for (idx = 0; idx < monitor->nr_devices; idx++) {
         device = &monitor->devices[idx];
-        fprintf(stderr, "removed devnode: %s, this devnode: %s\n", devnode, device->devnode);
+        debug_print("removed devnode: %s, this devnode: %s\n", devnode, device->devnode);
         if (strcmp(devnode, device->devnode) == 0) {
             found_device = 1;
             idx_to_remove = idx;
@@ -153,7 +129,7 @@ uint16_t hid_monitor_udev_device_remove(hid_monitor_t* monitor, struct udev_devi
     }
 
     if (!found_device) {
-        fprintf(stderr, "Did not find devnode: %s in devices\n", devnode);
+        // Can happen when unmonitored devices are removed
         return monitor->nr_devices;
     }
 
@@ -163,6 +139,9 @@ uint16_t hid_monitor_udev_device_remove(hid_monitor_t* monitor, struct udev_devi
     idx_new = 0;
     for (idx = 0; idx < monitor->nr_devices; idx++) {
         if (idx == idx_to_remove) {
+            if (NULL != monitor->device_rem_callback) {
+                monitor->device_rem_callback(&monitor->devices[idx]);
+            }
             debug_print("Destroying device at %d\n", idx);
             hid_monitor_device_destroy(&monitor->devices[idx]);
         }
@@ -224,8 +203,10 @@ void hid_monitor_udev_device_create(hid_monitor_t* monitor, struct udev_device *
         return;
     }
 
-    fprintf(stderr, "length: %d\n", rpt_desc.size);
-    device.hid_device = hid_device_report_descriptor(rpt_desc.value, rpt_desc.size);
+    device.report_size = rpt_desc.size;
+    device.report_desc = malloc(rpt_desc.size);
+    memcpy(device.report_desc, rpt_desc.value, rpt_desc.size);
+
     device.vendor_id = info.vendor;
     device.product_id = info.product;
     device.devnode = malloc(strlen(devnode) + 1);
@@ -233,7 +214,14 @@ void hid_monitor_udev_device_create(hid_monitor_t* monitor, struct udev_device *
     device.fd = fd;
     device.udev_dev = dev;
 
-    hid_monitor_add_device(monitor, &device);
+    if (NULL != monitor->device_add_callback) {
+        if (monitor->device_add_callback(&device)) {
+            hid_monitor_add_device(monitor, &device);
+        }
+    }
+    else {
+        hid_monitor_add_device(monitor, &device);
+    }
 }
 
 void hid_monitor_populate_devices(hid_monitor_t* monitor) {
@@ -257,8 +245,6 @@ void hid_monitor_populate_devices(hid_monitor_t* monitor) {
 
     udev_enumerate_unref(enumerate);
 
-    hid_monitor_dump_devices(monitor);
-    debug_print("Rebuilding fd_set\n");
     hid_monitor_fd_set_rebuild(monitor);
 }
 
@@ -287,10 +273,18 @@ hid_monitor_t* hid_monitor_create() {
     monitor = malloc(sizeof(hid_monitor_t));
     memset(monitor, 0, sizeof(hid_monitor_t));
 
+    monitor->fd_lookup = malloc(sizeof(hid_monitor_device_t*) * HID_MONITOR_MAX_DEVICE_FDS);
+    memset(monitor->fd_lookup, 0, sizeof(hid_monitor_device_t*) * HID_MONITOR_MAX_DEVICE_FDS);
+
+    return monitor;
+}
+
+void hid_monitor_init(hid_monitor_t* monitor) {
+
     monitor->udev = udev_new();
     if (NULL == monitor->udev) {
         fprintf(stderr, "Can not initialize udev\n");
-        return NULL;
+        return;
     }
 
     debug_print("Populating hotplug file descriptor\n");
@@ -298,8 +292,6 @@ hid_monitor_t* hid_monitor_create() {
 
     debug_print("Initial device population\n");
     hid_monitor_populate_devices(monitor);
-
-    return monitor;
 }
 
 void hid_monitor_destroy(hid_monitor_t* monitor) {
@@ -330,13 +322,14 @@ hid_monitor_device_t* hid_monitor_find_device_by_fd(hid_monitor_t* monitor, int 
     return NULL;
 }
 
-void hid_monitor_device_read_report(hid_monitor_device_t* device, int fd) {
+void hid_monitor_device_read_report(hid_monitor_t* monitor, hid_monitor_device_t* device, int fd) {
     uint8_t buf[1024];
     int res;
-    int res_expected;
-    hid_input_report_t* report;
-    uint32_t report_id;
-    //uint32_t idx;
+
+    if (NULL == device) {
+        fprintf(stderr, "NO DEVICE\n");
+        return;
+    }
 
     res = read(fd, buf, 1024);
     if (res <= 0) {
@@ -344,51 +337,27 @@ void hid_monitor_device_read_report(hid_monitor_device_t* device, int fd) {
         return;
     }
 
-    if (hid_device_nr_reports(device->hid_device) > 1) {
-        report_id = (uint32_t)buf[0];
-        report = hid_device_get_report_by_id(device->hid_device, report_id);
-        memmove(buf, buf + 1, res);
-        res--;
+    if (NULL != monitor->report_callback) {
+        monitor->report_callback(device, buf, res);
     }
-    else {
-        report_id = 0;
-        report = &device->hid_device->reports[0];
-    }
-
-    if (NULL == report) {
-        fprintf(stderr, "Unable to find report id: %d\n", report_id);
-        return;
-    }
-
-    res_expected = report->byte_size;
-    if (res_expected != res) {
-        fprintf(stderr, "Read %d bytes but expected %d bytes!!\n", res, res_expected);
-    }
-
-    //for (idx = 0; idx < res; idx++) {
-    //    printf("%02x ", buf[idx]);
-    //}
-    //printf("\n");
 }
 
 void hid_monitor_process_hotplug(hid_monitor_t* monitor) {
     struct udev_device *dev;
     const char* action;
 
-    fprintf(stderr, "Event from hotplug monitor\n");
+    debug_print("event from hotplug monitor\n");
     dev = udev_monitor_receive_device(monitor->udev_mon);
 
     action = udev_device_get_action(dev);
 
     if (strcmp(action, "add") == 0) {
         hid_monitor_udev_device_create(monitor, dev);
-        hid_monitor_dump_devices(monitor);
         hid_monitor_fd_set_rebuild(monitor);
         return;
     }
     else if (strcmp(action, "remove") == 0) {
         hid_monitor_udev_device_remove(monitor, dev);
-        hid_monitor_dump_devices(monitor);
         hid_monitor_fd_set_rebuild(monitor);
         return;
     }
@@ -410,6 +379,11 @@ void hid_monitor_run(hid_monitor_t* monitor) {
     fd_set dup;
     hid_monitor_device_t* device;
 
+    if (NULL == monitor->udev) {
+        fprintf(stderr, "udev no initialized (run hid_monitor_init()?)\n");
+        return;
+    }
+
     while (1) {
         tv.tv_sec = 0;
         tv.tv_usec = 0;
@@ -429,7 +403,7 @@ void hid_monitor_run(hid_monitor_t* monitor) {
                         fprintf(stderr, "Event on fd but no device found\n");
                         continue;
                     }
-                    hid_monitor_device_read_report(device, fd);
+                    hid_monitor_device_read_report(monitor, device, fd);
                 }
             }
         }
@@ -437,61 +411,21 @@ void hid_monitor_run(hid_monitor_t* monitor) {
     }
 }
 
-int main (void) {
-    hid_monitor_t* monitor;
-
-    monitor = hid_monitor_create();
-    hid_monitor_run(monitor);
-
-    //hid_monitor_dump_devices(monitor);
-
-    return 0;       
+void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback) {
+    if (NULL != monitor && NULL != callback) {
+        monitor->device_add_callback = callback;
+    }
 }
 
-/*
-    buf[0] = 0x9;
-    buf[1] = 0xff;
-    buf[2] = 0xff;
-    buf[3] = 0xff;
-    res = ioctl(fd, HIDIOCSFEATURE(4), buf);
-    if (res < 0)
-        perror("HIDIOCSFEATURE");
-    else
-        printf("ioctl HIDIOCGFEATURE returned: %d\n", res);
-
-    buf[0] = 0x9;
-    res = ioctl(fd, HIDIOCGFEATURE(256), buf);
-    if (res < 0) {
-        perror("HIDIOCGFEATURE");
-    } else {
-        printf("ioctl HIDIOCGFEATURE returned: %d\n", res);
-        printf("Report data (not containing the report number):\n\t");
-        for (i = 0; i < res; i++)
-            printf("%hhx ", buf[i]);
-        puts("\n");
+void hid_monitor_set_device_rem_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback) {
+    if (NULL != monitor && NULL != callback) {
+        monitor->device_rem_callback = callback;
     }
-
-    buf[0] = 0x1;
-    buf[1] = 0x77;
-    res = write(fd, buf, 2);
-    if (res < 0) {
-        printf("Error: %d\n", errno);
-        perror("write");
-    } else {
-        printf("write() wrote %d bytes\n", res);
-    }
-
-    res = read(fd, buf, 16);
-    if (res < 0) {
-        perror("read");
-    } else {
-        printf("read() read %d bytes:\n\t", res);
-        for (i = 0; i < res; i++)
-            printf("%hhx ", buf[i]);
-        puts("\n");
-    }
-    close(fd);
-    return 0;
 }
 
-*/
+void hid_monitor_set_report_callback(hid_monitor_t* monitor, hid_monitor_report_callback_t callback) {
+    if (NULL != monitor && NULL != callback) {
+        monitor->report_callback = callback;
+    }
+}
+
