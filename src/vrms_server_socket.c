@@ -17,7 +17,7 @@
 #include <sys/un.h>
 #include <ev.h>
 #include <unistd.h>
-#include "array-heap.h"
+#include "array_heap.h"
 #include "vroom.pb-c.h"
 #include "safe_malloc.h"
 #include "vrms_server.h"

@@ -65,54 +65,18 @@ tests: $(TESTS)
 test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 	$(CC) $(CFLAGS) -D_GNU_SOURCE -D_DEBUG -Iinclude -o $@ lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
-test/test_hid_monitor: src/test_hid_monitor.c lib/hid_monitor.o
-	$(CC) $(CFLAGS) -ludev -Iinclude -o test/test_hid_monitor src/test_hid_monitor.c lib/hid_monitor.o
+test/test_hid_monitor: lib/hid_monitor.o src/test_hid_monitor.c
+	$(CC) $(CFLAGS) -ludev -Iinclude -o $@ lib/hid_monitor.o src/test_hid_monitor.c
 #### END TESTS ####
 
 lib/vroom.pb.o: src/vroom.pb-c.c include/vroom.pb-c.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
 
-lib/vrms_server.o: src/vrms_server.c include/vrms_server.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_scene.o: src/vrms_scene.c include/vrms_scene.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_object.o: src/vrms_object.c include/vrms_object.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_client.o: src/vrms_client.c include/vrms_client.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_geometry.o: src/vrms_geometry.c include/vrms_geometry.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/esm.o: src/esm.c include/esm.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/opengl_stereo.o: src/opengl_stereo.c include/opengl_stereo.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/ogl_shader_loader.o: src/ogl_shader_loader.c include/ogl_shader_loader.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/safe_malloc.o: src/safe_malloc.c include/safe_malloc.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/array_heap.o: src/array-heap.c include/array-heap.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/vrms_server_socket.o: src/vrms_server_socket.c include/vrms_server_socket.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/hid_device.o: src/hid_device.c include/hid_device.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
-lib/test_harness.o: src/test_harness.c include/test_harness.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
-
 lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
-	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
+
+lib/%.o: src/%.c include/%.h
+	$(CC) $(CFLAGS) $(PREPROC) -Iinclude -c -o $@ $<
 
 src/vroom.pb-c.c: vroom-protobuf
 include/vroom.pb-c.h: vroom-protobuf
