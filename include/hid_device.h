@@ -10,8 +10,8 @@ struct hid_input_report_item_usage {
 
 typedef struct hid_input_report_item hid_input_report_item_t;
 struct hid_input_report_item {
-    uint32_t logical_maximum;
-    uint32_t logical_minimum;
+    int32_t logical_maximum;
+    int32_t logical_minimum;
     uint32_t report_count;
     uint32_t report_size;
     uint32_t bit_offset;

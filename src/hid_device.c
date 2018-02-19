@@ -45,8 +45,8 @@ struct hid_report_context {
     uint32_t report_id;
     uint32_t report_count;
     uint32_t report_size;
-    uint32_t logical_maximum;
-    uint32_t logical_minimum;
+    int32_t logical_maximum;
+    int32_t logical_minimum;
     uint32_t input_bit_offset;
     uint32_t input_bit_size;
     uint32_t output_bit_offset;
@@ -406,7 +406,7 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
             break;
         case HID_RD_LOGICAL_MINIMUM:
             debug_print("HID_RD_LOGICAL_MINIMUM:\n");
-            context->logical_minimum = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            context->logical_minimum = (int32_t)hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_USAGE_MINIMUM:
@@ -416,7 +416,7 @@ uint32_t hid_device_read_report_item(uint8_t* buffer, uint32_t index, hid_report
             break;
         case HID_RD_LOGICAL_MAXIMUM:
             debug_print("HID_RD_LOGICAL_MAXIMUM:\n");
-            context->logical_maximum = hid_input_extract_data_from_buffer(buffer, index, bSize);
+            context->logical_maximum = (int32_t)hid_input_extract_data_from_buffer(buffer, index, bSize);
             index += bSize;
             break;
         case HID_RD_USAGE_MAXIMUM:
