@@ -372,41 +372,45 @@ void hid_monitor_process_hotplug(hid_monitor_t* monitor) {
     }
 }
 
-void hid_monitor_run(hid_monitor_t* monitor) {
+void hid_monitor_process_events(hid_monitor_t* monitor) {
     int fd;
     struct timeval tv;
     int res;
     fd_set dup;
     hid_monitor_device_t* device;
 
+    tv.tv_sec = 0;
+    tv.tv_usec = 0;
+
+    dup = *monitor->fds;
+    res = select(monitor->max_fd + 1, &dup, NULL, NULL, &tv);
+
+    if (res > 0) {
+        for (fd = 0; fd <= monitor->max_fd; fd++) {
+            if (FD_ISSET(fd, &dup)) {
+                if (monitor->hotplug_fd == fd) {
+                    hid_monitor_process_hotplug(monitor);
+                    continue;
+                }
+                device = hid_monitor_find_device_by_fd(monitor, fd);
+                if (NULL == device) {
+                    debug_print("event on fd but no device found\n");
+                    continue;
+                }
+                hid_monitor_device_read_report(monitor, device, fd);
+            }
+        }
+    }
+}
+
+void hid_monitor_run(hid_monitor_t* monitor) {
     if (NULL == monitor->udev) {
         fprintf(stderr, "udev no initialized (run hid_monitor_init()?)\n");
         return;
     }
 
     while (1) {
-        tv.tv_sec = 0;
-        tv.tv_usec = 0;
-
-        dup = *monitor->fds;
-        res = select(monitor->max_fd + 1, &dup, NULL, NULL, &tv);
-
-        if (res > 0) {
-            for (fd = 0; fd <= monitor->max_fd; fd++) {
-                if (FD_ISSET(fd, &dup)) {
-                    if (monitor->hotplug_fd == fd) {
-                        hid_monitor_process_hotplug(monitor);
-                        continue;
-                    }
-                    device = hid_monitor_find_device_by_fd(monitor, fd);
-                    if (NULL == device) {
-                        fprintf(stderr, "Event on fd but no device found\n");
-                        continue;
-                    }
-                    hid_monitor_device_read_report(monitor, device, fd);
-                }
-            }
-        }
+        hid_monitor_process_events(monitor);
         usleep(4000);
     }
 }

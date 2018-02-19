@@ -100,7 +100,7 @@ lib/hid_device.o: src/hid_device.c
 lib/test_harness.o: src/test_harness.c
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
-lib/hid_monitor.o: src/linux/hid_monitor.c
+lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
 	$(CC) $(CFLAGS) $(PREPROC) -Iinclude $(INCLUDEDIRS) -c -o $@ $<
 
 src/vroom.pb-c.c: vroom-protobuf

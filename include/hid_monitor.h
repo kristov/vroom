@@ -32,6 +32,7 @@ struct hid_monitor {
 hid_monitor_t* hid_monitor_create();
 void hid_monitor_init(hid_monitor_t* monitor);
 void hid_monitor_destroy(hid_monitor_t* monitor);
+void hid_monitor_process_events(hid_monitor_t* monitor);
 void hid_monitor_run(hid_monitor_t* monitor);
 void hid_monitor_dump_devices(hid_monitor_t* monitor);
 void hid_monitor_set_device_add_callback(hid_monitor_t* monitor, hid_monitor_device_plug_callback_t callback);
