@@ -1,5 +1,3 @@
-#include <libconfig.h>
-
 typedef struct opengl_stereo_camera {
     GLfloat left_frustum;
     GLfloat right_frustum;
@@ -26,7 +24,6 @@ typedef struct opengl_stereo {
     double IOD;
     double physical_width;
     double texture_shift;
-    config_t* config;
     GLuint screen_plane_vdb;
     GLuint screen_plane_idb;
     GLuint screen_text_offset;
