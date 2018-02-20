@@ -43,6 +43,11 @@ uint32_t format_map[] = {
     CREATE_TEXTURE_OBJECT__FORMAT__RGB8  // VRMS_RGB8
 };
 
+uint32_t texture_type_map[] = {
+    CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_2D,       // VRMS_TEXTURE_2D
+    CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_CUBE_MAP  // VRMS_TEXTURE_CUBE_MAP
+};
+
 int32_t destroy_shared_memory(int32_t fd) {
     close(fd);
     return 0;
@@ -223,7 +228,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     return id;
 }
 
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     uint32_t id;
     CreateTextureObject msg = CREATE_TEXTURE_OBJECT__INIT;
     void* buf;
@@ -235,6 +240,12 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory
     }
     uint32_t pb_format = format_map[format_map_index];
 
+    uint32_t texture_type_index = (uint32_t)type;
+    if (texture_type_index < 0 || texture_type_index > 1) {
+        return 0;
+    }
+    uint32_t pb_type = texture_type_map[texture_type_index];
+
     msg.scene_id = client->scene_id;
     msg.memory_id = memory_id;
     msg.offset = offset;
@@ -242,6 +253,7 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory
     msg.width = width;
     msg.height = height;
     msg.format = pb_format;
+    msg.type = pb_type;
 
     length = create_texture_object__get_packed_size(&msg);
 

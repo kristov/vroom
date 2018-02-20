@@ -24,6 +24,11 @@ typedef enum vrms_texture_format {
     VRMS_RGB8
 } vrms_texture_format_t;
 
+typedef enum vrms_texture_type {
+    VRMS_TEXTURE_2D,
+    VRMS_TEXTURE_CUBE_MAP
+} vrms_texture_type_t;
+
 typedef enum vrms_type {
     VRMS_REPLY,
     VRMS_CREATESCENE,

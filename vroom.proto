@@ -40,6 +40,10 @@ message CreateTextureObject {
     enum Format {
         RGB8 = 0;
     }
+    enum Type {
+        TEXTURE_2D = 0;
+        TEXTURE_CUBE_MAP = 1;
+    }
     required int32 scene_id = 1;
     required int32 memory_id = 2;
     required int32 offset = 3;
@@ -47,7 +51,7 @@ message CreateTextureObject {
     required int32 width = 5;
     required int32 height = 6;
     required Format format = 7;
-    required int32 type = 8;
+    required Type type = 8;
 }
 
 message SetRenderBuffer {

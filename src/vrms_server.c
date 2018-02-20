@@ -61,6 +61,7 @@ typedef struct vrms_queue_item_texture_load {
     uint32_t width;
     uint32_t height;
     vrms_texture_format_t format;
+    vrms_texture_type_t type;
 } vrms_queue_item_texture_load_t;
 
 typedef struct vrms_queue_item_event {
@@ -214,7 +215,7 @@ void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuin
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, void* buffer) {
+void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, void* buffer) {
     vrms_queue_item_texture_load_t* texture_load = SAFEMALLOC(sizeof(vrms_queue_item_texture_load_t));
     memset(texture_load, 0, sizeof(vrms_queue_item_texture_load_t));
 
@@ -223,6 +224,7 @@ void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GL
     texture_load->width = width;
     texture_load->height = height;
     texture_load->format = format;
+    texture_load->type = type;
     texture_load->buffer = buffer;
 
     vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
@@ -464,18 +466,20 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
 
 void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_load) {
     if (NULL != texture_load->buffer) {
-        glGenTextures(1, texture_load->destination);
-        glBindTexture(GL_TEXTURE_2D, *texture_load->destination);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
-        if (0 == *texture_load->destination) {
-            fprintf(stderr, "unable to load gl texture buffer");
-            printOpenGLError();
+        if (VRMS_TEXTURE_2D == texture_load->type) {
+            glGenTextures(1, texture_load->destination);
+            glBindTexture(GL_TEXTURE_2D, *texture_load->destination);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
+            if (0 == *texture_load->destination) {
+                fprintf(stderr, "unable to load gl texture buffer");
+                printOpenGLError();
+            }
         }
     }
 }

@@ -879,6 +879,34 @@ const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
   create_texture_object__format__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
+static const ProtobufCEnumValue create_texture_object__type__enum_values_by_number[2] =
+{
+  { "TEXTURE_2D", "CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_2D", 0 },
+  { "TEXTURE_CUBE_MAP", "CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_CUBE_MAP", 1 },
+};
+static const ProtobufCIntRange create_texture_object__type__value_ranges[] = {
+{0, 0},{0, 2}
+};
+static const ProtobufCEnumValueIndex create_texture_object__type__enum_values_by_name[2] =
+{
+  { "TEXTURE_2D", 0 },
+  { "TEXTURE_CUBE_MAP", 1 },
+};
+const ProtobufCEnumDescriptor create_texture_object__type__descriptor =
+{
+  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
+  "CreateTextureObject.Type",
+  "Type",
+  "CreateTextureObject__Type",
+  "",
+  2,
+  create_texture_object__type__enum_values_by_number,
+  2,
+  create_texture_object__type__enum_values_by_name,
+  1,
+  create_texture_object__type__value_ranges,
+  NULL,NULL,NULL,NULL   /* reserved[1234] */
+};
 static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[8] =
 {
   {
@@ -969,10 +997,10 @@ static const ProtobufCFieldDescriptor create_texture_object__field_descriptors[8
     "type",
     8,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
+    PROTOBUF_C_TYPE_ENUM,
     0,   /* quantifier_offset */
     offsetof(CreateTextureObject, type),
-    NULL,
+    &create_texture_object__type__descriptor,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */

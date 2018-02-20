@@ -190,10 +190,11 @@ uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_b
     }
 
     vrms_texture_format_t format = cs_msg->format;
+    vrms_texture_type_t type = cs_msg->type;
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format);
+        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format, type);
     }
 
     if (0 == id) {

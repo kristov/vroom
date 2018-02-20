@@ -44,6 +44,11 @@ typedef enum _CreateTextureObject__Format {
   CREATE_TEXTURE_OBJECT__FORMAT__RGB8 = 0
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_TEXTURE_OBJECT__FORMAT)
 } CreateTextureObject__Format;
+typedef enum _CreateTextureObject__Type {
+  CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_2D = 0,
+  CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_CUBE_MAP = 1
+    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_TEXTURE_OBJECT__TYPE)
+} CreateTextureObject__Type;
 typedef enum _UpdateSystemMatrix__MatrixType {
   UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD = 0,
   UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY = 1
@@ -125,7 +130,7 @@ struct  _CreateTextureObject
   int32_t width;
   int32_t height;
   CreateTextureObject__Format format;
-  int32_t type;
+  CreateTextureObject__Type type;
 };
 #define CREATE_TEXTURE_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_texture_object__descriptor) \
@@ -491,6 +496,7 @@ extern const ProtobufCMessageDescriptor create_data_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
 extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
+extern const ProtobufCEnumDescriptor    create_texture_object__type__descriptor;
 extern const ProtobufCMessageDescriptor set_render_buffer__descriptor;
 extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
