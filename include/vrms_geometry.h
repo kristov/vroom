@@ -4,3 +4,5 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
 uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_t y, const char* filename);
 uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matricies, float* matrix_data);
 uint32_t vrms_geometry_render_buffer_set(vrms_client_t* client, uint32_t nr_items, uint32_t* render_buffer);
+uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename);
+uint32_t vrms_geometry_skybox(vrms_client_t* client, const char* filename);

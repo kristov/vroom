@@ -4,6 +4,9 @@
 #include "vrms_client.h"
 #include "vrms_geometry.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void std_cube_generate_verticies(float* verts, uint32_t x, uint32_t y, uint32_t z) {
     uint32_t off = 0;
 
@@ -394,8 +397,7 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
     size_t size_of_verts, size_of_indicies;
 
     uint32_t memory_id;
-    void* address = NULL;
-    char* buffer = NULL;
+    uint8_t* address = NULL;
 
     float* verts;
     float* norms;
@@ -422,11 +424,9 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
         return 0;
     }
 
-    buffer = (char*)address;
-
-    memcpy(buffer, verts, size_of_verts);
-    memcpy(&buffer[size_of_verts], norms, size_of_verts);
-    memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
+    memcpy(address, verts, size_of_verts);
+    memcpy(&address[size_of_verts], norms, size_of_verts);
+    memcpy(&address[size_of_verts * 2], indicies, size_of_indicies);
 
     uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
     uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, size_of_verts, size_of_verts, nr_verticies, 3);
@@ -436,7 +436,101 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
 
     uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
 
+    free(verts);
+    free(norms);
+    free(indicies);
+
     return mesh_id;
+}
+
+// destination == where the square should go
+// source    == source data
+// square_px == nr. pixels per side of the square
+// bytes_pl  == bytes per line original image
+// bytes_pp  == bytes per pixel
+// x_idx     == index of the square in x
+// y_idx     == index of the square in y
+// dest_off  == location to put the data
+void vrms_geometry_image_copy_square(uint8_t* destination, uint8_t* source, uint32_t square_px, uint32_t bytes_pl, uint32_t bytes_pp, uint32_t x_idx, uint32_t y_idx, uint32_t dest_off) {
+    uint32_t i, start, length;
+
+    start = ((square_px * y_idx) * bytes_pl) + ((square_px * x_idx) * bytes_pp);
+    length = (square_px * bytes_pp);
+
+    for (i = 0; i < square_px; i++) {
+        fprintf(stderr, "start_idx: %d, read length: %d\n", start, length);
+        memcpy(&destination[dest_off], &source[start], length);
+        start += bytes_pl;
+    }
+
+}
+
+uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
+    int32_t memory_id;
+    int32_t width, height, bytes_pp;
+    uint8_t* data = NULL;
+    uint8_t* address = NULL;
+    uint32_t total_byte_size;
+    uint32_t square_px;
+    uint32_t bytes_sq;
+    uint32_t bytes_pl;
+    uint32_t dest_off;
+
+    width = 0;
+    height = 0;
+    bytes_pp = 0;
+    data = stbi_load(filename, &width, &height, &bytes_pp, 3);
+    if (NULL == data) {
+        return 0;
+    }
+    fprintf(stderr, "width: %d, height: %d, bytes_pp: %d\n", width, height, bytes_pp);
+
+    bytes_pl = width * bytes_pp;
+    square_px = width / 4;
+    bytes_sq = square_px * square_px * bytes_pp;
+    total_byte_size = bytes_sq * 6;
+
+    memory_id = vrms_client_create_memory(client, &address, total_byte_size);
+    if (0 == memory_id) {
+        stbi_image_free(data);
+        return 0;
+    }
+
+    dest_off = 0;
+
+    /*
+          [YPOS]
+    [XNEG][ZPOS][XPOS][ZNEG]
+          [YNEG]
+    */
+
+    // XPOS
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 2, 1, dest_off);
+    dest_off += bytes_sq;
+
+    // XNEG
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 0, 1, dest_off);
+    dest_off += bytes_sq;
+
+    // YPOS
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 1, 0, dest_off);
+    dest_off += bytes_sq;
+
+    // YNEG
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 1, 2, dest_off);
+    dest_off += bytes_sq;
+
+    // ZPOS
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 1, 1, dest_off);
+    dest_off += bytes_sq;
+
+    // ZNEG
+    vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 3, 1, dest_off);
+    dest_off += bytes_sq;
+
+    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, total_byte_size, width, height, VRMS_RGB8);
+
+    return texture_id;
 }
 
 uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
@@ -445,22 +539,21 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
     uint32_t width, height;
     uint32_t image_size;
     int32_t memory_id;
-    void* address = NULL;
-    uint8_t* buffer = NULL;
+    uint8_t* address = NULL;
 
     FILE* file = fopen(filename, "rb");
     if (NULL == file) {
-        printf("Image could not be opened\n");
+        fprintf(stderr, "Image could not be opened\n");
         return 0;
     }
 
     if (fread(header, 1, 54, file) != 54) {
-        printf("Not a correct BMP file\n");
+        fprintf(stderr, "Not a correct BMP file\n");
         return 0;
     }
 
     if ( header[0] != 'B' || header[1] != 'M') {
-        printf("Not a correct BMP file\n");
+        fprintf(stderr, "Not a correct BMP file\n");
         return 0;
     }
 
@@ -475,23 +568,10 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
         return 0;
     }
 
-    buffer = (uint8_t*)address;
-    fread(buffer, data_pos, image_size, file);
+    fread(address, data_pos, image_size, file);
     fclose(file);
 
-/*
-    int y = 0;
-    int x = 0;
-    uint8_t i = 0;
-    for (y = 0; y < width; y++) {
-        for (x = 0; x < height; x++) {
-            printf("%x %x %x\n", ((uint8_t*)address)[i], ((uint8_t*)address)[i+1], ((uint8_t*)address)[i+2]);
-            i += 3;
-        }
-    }
-*/
-
-    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, image_size, width, height, VRMS_RGBA_8);
+    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, image_size, width, height, VRMS_RGB8);
 
     return texture_id;
 }
@@ -502,8 +582,7 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
     uint32_t buff_off;
 
     int32_t memory_id;
-    void* address = NULL;
-    unsigned char* buffer = NULL;
+    uint8_t* address = NULL;
 
     float* verts;
     float* norms;
@@ -536,30 +615,37 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
         return 0;
     }
 
-    buffer = (unsigned char*)address;
-
     buff_off = 0;
-    memcpy(&buffer[buff_off], verts, size_of_verts);
+    memcpy(&address[buff_off], verts, size_of_verts);
     uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, nr_verticies, 3);
 
     buff_off += size_of_verts;
-    memcpy(&buffer[buff_off], norms, size_of_verts);
+    memcpy(&address[buff_off], norms, size_of_verts);
     uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
 
     buff_off += size_of_norms;
-    memcpy(&buffer[buff_off], indicies, size_of_indicies);
+    memcpy(&address[buff_off], indicies, size_of_indicies);
     uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
 
     buff_off += size_of_indicies;
-    memcpy(&buffer[buff_off], uvs, size_of_uvs);
+    memcpy(&address[buff_off], uvs, size_of_uvs);
     uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
     uint32_t texture_id = vrms_load_texture(client, filename);
     uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
 
-    return mesh_id;
+    free(verts);
+    free(norms);
+    free(indicies);
+    free(uvs);
 
+    return mesh_id;
+}
+
+uint32_t vrms_geometry_skybox(vrms_client_t* client, const char* filename) {
+    vrms_load_skybox_texture(client, filename);
+    return 0;
 }
 
 void std_plane_generate_verticies(float* verts, uint32_t x, uint32_t y) {
@@ -640,8 +726,7 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     size_t size_of_verts, size_of_indicies;
 
     int32_t memory_id;
-    void* address = NULL;
-    char* buffer = NULL;
+    uint8_t* address = NULL;
 
     float* verts;
     float* norms;
@@ -668,10 +753,9 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
         return 0;
     }
 
-    buffer = (char*)address;
-    memcpy(buffer, verts, size_of_verts);
-    memcpy(&buffer[size_of_verts], norms, size_of_verts);
-    memcpy(&buffer[size_of_verts * 2], indicies, size_of_indicies);
+    memcpy(address, verts, size_of_verts);
+    memcpy(&address[size_of_verts], norms, size_of_verts);
+    memcpy(&address[size_of_verts * 2], indicies, size_of_indicies);
 
     uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
     uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, size_of_verts, size_of_verts, nr_verticies, 3);
@@ -680,6 +764,10 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 
     uint32_t mesh_id = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
+
+    free(verts);
+    free(norms);
+    free(indicies);
 
     return mesh_id;
 }
@@ -690,8 +778,7 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
     uint32_t buff_off;
 
     int32_t memory_id;
-    void* address = NULL;
-    unsigned char* buffer = NULL;
+    uint8_t* address = NULL;
 
     float* verts;
     float* norms;
@@ -724,37 +811,38 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
         return 0;
     }
 
-    buffer = (unsigned char*)address;
-
     buff_off = 0;
-    memcpy(&buffer[buff_off], verts, size_of_verts);
+    memcpy(&address[buff_off], verts, size_of_verts);
     uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
 
     buff_off += size_of_verts;
-    memcpy(&buffer[buff_off], norms, size_of_verts);
+    memcpy(&address[buff_off], norms, size_of_verts);
     uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
 
     buff_off += size_of_verts;
-    memcpy(&buffer[buff_off], indicies, size_of_indicies);
+    memcpy(&address[buff_off], indicies, size_of_indicies);
     uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
 
     buff_off += size_of_indicies;
-    memcpy(&buffer[buff_off], uvs, size_of_uvs);
+    memcpy(&address[buff_off], uvs, size_of_uvs);
     uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
     uint32_t texture_id = vrms_load_texture(client, filename);
     uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
 
+    free(verts);
+    free(norms);
+    free(indicies);
+    free(uvs);
+
     return mesh_id;
 }
 
 uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matricies, float* matrix_data) {
     size_t size_of_matricies;
-
     int32_t memory_id;
-    void* address = NULL;
-    char* buffer = NULL;
+    uint8_t* address = NULL;
 
     size_of_matricies = (sizeof(float) * 16) * nr_matricies;
     memory_id = vrms_client_create_memory(client, &address, size_of_matricies);
@@ -762,8 +850,7 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
         return 0;
     }
 
-    buffer = (char*)address;
-    memcpy(buffer, matrix_data, size_of_matricies);
+    memcpy(address, matrix_data, size_of_matricies);
 
     uint32_t matrix_id = vrms_client_create_data_object(client, VRMS_MATRIX, memory_id, 0, size_of_matricies, nr_matricies, 16);
 
@@ -772,10 +859,8 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
 
 uint32_t vrms_geometry_render_buffer_set(vrms_client_t* client, uint32_t nr_items, uint32_t* render_buffer) {
     size_t size_of_buffer;
-
     int32_t memory_id;
-    void* address = NULL;
-    char* buffer = NULL;
+    uint8_t* address = NULL;
 
     size_of_buffer = (sizeof(uint32_t) * 3) * nr_items;
     memory_id = vrms_client_create_memory(client, &address, size_of_buffer);
@@ -783,8 +868,7 @@ uint32_t vrms_geometry_render_buffer_set(vrms_client_t* client, uint32_t nr_item
         return 0;
     }
 
-    buffer = (char*)address;
-    memcpy(buffer, render_buffer, size_of_buffer);
+    memcpy(address, render_buffer, size_of_buffer);
 
     uint32_t render_ret = vrms_client_render_buffer_set(client, memory_id, nr_items);
 

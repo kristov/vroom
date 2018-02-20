@@ -84,7 +84,7 @@ int main(void) {
     uint32_t scene_id;
     uint32_t memory_id;
     vrms_client_t* client;
-    void* matrix;
+    uint8_t* matrix;
     hmd_t* hmd;
 
     hmd = hmd_create();

@@ -146,7 +146,7 @@ uint32_t vrms_client_create_scene(vrms_client_t* client, char* name) {
     return id;
 }
 
-uint32_t vrms_client_create_memory(vrms_client_t* client, void** address, size_t size) {
+uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, size_t size) {
     int32_t fd = -1;
     int32_t ret;
     uint32_t id;

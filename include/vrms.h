@@ -21,7 +21,7 @@ typedef enum vrms_data_type {
 } vrms_data_type_t;
 
 typedef enum vrms_texture_format {
-    VRMS_RGBA_8
+    VRMS_RGB8
 } vrms_texture_format_t;
 
 typedef enum vrms_type {

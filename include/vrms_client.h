@@ -10,7 +10,7 @@ typedef struct vrms_client {
 vrms_client_t* vrms_connect();
 uint32_t vrms_create_scene(vrms_client_t* client, char* name);
 uint32_t vrms_destroy_scene(vrms_client_t* client);
-uint32_t vrms_client_create_memory(vrms_client_t* client, void** address, size_t size);
+uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, size_t size);
 uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t fd, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride);
 uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format);
 uint32_t vrms_client_create_geometry_object(vrms_client_t* client, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
