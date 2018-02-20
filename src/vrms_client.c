@@ -40,7 +40,7 @@ uint32_t update_type_map[] = {
 };
 
 uint32_t format_map[] = {
-    CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8  // VRMS_RGB_8
+    CREATE_TEXTURE_OBJECT__FORMAT__RGB8  // VRMS_RGB8
 };
 
 int32_t destroy_shared_memory(int32_t fd) {

@@ -38,7 +38,7 @@ message CreateDataObject {
 
 message CreateTextureObject {
     enum Format {
-        RGBA_8 = 0;
+        RGB8 = 0;
     }
     required int32 scene_id = 1;
     required int32 memory_id = 2;

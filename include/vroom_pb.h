@@ -41,7 +41,7 @@ typedef enum _CreateDataObject__Type {
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_DATA_OBJECT__TYPE)
 } CreateDataObject__Type;
 typedef enum _CreateTextureObject__Format {
-  CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8 = 0
+  CREATE_TEXTURE_OBJECT__FORMAT__RGB8 = 0
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_TEXTURE_OBJECT__FORMAT)
 } CreateTextureObject__Format;
 typedef enum _UpdateSystemMatrix__MatrixType {

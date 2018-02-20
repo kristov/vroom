@@ -855,14 +855,14 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
 };
 static const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[1] =
 {
-  { "RGBA_8", "CREATE_TEXTURE_OBJECT__FORMAT__RGBA_8", 0 },
+  { "RGB8", "CREATE_TEXTURE_OBJECT__FORMAT__RGB8", 0 },
 };
 static const ProtobufCIntRange create_texture_object__format__value_ranges[] = {
 {0, 0},{0, 1}
 };
 static const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[1] =
 {
-  { "RGBA_8", 0 },
+  { "RGB8", 0 },
 };
 const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
 {
