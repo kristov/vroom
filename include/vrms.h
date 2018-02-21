@@ -8,7 +8,8 @@ typedef enum vrms_object_type {
     VRMS_OBJECT_TEXTURE,
     VRMS_OBJECT_GEOMETRY,
     VRMS_OBJECT_MESH_COLOR,
-    VRMS_OBJECT_MESH_TEXTURE
+    VRMS_OBJECT_MESH_TEXTURE,
+    VRMS_OBJECT_SKYBOX
 } vrms_object_type_t;
 
 typedef enum vrms_data_type {
@@ -42,7 +43,8 @@ typedef enum vrms_type {
     VRMS_CREATEMESHCOLOR,
     VRMS_CREATEMESHTEXTURE,
     VRMS_SETRENDERBUFFER,
-    VRMS_UPDATESYSTEMMATRIX
+    VRMS_UPDATESYSTEMMATRIX,
+    VRMS_CREATESKYBOX
 } vrms_type_t;
 
 typedef enum vrms_matrix_type {

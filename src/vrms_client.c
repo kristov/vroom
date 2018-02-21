@@ -333,6 +333,27 @@ uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometr
     return id;
 }
 
+uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, uint32_t size) {
+    uint32_t id;
+    CreateSkybox msg = CREATE_SKYBOX__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.texture_id = texture_id;
+    msg.size = size;
+
+    length = create_skybox__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    create_skybox__pack(&msg, buf);
+
+    id = vrms_client_send_message(client, VRMS_CREATESKYBOX, buf, length, 0);
+
+    free(buf);
+    return id;
+}
+
 uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t nr_items) {
     uint32_t ret;
     SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;

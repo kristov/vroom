@@ -27,6 +27,7 @@ typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
 typedef struct _CreateMeshColor CreateMeshColor;
 typedef struct _CreateMeshTexture CreateMeshTexture;
+typedef struct _CreateSkybox CreateSkybox;
 
 
 /* --- enums --- */
@@ -213,6 +214,18 @@ struct  _CreateMeshTexture
 #define CREATE_MESH_TEXTURE__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_mesh_texture__descriptor) \
     , 0, 0, 0, 0 }
+
+
+struct  _CreateSkybox
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t texture_id;
+  int32_t size;
+};
+#define CREATE_SKYBOX__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_skybox__descriptor) \
+    , 0, 0, 0 }
 
 
 /* Reply methods */
@@ -443,6 +456,25 @@ CreateMeshTexture *
 void   create_mesh_texture__free_unpacked
                      (CreateMeshTexture *message,
                       ProtobufCAllocator *allocator);
+/* CreateSkybox methods */
+void   create_skybox__init
+                     (CreateSkybox         *message);
+size_t create_skybox__get_packed_size
+                     (const CreateSkybox   *message);
+size_t create_skybox__pack
+                     (const CreateSkybox   *message,
+                      uint8_t             *out);
+size_t create_skybox__pack_to_buffer
+                     (const CreateSkybox   *message,
+                      ProtobufCBuffer     *buffer);
+CreateSkybox *
+       create_skybox__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   create_skybox__free_unpacked
+                     (CreateSkybox *message,
+                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*Reply_Closure)
@@ -481,6 +513,9 @@ typedef void (*CreateMeshColor_Closure)
 typedef void (*CreateMeshTexture_Closure)
                  (const CreateMeshTexture *message,
                   void *closure_data);
+typedef void (*CreateSkybox_Closure)
+                 (const CreateSkybox *message,
+                  void *closure_data);
 
 /* --- services --- */
 
@@ -504,6 +539,7 @@ extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_texture__descriptor;
+extern const ProtobufCMessageDescriptor create_skybox__descriptor;
 
 PROTOBUF_C__END_DECLS
 

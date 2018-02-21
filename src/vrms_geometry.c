@@ -642,60 +642,12 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
 }
 
 uint32_t vrms_geometry_skybox(vrms_client_t* client, const char* filename) {
-    uint32_t nr_verticies, nr_indicies, nr_vert_floats;
-    size_t size_of_verts, size_of_norms, size_of_indicies, size_total;
-    uint32_t buff_off;
+    uint32_t texture_id, skybox_id;
 
-    int32_t memory_id;
-    uint8_t* address = NULL;
+    texture_id = vrms_load_skybox_texture(client, filename);
+    skybox_id = vrms_client_create_skybox(client, texture_id, 10);
 
-    float* verts;
-    float* norms;
-    unsigned short* indicies;
-
-    nr_verticies = 4 * 6;
-    nr_vert_floats = 3 * nr_verticies;
-    nr_indicies = 6 * 6;
-
-    verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
-    norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
-    indicies = SAFEMALLOC(sizeof(unsigned short) * nr_indicies);
-
-    std_cube_generate_verticies(verts, 10, 10, 10);
-    std_cube_generate_normals(norms);
-    std_cube_generate_indicies(indicies);
-
-    size_of_verts = sizeof(float) * nr_vert_floats;
-    size_of_norms = size_of_verts;
-    size_of_indicies = sizeof(unsigned short) * nr_indicies;
-    size_total = size_of_verts + size_of_norms + size_of_indicies;
-
-    memory_id = vrms_client_create_memory(client, &address, size_total);
-    if (0 == memory_id) {
-        return 0;
-    }
-
-    buff_off = 0;
-    memcpy(&address[buff_off], verts, size_of_verts);
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, sizeof(float));
-
-    buff_off += size_of_verts;
-    memcpy(&address[buff_off], norms, size_of_verts);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, sizeof(float));
-
-    buff_off += size_of_norms;
-    memcpy(&address[buff_off], indicies, size_of_indicies);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, sizeof(unsigned short));
-
-    uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
-    uint32_t texture_id = vrms_load_skybox_texture(client, filename);
-    uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, 0);
-
-    free(verts);
-    free(norms);
-    free(indicies);
-
-    return mesh_id;
+    return skybox_id;
 }
 
 void std_plane_generate_verticies(float* verts, uint32_t x, uint32_t y) {

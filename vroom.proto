@@ -103,3 +103,9 @@ message CreateMeshTexture {
     required int32 texture_id = 3;
     required int32 uv_id = 4;
 }
+
+message CreateSkybox {
+    required int32 scene_id = 1;
+    required int32 texture_id = 3;
+    required int32 size = 4;
+}

@@ -34,7 +34,7 @@ int main(void) {
 
     model_matrix = esmCreate();
     esmRotatef(model_matrix, 2.0f, 1, 0, 0);
-    esmTranslatef(model_matrix, -1.0f, -1.0f, -1.0f);
+    esmTranslatef(model_matrix, -1.0f, -1.0f, -0.0f);
 
     matrix_id = vrms_geometry_load_matrix_data(client, 1, model_matrix);
 

@@ -63,6 +63,15 @@ typedef struct vrms_object_mesh_color {
     uint32_t nr_indicies;
 } vrms_object_mesh_color_t;
 
+typedef struct vrms_object_skybox {
+    uint32_t id;
+    uint32_t texture_id;
+    uint32_t size;
+    float* tmp_data;
+    GLuint vertex_gl_id;
+    GLuint texture_gl_id;
+} vrms_object_skybox_t;
+
 typedef struct vrms_object_matrix {
     uint32_t id;
     GLfloat* data;
@@ -71,6 +80,7 @@ typedef struct vrms_object_matrix {
 typedef struct vrms_object {
     uint32_t id;
     vrms_object_type_t type;
+    uint8_t realized;
     union {
         vrms_object_memory_t* object_memory;
         vrms_object_data_t* object_data;
@@ -78,6 +88,7 @@ typedef struct vrms_object {
         vrms_object_geometry_t* object_geometry;
         vrms_object_mesh_color_t* object_mesh_color;
         vrms_object_mesh_texture_t* object_mesh_texture;
+        vrms_object_skybox_t* object_skybox;
     } object;
 } vrms_object_t;
 
@@ -88,4 +99,5 @@ vrms_object_t* vrms_object_texture_create(uint32_t memory_length, uint32_t width
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, float g, float b, float a);
 vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
+vrms_object_t* vrms_object_skybox_create(uint32_t texture_id, uint32_t size);
 void vrms_object_destroy(vrms_object_t* object);

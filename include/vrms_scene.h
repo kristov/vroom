@@ -3,6 +3,7 @@
 typedef struct vrms_queue_item vrms_queue_item_t;
 typedef struct vrms_server vrms_server_t;
 typedef struct vrms_object vrms_object_t;
+typedef struct vrms_object_skybox vrms_object_skybox_t;
 
 typedef struct vrms_scene {
     char* name;
@@ -33,4 +34,6 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, u
 
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id);
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
+uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_id, uint32_t size);
 vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id);
+vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t skybox_id);

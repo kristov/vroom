@@ -164,6 +164,7 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
         buffer = SAFEMALLOC(memory_length);
         memcpy(buffer, &((unsigned char*)memory->address)[memory_offset], memory_length);
         object->object.object_data->local_storage = buffer;
+        object->realized = 1;
     }
     else {
         buffer = &((unsigned char*)memory->address)[memory_offset];
@@ -232,6 +233,63 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id
     vrms_server_queue_update_system_matrix(scene->server, matrix_type, update_type, buffer);
 
     return 1;
+}
+
+uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_id, uint32_t size) {
+    float points[] = {
+        -5.0f,  5.0f, -5.0f,
+        -5.0f, -5.0f, -5.0f,
+         5.0f, -5.0f, -5.0f,
+         5.0f, -5.0f, -5.0f,
+         5.0f,  5.0f, -5.0f,
+        -5.0f,  5.0f, -5.0f,
+
+        -5.0f, -5.0f,  5.0f,
+        -5.0f, -5.0f, -5.0f,
+        -5.0f,  5.0f, -5.0f,
+        -5.0f,  5.0f, -5.0f,
+        -5.0f,  5.0f,  5.0f,
+        -5.0f, -5.0f,  5.0f,
+
+         5.0f, -5.0f, -5.0f,
+         5.0f, -5.0f,  5.0f,
+         5.0f,  5.0f,  5.0f,
+         5.0f,  5.0f,  5.0f,
+         5.0f,  5.0f, -5.0f,
+         5.0f, -5.0f, -5.0f,
+
+        -5.0f, -5.0f,  5.0f,
+        -5.0f,  5.0f,  5.0f,
+         5.0f,  5.0f,  5.0f,
+         5.0f,  5.0f,  5.0f,
+         5.0f, -5.0f,  5.0f,
+        -5.0f, -5.0f,  5.0f,
+
+        -5.0f,  5.0f, -5.0f,
+         5.0f,  5.0f, -5.0f,
+         5.0f,  5.0f,  5.0f,
+         5.0f,  5.0f,  5.0f,
+        -5.0f,  5.0f,  5.0f,
+        -5.0f,  5.0f, -5.0f,
+
+        -5.0f, -5.0f, -5.0f,
+        -5.0f, -5.0f,  5.0f,
+         5.0f, -5.0f, -5.0f,
+         5.0f, -5.0f, -5.0f,
+        -5.0f, -5.0f,  5.0f,
+         5.0f, -5.0f,  5.0f
+    };
+
+    vrms_object_t* object = vrms_object_skybox_create(texture_id, size);
+    vrms_scene_add_object(scene, object);
+
+    uint32_t memory_length = 36 * 3 * sizeof(float);
+    object->object.object_skybox->tmp_data = SAFEMALLOC(memory_length);
+    memcpy(object->object.object_skybox->tmp_data, (unsigned char*)points, memory_length);
+
+    vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_skybox->vertex_gl_id, VRMS_VERTEX, object->object.object_skybox->tmp_data);
+
+    return object->id;
 }
 
 uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t nr_objects) {
@@ -321,7 +379,6 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     vrms_object_data_t* index;
     vrms_object_data_t* uv;
     vrms_object_texture_t* texture;
-    vrms_texture_type_t texture_type;
 
     if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
         return 1;
@@ -361,12 +418,10 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     texture = object->object.object_texture;
     if (0 != texture->gl_id) {
         mesh->texture_gl_id = texture->gl_id;
-        texture_type = texture->type;
     }
 
     object = vrms_scene_get_object_by_id(scene, geometry->index_id);
     if (NULL == object) {
-        debug_print("no index object\n");
         return 0;
     }
     index = object->object.object_data;
@@ -375,30 +430,17 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
         mesh->nr_indicies = index->memory_length / index->value_length;
     }
 
-    switch (texture_type) {
-        case VRMS_TEXTURE_2D:
-            debug_print("realizing texture mesh\n");
-            object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
-            if (NULL == object) {
-                return 0;
-            }
-            uv = object->object.object_data;
-            if (0 != uv->gl_id) {
-                mesh->uv_gl_id = uv->gl_id;
-            }
-            if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
-                return 1;
-            }
-            break;
-        case VRMS_TEXTURE_CUBE_MAP:
-            debug_print("realizing cubemap mesh\n");
-            mesh->uv_gl_id = 0;
-            if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->texture_gl_id)) {
-                return 1;
-            }
-            break;
-        default:
-            break;
+    object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
+    if (NULL == object) {
+        return 0;
+    }
+    uv = object->object.object_data;
+    if (0 != uv->gl_id) {
+        mesh->uv_gl_id = uv->gl_id;
+    }
+
+    if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
+        return 1;
     }
 
     return 0;
@@ -406,7 +448,6 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
 
 vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id) {
     vrms_object_t* object;
-    uint8_t realized;
 
     if (0 == mesh_id) {
         debug_print("vrms_scene_get_mesh_by_id: no mesh id passed\n");
@@ -418,21 +459,56 @@ vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id) 
         return NULL;
     }
 
-    realized = 0;
     switch (object->type) {
         case VRMS_OBJECT_MESH_COLOR:
-            realized = vrms_scene_mesh_color_realize(scene, object->object.object_mesh_color);
+            object->realized = vrms_scene_mesh_color_realize(scene, object->object.object_mesh_color);
             break;
         case VRMS_OBJECT_MESH_TEXTURE:
-            realized = vrms_scene_mesh_texture_realize(scene, object->object.object_mesh_texture);
+            object->realized = vrms_scene_mesh_texture_realize(scene, object->object.object_mesh_texture);
             break;
         default:
             break;
     }
 
-    if (!realized) {
+    if (!object->realized) {
         return NULL;
     }
 
     return object;
+}
+
+vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t skybox_id) {
+    vrms_object_t* object;
+    vrms_object_skybox_t* skybox;
+    vrms_object_texture_t* texture;
+
+    if (0 == skybox_id) {
+        debug_print("vrms_scene_get_skybox_by_id: no skybox id passed\n");
+        return NULL;
+    }
+
+    object = vrms_scene_get_object_by_id(scene, skybox_id);
+    if (NULL == object) {
+        return NULL;
+    }
+    skybox = object->object.object_skybox;
+
+    object = vrms_scene_get_object_by_id(scene, skybox->texture_id);
+    if (NULL == object) {
+        return 0;
+    }
+    texture = object->object.object_texture;
+    if (0 != texture->gl_id) {
+        skybox->texture_gl_id = texture->gl_id;
+    }
+
+    if ((0 != skybox->vertex_gl_id) && (0 != skybox->texture_gl_id)) {
+        object->realized = 1;
+    }
+
+    if (!object->realized) {
+        return NULL;
+    }
+
+    return skybox;
 }

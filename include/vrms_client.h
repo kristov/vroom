@@ -18,3 +18,4 @@ uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_
 uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
 uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t nr_items);
 uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, int32_t memory_id, uint32_t offset, uint32_t size);
+uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, uint32_t size);

@@ -68,9 +68,7 @@ lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) $(CFLAGS) $(PREPROC) $(INCDIRS) -c -o $@ $<
 
-src/vroom_pb.c: vroom-protobuf
-include/vroom_pb.h: vroom-protobuf
-vroom-protobuf: vroom.proto
+protobuf: vroom.proto
 	protoc-c --c_out=. vroom.proto
 	mv vroom.pb-c.c $(SRCDIR)/vroom_pb.c
 	mv vroom.pb-c.h $(INCDIR)/vroom_pb.h

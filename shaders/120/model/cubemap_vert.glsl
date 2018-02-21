@@ -1,7 +1,6 @@
 #version 120
 
 attribute vec3 b_vertex;
-attribute vec3 b_normal;
 
 uniform mat4 m_mvp;
 

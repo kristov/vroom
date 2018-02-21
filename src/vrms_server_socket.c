@@ -404,6 +404,40 @@ uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_bu
     return ok;
 }
 
+uint32_t receive_create_skybox(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+    uint32_t id;
+    CreateSkybox* cs_msg;
+
+    if (NULL == vrms_server) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    cs_msg = create_skybox__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_scene_create_object_skybox(vrms_scene, cs_msg->texture_id, cs_msg->size);
+    }
+
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "create skybox: out of memory\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return id;
+}
+
 void send_reply(int32_t fd, int32_t id, vrms_error_t* error) {
     void *out_buf;
     size_t length;
@@ -564,6 +598,9 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         break;
         case VRMS_UPDATESYSTEMMATRIX:
             id = receive_update_system_matrix(vrms_server, in_buf, length_r, &error);
+            break;
+        case VRMS_CREATESKYBOX:
+            id = receive_create_skybox(vrms_server, in_buf, length_r, &error);
             break;
         default:
             id = 0;
