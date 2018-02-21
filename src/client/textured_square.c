@@ -25,7 +25,7 @@ int main(void) {
         exit(1);
     }
 
-    plane_id = vrms_geometry_plane_textured(client, 2, 2, "wolf3d.png");
+    plane_id = vrms_geometry_plane_textured(client, 2, 2, "temp/wolf3d.png");
     if (plane_id == 0) {
         fprintf(stderr, "Unable to create cube\n");
         vrms_destroy_scene(client);

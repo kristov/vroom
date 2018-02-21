@@ -25,7 +25,7 @@ int main(void) {
         exit(1);
     }
 
-    cube_id = vrms_geometry_skybox(client, "miramar_large.png");
+    cube_id = vrms_geometry_skybox(client, "temp/miramar_large.png");
     if (cube_id == 0) {
         fprintf(stderr, "Unable to create cube\n");
         vrms_destroy_scene(client);
