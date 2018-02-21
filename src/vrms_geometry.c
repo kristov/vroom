@@ -296,100 +296,106 @@ void std_cube_generate_uvs(float* uvs) {
     uint32_t off = 0;
 
     // front
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 0.6666f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
-    uvs[off + 0] = 0.3333f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.0000f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 
     // left
-    uvs[off + 0] = 0.3333f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.0000f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 0.6666f;
-    off += 6;
-    uvs[off + 0] = 0.3333f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.0000f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 
     // right
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 1.0000f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 0.6666f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 1.0000f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 0.6666f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 0.6666f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 
     // top
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 1.0000f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 0.6666f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 1.0000f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 0.6666f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 0.6666f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 
     // bottom
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 0.6666f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 
     // back
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.0000f;
-    uvs[off + 5] = 1.0000f;
-    off += 6;
-    uvs[off + 0] = 0.0000f;
-    uvs[off + 1] = 0.6666f;
-    uvs[off + 2] = 0.3333f;
-    uvs[off + 3] = 1.0000f;
-    uvs[off + 4] = 0.3333f;
-    uvs[off + 5] = 0.6666f;
-    off += 6;
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 0.0f;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 }
 
 uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint32_t z, float r, float g, float b, float a) {
@@ -458,7 +464,6 @@ void vrms_geometry_image_copy_square(uint8_t* destination, uint8_t* source, uint
     length = (square_px * bytes_pp);
 
     for (i = 0; i < square_px; i++) {
-        fprintf(stderr, "start_idx: %d, read length: %d\n", start, length);
         memcpy(&destination[dest_off], &source[start], length);
         start += bytes_pl;
     }
@@ -483,7 +488,6 @@ uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
     if (NULL == data) {
         return 0;
     }
-    fprintf(stderr, "width: %d, height: %d, bytes_pp: %d\n", width, height, bytes_pp);
 
     bytes_pl = width * bytes_pp;
     square_px = width / 4;
@@ -528,50 +532,37 @@ uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
     vrms_geometry_image_copy_square(address, data, square_px, bytes_pl, bytes_pp, 3, 1, dest_off);
     dest_off += bytes_sq;
 
-    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, total_byte_size, width, height, VRMS_RGB8, VRMS_TEXTURE_CUBE_MAP);
+    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, total_byte_size, square_px, square_px, VRMS_RGB8, VRMS_TEXTURE_CUBE_MAP);
 
     return texture_id;
 }
 
-uint32_t vrms_load_texture(vrms_client_t* client, const char* filename) {
-    uint8_t header[54];
-    uint8_t data_pos;
-    uint32_t width, height;
-    uint32_t image_size;
+uint32_t vrms_load_texture(vrms_client_t* client, const char* filename, vrms_texture_type_t type) {
     int32_t memory_id;
+    int32_t width, height, bytes_pp;
+    uint8_t* data = NULL;
     uint8_t* address = NULL;
+    uint32_t total_byte_size;
 
-    FILE* file = fopen(filename, "rb");
-    if (NULL == file) {
-        fprintf(stderr, "Image could not be opened\n");
+    width = 0;
+    height = 0;
+    bytes_pp = 0;
+    data = stbi_load(filename, &width, &height, &bytes_pp, 3);
+    if (NULL == data) {
+        stbi_image_free(data);
         return 0;
     }
 
-    if (fread(header, 1, 54, file) != 54) {
-        fprintf(stderr, "Not a correct BMP file\n");
-        return 0;
-    }
+    total_byte_size = width * height * bytes_pp;
 
-    if ( header[0] != 'B' || header[1] != 'M') {
-        fprintf(stderr, "Not a correct BMP file\n");
-        return 0;
-    }
-
-    width  = *(int*)&(header[0x12]);
-    height = *(int*)&(header[0x16]);
-    image_size = width * height * 3;
-    data_pos = 54;
-
-    memory_id = vrms_client_create_memory(client, &address, image_size);
+    memory_id = vrms_client_create_memory(client, &address, total_byte_size);
     if (0 == memory_id) {
-        fclose(file);
         return 0;
     }
 
-    fread(address, data_pos, image_size, file);
-    fclose(file);
+    memcpy(address, data, total_byte_size);
 
-    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, image_size, width, height, VRMS_RGB8, VRMS_TEXTURE_2D);
+    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, total_byte_size, width, height, VRMS_RGB8, type);
 
     return texture_id;
 }
@@ -592,7 +583,7 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
     nr_verticies = 4 * 6;
     nr_vert_floats = 3 * nr_verticies;
     nr_indicies = 6 * 6;
-    nr_uv_floats = nr_indicies * 2;
+    nr_uv_floats = nr_verticies * 2;
 
     verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
     norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
@@ -632,7 +623,11 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
     uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
-    uint32_t texture_id = vrms_load_texture(client, filename);
+    uint32_t texture_id = vrms_load_texture(client, filename, VRMS_TEXTURE_2D);
+    if (0 == texture_id) {
+        fprintf(stderr, "unable to create texture\n");
+    }
+
     uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
 
     free(verts);
@@ -644,8 +639,60 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
 }
 
 uint32_t vrms_geometry_skybox(vrms_client_t* client, const char* filename) {
-    vrms_load_skybox_texture(client, filename);
-    return 0;
+    uint32_t nr_verticies, nr_indicies, nr_vert_floats;
+    size_t size_of_verts, size_of_norms, size_of_indicies, size_total;
+    uint32_t buff_off;
+
+    int32_t memory_id;
+    uint8_t* address = NULL;
+
+    float* verts;
+    float* norms;
+    unsigned short* indicies;
+
+    nr_verticies = 4 * 6;
+    nr_vert_floats = 3 * nr_verticies;
+    nr_indicies = 6 * 6;
+
+    verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
+    indicies = SAFEMALLOC(sizeof(unsigned short) * nr_indicies);
+
+    std_cube_generate_verticies(verts, 10, 10, 10);
+    std_cube_generate_normals(norms);
+    std_cube_generate_indicies(indicies);
+
+    size_of_verts = sizeof(float) * nr_vert_floats;
+    size_of_norms = size_of_verts;
+    size_of_indicies = sizeof(unsigned short) * nr_indicies;
+    size_total = size_of_verts + size_of_norms + size_of_indicies;
+
+    memory_id = vrms_client_create_memory(client, &address, size_total);
+    if (0 == memory_id) {
+        return 0;
+    }
+
+    buff_off = 0;
+    memcpy(&address[buff_off], verts, size_of_verts);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+
+    buff_off += size_of_verts;
+    memcpy(&address[buff_off], norms, size_of_verts);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+
+    buff_off += size_of_norms;
+    memcpy(&address[buff_off], indicies, size_of_indicies);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
+
+    uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
+    uint32_t texture_id = vrms_load_skybox_texture(client, filename);
+    uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, 0);
+
+    free(verts);
+    free(norms);
+    free(indicies);
+
+    return mesh_id;
 }
 
 void std_plane_generate_verticies(float* verts, uint32_t x, uint32_t y) {
@@ -674,19 +721,19 @@ void std_plane_generate_normals(float* norms) {
 
     norms[off + 0] = 0.0f; // 0
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 1
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 2
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
     norms[off + 0] = 0.0f; // 3
     norms[off + 1] = 0.0f;
-    norms[off + 2] = -1.0f;
+    norms[off + 2] = 1.0f;
     off += 3;
 }
 
@@ -707,18 +754,19 @@ void std_plane_generate_uvs(float* uvs) {
 
     uvs[off + 0] = 0.0f;
     uvs[off + 1] = 0.0f;
-    uvs[off + 2] = 1.0f;
-    uvs[off + 3] = 0.0f;
-    uvs[off + 4] = 0.0f;
-    uvs[off + 5] = 1.0f;
-    off += 6;
+    off += 2;
+
     uvs[off + 0] = 1.0f;
     uvs[off + 1] = 0.0f;
-    uvs[off + 2] = 0.0f;
-    uvs[off + 3] = 1.0f;
-    uvs[off + 4] = 1.0f;
-    uvs[off + 5] = 1.0f;
-    off += 6;
+    off += 2;
+
+    uvs[off + 0] = 0.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
+
+    uvs[off + 0] = 1.0f;
+    uvs[off + 1] = 1.0f;
+    off += 2;
 }
 
 uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, float r, float g, float b, float a) {
@@ -788,7 +836,7 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
     nr_verticies = 4;
     nr_vert_floats = 3 * nr_verticies;
     nr_indicies = 6;
-    nr_uv_floats = nr_indicies * 2;
+    nr_uv_floats = nr_verticies * 2;
 
     verts = SAFEMALLOC(sizeof(float) * nr_vert_floats);
     norms = SAFEMALLOC(sizeof(float) * nr_vert_floats);
@@ -828,7 +876,11 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
     uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
-    uint32_t texture_id = vrms_load_texture(client, filename);
+    uint32_t texture_id = vrms_load_texture(client, filename, VRMS_TEXTURE_2D);
+    if (0 == texture_id) {
+        fprintf(stderr, "unable to create texture\n");
+    }
+
     uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
 
     free(verts);

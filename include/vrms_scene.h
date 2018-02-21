@@ -18,6 +18,7 @@ typedef struct vrms_scene {
     pthread_mutex_t* render_buffer_lock;
     GLuint onecolor_shader_id;
     GLuint texture_shader_id;
+    GLuint cubemap_shader_id;
 } vrms_scene_t;
 
 vrms_scene_t* vrms_scene_create(char* name);

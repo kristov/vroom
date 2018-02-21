@@ -41,7 +41,7 @@ vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uin
     return object;
 }
 
-vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format) {
+vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_TEXTURE;
 
@@ -52,6 +52,7 @@ vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_
     object_texture->width = width;
     object_texture->height = height;
     object_texture->format = format;
+    object_texture->type = type;
     object->object.object_texture = object_texture;
 
     return object;

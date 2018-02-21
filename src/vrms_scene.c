@@ -19,6 +19,9 @@
 #include "vrms_server.h"
 #include "esm.h"
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
 vrms_scene_t* vrms_scene_create(char* name) {
     vrms_scene_t* scene = SAFEMALLOC(sizeof(vrms_scene_t));
     memset(scene, 0, sizeof(vrms_scene_t));
@@ -37,12 +40,11 @@ vrms_scene_t* vrms_scene_create(char* name) {
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (scene->next_object_id <= id) {
-        fprintf(stderr, "id out of range\n");
+        debug_print("id out of range\n");
         return NULL;
     }
     vrms_object = scene->objects[id];
     if (NULL == vrms_object) {
-        fprintf(stderr, "undefined object for id: %d\n", id);
         return NULL;
     }
     return vrms_object;
@@ -52,7 +54,7 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     vrms_object_t* object;
 
     if (0 == memory_id) {
-        fprintf(stderr, "vrms_scene_get_memory_object_by_id: no memory id passed\n");
+        debug_print("vrms_scene_get_memory_object_by_id: no memory id passed\n");
         return NULL;
     }
 
@@ -62,7 +64,7 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     }
 
     if (VRMS_OBJECT_MEMORY != object->type) {
-        fprintf(stderr, "vrms_scene_get_memory_object_by_id: asked for an id that is not a memory object\n");
+        debug_print("vrms_scene_get_memory_object_by_id: asked for an id that is not a memory object\n");
         return NULL;
     }
 
@@ -126,13 +128,13 @@ uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t siz
 
     seals = fcntl(fd, F_GET_SEALS);
     if (!(seals & F_SEAL_SHRINK)) {
-        fprintf(stderr, "got non-sealed memfd\n");
+        debug_print("got non-sealed memfd\n");
         return 0;
     }
 
     address = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
     if (MAP_FAILED == address) {
-        fprintf(stderr, "memory map failed\n");
+        debug_print("memory map failed\n");
         return 0;
     }
 
@@ -152,56 +154,8 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
     }
 
     if ((offset + size) > memory->size) {
-        fprintf(stderr, "create_data_object: read beyond memory size!\n");
+        debug_print("create_data_object: read beyond memory size!\n");
     }
-
-/*
-    char* label = "VRMS_XX____";
-    switch (type) {
-        case VRMS_UV:
-            label = "VRMS_UV____";
-            break;
-        case VRMS_VERTEX:
-            label = "VRMS_VERTEX";
-            break;
-        case VRMS_NORMAL:
-            label = "VRMS_NORMAL";
-            break;
-        case VRMS_INDEX:
-            label = "VRMS_INDEX_";
-            break;
-        case VRMS_COLOR:
-            label = "VRMS_COLOR_";
-            break;
-        case VRMS_MATRIX:
-            label = "VRMS_MATRIX";
-            break;
-    }
-
-    fprintf(stderr, "%s - offset: %d, size: %d, nr_strides: %d, stride: %d\n", label, offset, size, nr_strides, stride);
-    if (type == VRMS_UV || type == VRMS_VERTEX || type == VRMS_NORMAL) {
-        uint32_t i, j, k;
-        k = 0;
-        for (i = 0; i < nr_strides; i++) {
-            for (j = 0; j < stride; j++) {
-                fprintf(stderr, "%0.1f ", ((float*)buffer)[k]);
-                k++;
-            }
-            fprintf(stderr, "\n");
-        }
-    }
-    else if (type == VRMS_INDEX) {
-        uint32_t i, j, k;
-        k = 0;
-        for (i = 0; i < nr_strides; i++) {
-            for (j = 0; j < stride; j++) {
-                fprintf(stderr, "%hu ", ((unsigned short*)buffer)[k]);
-                k++;
-            }
-            fprintf(stderr, "\n");
-        }
-    }
-*/
 
     vrms_object_t* object = vrms_object_data_create(type, size, nr_strides, stride);
     vrms_scene_add_object(scene, object);
@@ -225,19 +179,20 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_i
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
     if (NULL == memory) {
+        debug_print("unable to find memory object\n");
         return 0;
     }
 
     if ((offset + size) > memory->size) {
-        fprintf(stderr, "create_data_object: read beyond memory size!\n");
+        debug_print("create_data_object: read beyond memory size!\n");
     }
 
     buffer = &((unsigned char*)memory->address)[offset];
 
-    vrms_object_t* object = vrms_object_texture_create(size, width, height, format);
+    vrms_object_t* object = vrms_object_texture_create(size, width, height, format, type);
     vrms_scene_add_object(scene, object);
 
-    vrms_server_queue_add_texture_load(scene->server, size, &object->object.object_data->gl_id, width, height, format, type, buffer);
+    vrms_server_queue_add_texture_load(scene->server, size, &object->object.object_texture->gl_id, width, height, format, type, buffer);
 
     return object->id;
 }
@@ -270,7 +225,7 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id
     }
 
     if ((offset + size) > memory->size) {
-        fprintf(stderr, "vrms_scene_update_system_matrix: read beyond memory size!\n");
+        debug_print("vrms_scene_update_system_matrix: read beyond memory size!\n");
     }
 
     buffer = &((unsigned char*)memory->address)[offset];
@@ -291,7 +246,7 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, u
     }
 
     if (size > memory->size) {
-        fprintf(stderr, "vrms_scene_set_render_buffer: read beyond memory size!\n");
+        debug_print("vrms_scene_set_render_buffer: read beyond memory size!\n");
     }
 
     pthread_mutex_lock(scene->render_buffer_lock);
@@ -366,6 +321,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     vrms_object_data_t* index;
     vrms_object_data_t* uv;
     vrms_object_texture_t* texture;
+    vrms_texture_type_t texture_type;
 
     if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
         return 1;
@@ -373,12 +329,14 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
 
     object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
     if (NULL == object) {
+        debug_print("no geometry object\n");
         return 0;
     }
     geometry = object->object.object_geometry;
 
     object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
     if (NULL == object) {
+        debug_print("no vertex object\n");
         return 0;
     }
     vertex = object->object.object_data;
@@ -388,30 +346,12 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
 
     object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
     if (NULL == object) {
+        debug_print("no normal object\n");
         return 0;
     }
     normal = object->object.object_data;
     if (0 != normal->gl_id) {
         mesh->normal_gl_id = normal->gl_id;
-    }
-
-    object = vrms_scene_get_object_by_id(scene, geometry->index_id);
-    if (NULL == object) {
-        return 0;
-    }
-    index = object->object.object_data;
-    if (0 != index->gl_id) {
-        mesh->index_gl_id = index->gl_id;
-        mesh->nr_indicies = index->nr_strides;
-    }
-
-    object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
-    if (NULL == object) {
-        return 0;
-    }
-    uv = object->object.object_data;
-    if (0 != uv->gl_id) {
-        mesh->uv_gl_id = uv->gl_id;
     }
 
     object = vrms_scene_get_object_by_id(scene, mesh->texture_id);
@@ -421,10 +361,44 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     texture = object->object.object_texture;
     if (0 != texture->gl_id) {
         mesh->texture_gl_id = texture->gl_id;
+        texture_type = texture->type;
     }
 
-    if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
-        return 1;
+    object = vrms_scene_get_object_by_id(scene, geometry->index_id);
+    if (NULL == object) {
+        debug_print("no index object\n");
+        return 0;
+    }
+    index = object->object.object_data;
+    if (0 != index->gl_id) {
+        mesh->index_gl_id = index->gl_id;
+        mesh->nr_indicies = index->nr_strides;
+    }
+
+    switch (texture_type) {
+        case VRMS_TEXTURE_2D:
+            debug_print("realizing texture mesh\n");
+            object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
+            if (NULL == object) {
+                return 0;
+            }
+            uv = object->object.object_data;
+            if (0 != uv->gl_id) {
+                mesh->uv_gl_id = uv->gl_id;
+            }
+            if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->uv_gl_id) && (0 != mesh->texture_gl_id)) {
+                return 1;
+            }
+            break;
+        case VRMS_TEXTURE_CUBE_MAP:
+            debug_print("realizing cubemap mesh\n");
+            mesh->uv_gl_id = 0;
+            if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id) && (0 != mesh->texture_gl_id)) {
+                return 1;
+            }
+            break;
+        default:
+            break;
     }
 
     return 0;
@@ -435,7 +409,7 @@ vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id) 
     uint8_t realized;
 
     if (0 == mesh_id) {
-        fprintf(stderr, "vrms_scene_get_mesh_by_id: no mesh id passed\n");
+        debug_print("vrms_scene_get_mesh_by_id: no mesh id passed\n");
         return NULL;
     }
 

@@ -6,7 +6,7 @@
 #include "esm.h"
 
 int main(void) {
-    uint32_t scene_id, plane_id, matrix_id;
+    uint32_t scene_id, cube_id, matrix_id;
     uint32_t render_ret;
     vrms_client_t* client;
     float* model_matrix;
@@ -25,22 +25,21 @@ int main(void) {
         exit(1);
     }
 
-    plane_id = vrms_geometry_plane_textured(client, 2, 2, "wolf3d.png");
-    if (plane_id == 0) {
+    cube_id = vrms_geometry_skybox(client, "miramar_large.png");
+    if (cube_id == 0) {
         fprintf(stderr, "Unable to create cube\n");
         vrms_destroy_scene(client);
         exit(1);
     }
 
     model_matrix = esmCreate();
-    esmTranslatef(model_matrix, -1.0f, -1.0f, -1.0f);
-    esmRotatef(model_matrix, 0.2f, 1, 0, 0);
+    esmTranslatef(model_matrix, -5.0f, -5.0f, -5.0f);
 
     matrix_id = vrms_geometry_load_matrix_data(client, 1, model_matrix);
 
     render_buffer[0] = matrix_id;
     render_buffer[1] = 0;
-    render_buffer[2] = plane_id;
+    render_buffer[2] = cube_id;
 
     render_ret = vrms_geometry_render_buffer_set(client, 1, render_buffer);
     fprintf(stderr, "render_ret: %d\n", render_ret);

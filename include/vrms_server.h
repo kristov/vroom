@@ -10,6 +10,7 @@ typedef struct vrms_server {
     pthread_mutex_t* inbound_queue_lock;
     GLuint onecolor_shader_id;
     GLuint texture_shader_id;
+    GLuint cubemap_shader_id;
     float* head_matrix;
     float* body_matrix;
     void (*system_matrix_update)(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);

@@ -702,6 +702,7 @@ void vrms_server_socket_init(int width, int height, double physical_width) {
     vrms_server = vrms_server_create();
     vrms_server->onecolor_shader_id = ostereo->onecolor_shader_id;
     vrms_server->texture_shader_id = ostereo->texture_shader_id;
+    vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_server_socket_system_matrix_update;
 
     thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);

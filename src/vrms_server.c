@@ -29,6 +29,9 @@
 #include "vrms_server.h"
 #include "esm.h"
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
 typedef enum vrms_queue_item_type {
     VRMS_QUEUE_DATA_LOAD,
     VRMS_QUEUE_TEXTURE_LOAD,
@@ -44,19 +47,19 @@ typedef struct vrms_queue_item_scene_destroy {
 typedef struct vrms_queue_item_data_load {
     vrms_data_type_t type;
     GLuint* destination;
-    void* buffer;
+    uint8_t* buffer;
     uint32_t size;
 } vrms_queue_item_data_load_t;
 
 typedef struct vrms_queue_item_update_system_matrix {
     vrms_matrix_type_t matrix_type;
     vrms_update_type_t update_type;
-    void* buffer;
+    uint8_t* buffer;
 } vrms_queue_item_update_system_matrix_t;
 
 typedef struct vrms_queue_item_texture_load {
     GLuint* destination;
-    void* buffer;
+    uint8_t* buffer;
     uint32_t size;
     uint32_t width;
     uint32_t height;
@@ -141,12 +144,12 @@ vrms_server_t* vrms_server_create() {
 vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_id) {
     vrms_scene_t* scene;
     if (scene_id >= vrms_server->next_scene_id) {
-        fprintf(stderr, "invalid scene_id [%d] requested: id out of range\n", scene_id);
+        debug_print("invalid scene_id [%d] requested: id out of range\n", scene_id);
         return NULL;
     }
     scene = vrms_server->scenes[scene_id];
     if (NULL == scene) {
-        fprintf(stderr, "invalid scene_id [%d] requested: scene does not exist\n", scene_id);
+        debug_print("invalid scene_id [%d] requested: scene does not exist\n", scene_id);
         return NULL;
     }
     return scene;
@@ -154,8 +157,15 @@ vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_i
 
 uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
     vrms_scene_t* scene = vrms_scene_create(name);
+
+    // TODO: Redo all this stuff somehow... Shaders are created in opengl_stereo
+    // then passed to vrms_server_t object in socket, then passed to vrms_secne_t
+    // somewhere. Scene shaders should be created in vrms_server.c except the
+    // screen plane shader in opengl_stereo which should be put in some standard
+    // place.
     scene->onecolor_shader_id = server->onecolor_shader_id;
     scene->texture_shader_id = server->texture_shader_id;
+    scene->cubemap_shader_id = server->cubemap_shader_id;
 
     scene->server = server;
 
@@ -169,7 +179,7 @@ uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
 void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     vrms_scene_t* scene = vrms_server_get_scene(server, scene_id);
     if (NULL == scene) {
-        fprintf(stderr, "request to destroy already destroyed scene\n");
+        debug_print("request to destroy already destroyed scene\n");
         return;
     }
 
@@ -343,6 +353,66 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
+printOpenGLError();
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
+    b_normal = glGetAttribLocation(shader_id, "b_normal");
+    glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_normal);
+printOpenGLError();
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
+    b_uv = glGetAttribLocation(shader_id, "b_uv");
+    glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_uv);
+printOpenGLError();
+
+    s_tex = glGetUniformLocation(shader_id, "s_tex");
+    glActiveTexture(GL_TEXTURE1);
+    glUniform1i(s_tex, 1);
+    glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
+printOpenGLError();
+
+    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
+    glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
+printOpenGLError();
+
+    m_mv = glGetUniformLocation(shader_id, "m_mv");
+    glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
+printOpenGLError();
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
+    glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
+printOpenGLError();
+
+    esmDestroy(mvp_matrix);
+    esmDestroy(mv_matrix);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void vrms_server_draw_mesh_cubemap(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
+
+    GLuint b_vertex, b_normal, b_uv, s_tex, m_mvp, m_mv;
+    float* mvp_matrix;
+    float* mv_matrix;
+
+    debug_print("rendering cubemap texture\n");
+    glUseProgram(shader_id);
+
+    mv_matrix = esmCreateCopy(view_matrix);
+    esmMultiply(mv_matrix, model_matrix);
+
+    mvp_matrix = esmCreateCopy(projection_matrix);
+    esmMultiply(mvp_matrix, view_matrix);
+    esmMultiply(mvp_matrix, model_matrix);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_gl_id);
+    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
+    glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_vertex);
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
@@ -383,12 +453,12 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint
     float matrix_buffer[16];
 
     if (matrix_id >= scene->next_object_id) {
-        fprintf(stderr, "matrix object: %d is out of bounds\n", matrix_id);
+        debug_print("matrix object: %d is out of bounds\n", matrix_id);
         return;
     }
 
     if (mesh_id >= scene->next_object_id) {
-        fprintf(stderr, "mesh object: %d is out of bounds\n", mesh_id);
+        debug_print("mesh object: %d is out of bounds\n", mesh_id);
         return;
     }
 
@@ -412,7 +482,12 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t matrix_id, uint
             vrms_server_draw_mesh_color(scene, scene->onecolor_shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
             break;
         case VRMS_OBJECT_MESH_TEXTURE:
-            vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+            if (0 == mesh_object->object.object_mesh_texture->uv_gl_id) {
+                vrms_server_draw_mesh_cubemap(scene, scene->cubemap_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+            }
+            else {
+                vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+            }
             break;
         default:
             break;
@@ -435,7 +510,7 @@ void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix
         pthread_mutex_unlock(scene->render_buffer_lock);
     }
     else {
-        fprintf(stderr, "lock on render bufer\n");
+        debug_print("lock on render bufer\n");
     }
 }
 
@@ -458,15 +533,43 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* data_load) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
         if (0 == *data_load->destination) {
-            fprintf(stderr, "unable to load gl element buffer");
+            debug_print("unable to load gl element buffer");
             printOpenGLError();
         }
     }
 }
 
 void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_load) {
-    if (NULL != texture_load->buffer) {
-        if (VRMS_TEXTURE_2D == texture_load->type) {
+    GLint ifmt;
+    GLenum dfmt;
+    GLenum bfmt;
+    uint32_t w, h;
+    uint32_t part_offset;
+    uint32_t off;
+    uint8_t* buffer;
+    uint8_t* tmp;
+
+    if (NULL == texture_load->buffer) {
+        return;
+    }
+    buffer = texture_load->buffer;
+
+    w = texture_load->width;
+    h = texture_load->height;
+
+    switch (texture_load->format) {
+        case VRMS_RGB8:
+            dfmt = GL_RGB;
+            ifmt = GL_RGB8;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        default:
+            debug_print("texture format unrecognized: %d\n", texture_load->format);
+            break;
+    }
+
+    switch (texture_load->type) {
+        case VRMS_TEXTURE_2D:
             glGenTextures(1, texture_load->destination);
             glBindTexture(GL_TEXTURE_2D, *texture_load->destination);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -475,12 +578,43 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* texture_l
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, texture_load->width, texture_load->height, 0, GL_BGR, GL_UNSIGNED_BYTE, texture_load->buffer);
-            if (0 == *texture_load->destination) {
-                fprintf(stderr, "unable to load gl texture buffer");
-                printOpenGLError();
-            }
-        }
+            glTexImage2D(GL_TEXTURE_2D, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)buffer);
+            break;
+        case VRMS_TEXTURE_CUBE_MAP:
+            off = 0;
+            part_offset = (w * h) * 3;
+            glGenTextures(1, texture_load->destination);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, *texture_load->destination);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            off += part_offset;
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            off += part_offset;
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            off += part_offset;
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            off += part_offset;
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            off += part_offset;
+            tmp = &buffer[off];
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            break;
+        default:
+            debug_print("unknown texture type: %d\n", texture_load->type);
+            break;
+    }
+    if (0 == *texture_load->destination) {
+        debug_print("unable to load gl texture buffer");
+        printOpenGLError();
     }
 }
 
@@ -490,7 +624,7 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
         glBindBuffer(GL_ARRAY_BUFFER, *data_load->destination);
         glBufferData(GL_ARRAY_BUFFER, data_load->size, data_load->buffer, GL_STATIC_DRAW);
         if (0 == *data_load->destination) {
-            fprintf(stderr, "unable to load gl buffer");
+            debug_print("unable to load gl buffer");
             printOpenGLError();
         }
     }
@@ -499,7 +633,7 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* data_load) {
 void vrms_queue_update_system_matrix(vrms_server_t* server, vrms_queue_item_update_system_matrix_t* update_system_matrix) {
     float* matrix;
 
-    matrix = update_system_matrix->buffer;
+    matrix = (float*)update_system_matrix->buffer;
     if (NULL != server->system_matrix_update) {
         server->system_matrix_update(update_system_matrix->matrix_type, update_system_matrix->update_type, matrix);
     }
@@ -536,10 +670,10 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
             vrms_queue_update_system_matrix(server, update_system_matrix);
             break;
         case VRMS_QUEUE_EVENT:
-            fprintf(stderr, "not supposed to get a VRMS_QUEUE_EVENT from a client\n");
+            debug_print("not supposed to get a VRMS_QUEUE_EVENT from a client\n");
             break;
         default:
-            fprintf(stderr, "unknown queue type!!\n");
+            debug_print("unknown queue type!!\n");
     }
 
     free(queue_item);
@@ -554,7 +688,7 @@ void vrms_scene_queue_item_flush(vrms_server_t* server) {
             vrms_server_queue_item_process(server, queue_item);
         }
         else {
-            fprintf(stderr, "null queue item\n");
+            debug_print("null queue item\n");
         }
     }
     server->inbound_queue_index = 0;
@@ -566,7 +700,7 @@ void vrms_server_flush_client_inbound_queue(vrms_server_t* server) {
         pthread_mutex_unlock(server->inbound_queue_lock);
     }
     else {
-        fprintf(stderr, "socket thread has lock on queue\n");
+        debug_print("socket thread has lock on queue\n");
     }
 }
 

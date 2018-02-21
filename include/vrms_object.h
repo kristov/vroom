@@ -26,7 +26,8 @@ typedef struct vrms_object_texture {
     uint32_t size;
     uint32_t width;
     uint32_t height;
-    uint32_t format;
+    vrms_texture_format_t format;
+    vrms_texture_type_t type;
     GLuint gl_id;
 } vrms_object_texture_t;
 
@@ -84,7 +85,7 @@ typedef struct vrms_object {
 vrms_object_t* vrms_object_create();
 vrms_object_t* vrms_object_memory_create(void* address, uint32_t size);
 vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uint32_t nr_strides, uint32_t stride);
-vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, uint32_t format);
+vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, float g, float b, float a);
 vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
