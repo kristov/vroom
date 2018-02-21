@@ -157,7 +157,7 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_data(vrms_scene, vrms_type, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->nr_strides, cs_msg->stride);
+        id = vrms_scene_create_object_data(vrms_scene, vrms_type, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length, cs_msg->value_length);
     }
 
     if (0 == id) {
@@ -194,7 +194,7 @@ uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_b
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, cs_msg->width, cs_msg->height, format, type);
+        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length, cs_msg->width, cs_msg->height, format, type);
     }
 
     if (0 == id) {

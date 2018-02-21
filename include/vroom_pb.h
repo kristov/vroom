@@ -110,14 +110,13 @@ struct  _CreateDataObject
   int32_t scene_id;
   int32_t memory_id;
   CreateDataObject__Type type;
-  int32_t offset;
-  int32_t size;
-  int32_t nr_strides;
-  int32_t stride;
+  int32_t memory_offset;
+  int32_t memory_length;
+  int32_t value_length;
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0 }
 
 
 struct  _CreateTextureObject
@@ -125,8 +124,8 @@ struct  _CreateTextureObject
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t memory_id;
-  int32_t offset;
-  int32_t size;
+  int32_t memory_offset;
+  int32_t memory_length;
   int32_t width;
   int32_t height;
   CreateTextureObject__Format format;

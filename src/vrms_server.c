@@ -353,37 +353,30 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
-printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
-printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
-printOpenGLError();
 
     s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
-printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
-printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
-printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
     glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
-printOpenGLError();
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -413,30 +406,37 @@ void vrms_server_draw_mesh_cubemap(vrms_scene_t* scene, GLuint shader_id, vrms_o
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
+printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
+printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
+printOpenGLError();
 
     s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
+printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
+printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
+printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
     glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
+printOpenGLError();
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -519,6 +519,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
     vrms_scene_t* scene;
 
     for (si = 1; si < server->next_scene_id; si++) {
+        esmLoadIdentity(model_matrix);
         scene = server->scenes[si];
         if (NULL != scene) {
             vrms_server_draw_scene_buffer(scene, projection_matrix, view_matrix, model_matrix);

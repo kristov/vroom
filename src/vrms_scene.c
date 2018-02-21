@@ -144,7 +144,7 @@ uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t siz
     return object->id;
 }
 
-uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t type, uint32_t memory_id, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t type, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t value_length) {
     void* buffer;
     vrms_object_memory_t* memory;
 
@@ -153,27 +153,27 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
         return 0;
     }
 
-    if ((offset + size) > memory->size) {
-        debug_print("create_data_object: read beyond memory size!\n");
+    if ((memory_offset + memory_length) > memory->size) {
+        debug_print("create_object_data: read beyond memory size!\n");
     }
 
-    vrms_object_t* object = vrms_object_data_create(type, size, nr_strides, stride);
+    vrms_object_t* object = vrms_object_data_create(type, memory_length, value_length);
     vrms_scene_add_object(scene, object);
 
     if (VRMS_MATRIX == type) {
-        buffer = SAFEMALLOC(size);
-        memcpy(buffer, &((unsigned char*)memory->address)[offset], size);
+        buffer = SAFEMALLOC(memory_length);
+        memcpy(buffer, &((unsigned char*)memory->address)[memory_offset], memory_length);
         object->object.object_data->local_storage = buffer;
     }
     else {
-        buffer = &((unsigned char*)memory->address)[offset];
-        vrms_server_queue_add_data_load(scene->server, size, &object->object.object_data->gl_id, type, buffer);
+        buffer = &((unsigned char*)memory->address)[memory_offset];
+        vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_data->gl_id, type, buffer);
     }
 
     return object->id;
 }
 
-uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
+uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     void* buffer;
     vrms_object_memory_t* memory;
 
@@ -183,16 +183,16 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_i
         return 0;
     }
 
-    if ((offset + size) > memory->size) {
-        debug_print("create_data_object: read beyond memory size!\n");
+    if ((memory_offset + memory_length) > memory->size) {
+        debug_print("create_object_texture: read beyond memory size!\n");
     }
 
-    buffer = &((unsigned char*)memory->address)[offset];
+    buffer = &((unsigned char*)memory->address)[memory_offset];
 
-    vrms_object_t* object = vrms_object_texture_create(size, width, height, format, type);
+    vrms_object_t* object = vrms_object_texture_create(memory_length, width, height, format, type);
     vrms_scene_add_object(scene, object);
 
-    vrms_server_queue_add_texture_load(scene->server, size, &object->object.object_texture->gl_id, width, height, format, type, buffer);
+    vrms_server_queue_add_texture_load(scene->server, memory_length, &object->object.object_texture->gl_id, width, height, format, type, buffer);
 
     return object->id;
 }
@@ -303,7 +303,7 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     index = object->object.object_data;
     if (0 != index->gl_id) {
         mesh->index_gl_id = index->gl_id;
-        mesh->nr_indicies = index->nr_strides;
+        mesh->nr_indicies = index->memory_length / index->value_length;
     }
 
     if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id)) {
@@ -372,7 +372,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     index = object->object.object_data;
     if (0 != index->gl_id) {
         mesh->index_gl_id = index->gl_id;
-        mesh->nr_indicies = index->nr_strides;
+        mesh->nr_indicies = index->memory_length / index->value_length;
     }
 
     switch (texture_type) {

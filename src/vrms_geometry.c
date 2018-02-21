@@ -401,13 +401,12 @@ void std_cube_generate_uvs(float* uvs) {
 uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint32_t z, float r, float g, float b, float a) {
     uint32_t nr_verticies, nr_indicies, nr_vert_floats;
     size_t size_of_verts, size_of_indicies;
-
     uint32_t memory_id;
     uint8_t* address = NULL;
-
     float* verts;
     float* norms;
     unsigned short* indicies;
+    uint32_t buff_off;
 
     nr_verticies = 4 * 6;
     nr_vert_floats = 3 * nr_verticies;
@@ -430,13 +429,17 @@ uint32_t vrms_geometry_cube(vrms_client_t* client, uint32_t x, uint32_t y, uint3
         return 0;
     }
 
-    memcpy(address, verts, size_of_verts);
-    memcpy(&address[size_of_verts], norms, size_of_verts);
-    memcpy(&address[size_of_verts * 2], indicies, size_of_indicies);
+    buff_off = 0;
+    memcpy(&address[buff_off], verts, size_of_verts);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, sizeof(float));
 
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, size_of_verts, size_of_verts, nr_verticies, 3);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, size_of_verts * 2, size_of_indicies, nr_indicies, 1);
+    buff_off += size_of_verts;
+    memcpy(&address[buff_off], norms, size_of_verts);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, sizeof(float));
+
+    buff_off += size_of_verts;
+    memcpy(&address[buff_off], indicies, size_of_indicies);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, sizeof(unsigned short));
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 
@@ -608,19 +611,19 @@ uint32_t vrms_geometry_cube_textured(vrms_client_t* client, uint32_t x, uint32_t
 
     buff_off = 0;
     memcpy(&address[buff_off], verts, size_of_verts);
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, sizeof(float));
 
     buff_off += size_of_verts;
     memcpy(&address[buff_off], norms, size_of_verts);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, sizeof(float));
 
     buff_off += size_of_norms;
     memcpy(&address[buff_off], indicies, size_of_indicies);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, sizeof(unsigned short));
 
     buff_off += size_of_indicies;
     memcpy(&address[buff_off], uvs, size_of_uvs);
-    uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
+    uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, sizeof(float));
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
     uint32_t texture_id = vrms_load_texture(client, filename, VRMS_TEXTURE_2D);
@@ -674,15 +677,15 @@ uint32_t vrms_geometry_skybox(vrms_client_t* client, const char* filename) {
 
     buff_off = 0;
     memcpy(&address[buff_off], verts, size_of_verts);
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, buff_off, size_of_verts, sizeof(float));
 
     buff_off += size_of_verts;
     memcpy(&address[buff_off], norms, size_of_verts);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, sizeof(float));
 
     buff_off += size_of_norms;
     memcpy(&address[buff_off], indicies, size_of_indicies);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, sizeof(unsigned short));
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
     uint32_t texture_id = vrms_load_skybox_texture(client, filename);
@@ -805,9 +808,9 @@ uint32_t vrms_geometry_plane(vrms_client_t* client, uint32_t x, uint32_t y, floa
     memcpy(&address[size_of_verts], norms, size_of_verts);
     memcpy(&address[size_of_verts * 2], indicies, size_of_indicies);
 
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, size_of_verts, size_of_verts, nr_verticies, 3);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, size_of_verts * 2, size_of_indicies, nr_indicies, 1);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, sizeof(float));
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, size_of_verts, size_of_verts, sizeof(float));
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, size_of_verts * 2, size_of_indicies, sizeof(unsigned short));
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
 
@@ -861,19 +864,19 @@ uint32_t vrms_geometry_plane_textured(vrms_client_t* client, uint32_t x, uint32_
 
     buff_off = 0;
     memcpy(&address[buff_off], verts, size_of_verts);
-    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, nr_verticies, 3);
+    uint32_t vertex_id = vrms_client_create_data_object(client, VRMS_VERTEX, memory_id, 0, size_of_verts, sizeof(float));
 
     buff_off += size_of_verts;
     memcpy(&address[buff_off], norms, size_of_verts);
-    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, nr_verticies, 3);
+    uint32_t normal_id = vrms_client_create_data_object(client, VRMS_NORMAL, memory_id, buff_off, size_of_verts, sizeof(float));
 
     buff_off += size_of_verts;
     memcpy(&address[buff_off], indicies, size_of_indicies);
-    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, nr_indicies, 1);
+    uint32_t index_id = vrms_client_create_data_object(client, VRMS_INDEX, memory_id, buff_off, size_of_indicies, sizeof(unsigned short));
 
     buff_off += size_of_indicies;
     memcpy(&address[buff_off], uvs, size_of_uvs);
-    uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, nr_indicies, 2);
+    uint32_t uv_id = vrms_client_create_data_object(client, VRMS_UV, memory_id, buff_off, size_of_uvs, sizeof(float));
 
     uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
     uint32_t texture_id = vrms_load_texture(client, filename, VRMS_TEXTURE_2D);
@@ -904,7 +907,7 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
 
     memcpy(address, matrix_data, size_of_matricies);
 
-    uint32_t matrix_id = vrms_client_create_data_object(client, VRMS_MATRIX, memory_id, 0, size_of_matricies, nr_matricies, 16);
+    uint32_t matrix_id = vrms_client_create_data_object(client, VRMS_MATRIX, memory_id, 0, size_of_matricies, sizeof(float));
 
     return matrix_id;
 }

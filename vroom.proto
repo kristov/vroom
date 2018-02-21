@@ -30,10 +30,9 @@ message CreateDataObject {
     required int32 scene_id = 1;
     required int32 memory_id = 2;
     required Type type = 3;
-    required int32 offset = 4;
-    required int32 size = 5;
-    required int32 nr_strides = 6;
-    required int32 stride = 7;
+    required int32 memory_offset = 4;
+    required int32 memory_length = 5;
+    required int32 value_length = 6;
 }
 
 message CreateTextureObject {
@@ -46,8 +45,8 @@ message CreateTextureObject {
     }
     required int32 scene_id = 1;
     required int32 memory_id = 2;
-    required int32 offset = 3;
-    required int32 size = 4;
+    required int32 memory_offset = 3;
+    required int32 memory_length = 4;
     required int32 width = 5;
     required int32 height = 6;
     required Format format = 7;

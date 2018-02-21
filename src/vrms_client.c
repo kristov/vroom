@@ -197,7 +197,7 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
     return id;
 }
 
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t value_length) {
     uint32_t id;
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
     void* buf;
@@ -212,10 +212,9 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     msg.scene_id = client->scene_id;
     msg.memory_id = memory_id;
     msg.type = pb_type;
-    msg.offset = offset;
-    msg.size = size;
-    msg.nr_strides = nr_strides;
-    msg.stride = stride;
+    msg.memory_offset = memory_offset;
+    msg.memory_length = memory_length;
+    msg.value_length = value_length;
 
     length = create_data_object__get_packed_size(&msg);
 
@@ -228,7 +227,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     return id;
 }
 
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t offset, uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     uint32_t id;
     CreateTextureObject msg = CREATE_TEXTURE_OBJECT__INIT;
     void* buf;
@@ -248,8 +247,8 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory
 
     msg.scene_id = client->scene_id;
     msg.memory_id = memory_id;
-    msg.offset = offset;
-    msg.size = size;
+    msg.memory_offset = memory_offset;
+    msg.memory_length = memory_length;
     msg.width = width;
     msg.height = height;
     msg.format = pb_format;

@@ -25,7 +25,7 @@ vrms_object_t* vrms_object_memory_create(void* address, uint32_t size) {
     return object;
 }
 
-vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uint32_t nr_strides, uint32_t stride) {
+vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t memory_length, uint32_t value_length) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_DATA;
 
@@ -33,22 +33,21 @@ vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t size, uin
     memset(object_data, 0, sizeof(vrms_object_data_t));
 
     object_data->type = type;
-    object_data->size = size;
-    object_data->nr_strides = nr_strides;
-    object_data->stride = stride;
+    object_data->memory_length = memory_length;
+    object_data->value_length = value_length;
     object->object.object_data = object_data;
 
     return object;
 }
 
-vrms_object_t* vrms_object_texture_create(uint32_t size, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
+vrms_object_t* vrms_object_texture_create(uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_TEXTURE;
 
     vrms_object_texture_t* object_texture = SAFEMALLOC(sizeof(vrms_object_texture_t));
     memset(object_texture, 0, sizeof(vrms_object_texture_t));
 
-    object_texture->size = size;
+    object_texture->memory_length = memory_length;
     object_texture->width = width;
     object_texture->height = height;
     object_texture->format = format;
