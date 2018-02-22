@@ -354,7 +354,7 @@ uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, u
     return id;
 }
 
-uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t nr_items) {
+uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
     uint32_t ret;
     SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;
     void* buf;
@@ -362,7 +362,8 @@ uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id,
 
     msg.scene_id = client->scene_id;
     msg.memory_id = memory_id;
-    msg.nr_objects = nr_items;
+    msg.memory_offset = memory_offset;
+    msg.memory_length = memory_length;
 
     length = set_render_buffer__get_packed_size(&msg);
 

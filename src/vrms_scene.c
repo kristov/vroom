@@ -30,7 +30,7 @@ vrms_scene_t* vrms_scene_create(char* name) {
     memset(scene->objects, 0, sizeof(vrms_object_t) * 10);
     scene->next_object_id = 1;
 
-    scene->render_buffer_nr_objects = 0;
+    scene->render_buffer_size = 0;
     scene->render_buffer_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
 
@@ -292,28 +292,29 @@ uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_i
     return object->id;
 }
 
-uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t nr_objects) {
-    size_t size;
+uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
     vrms_object_memory_t* memory;
-
-    size = (sizeof(uint32_t) * 3) * nr_objects;
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
     if (NULL == memory) {
         return 0;
     }
 
-    if (size > memory->size) {
+    if (memory_length > memory->size) {
         debug_print("vrms_scene_set_render_buffer: read beyond memory size!\n");
     }
 
+    // TODO: No need to memcpy here, just use memory->address when rendering
+    // and make sure it can be locked there and check here for locks.
     pthread_mutex_lock(scene->render_buffer_lock);
     if (NULL != scene->render_buffer) {
         free(scene->render_buffer);
     }
-    scene->render_buffer = SAFEMALLOC(size);
-    scene->render_buffer_nr_objects = nr_objects;
-    memcpy(scene->render_buffer, (unsigned char*)memory->address, size);
+
+    debug_print("copying memory_length[%d] bytes to render buffer\n", memory_length);
+    scene->render_buffer = SAFEMALLOC(memory_length);
+    scene->render_buffer_size = memory_length;
+    memcpy(scene->render_buffer, &((uint8_t*)memory->address)[memory_offset], memory_length);
     pthread_mutex_unlock(scene->render_buffer_lock);
 
     return 1;

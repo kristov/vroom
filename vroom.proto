@@ -56,7 +56,8 @@ message CreateTextureObject {
 message SetRenderBuffer {
     required int32 scene_id = 1;
     required int32 memory_id = 2;
-    required int32 nr_objects = 3;
+    required int32 memory_offset = 3;
+    required int32 memory_length = 4;
 }
 
 message UpdateSystemMatrix {

@@ -863,21 +863,3 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
 
     return matrix_id;
 }
-
-uint32_t vrms_geometry_render_buffer_set(vrms_client_t* client, uint32_t nr_items, uint32_t* render_buffer) {
-    size_t size_of_buffer;
-    int32_t memory_id;
-    uint8_t* address = NULL;
-
-    size_of_buffer = (sizeof(uint32_t) * 3) * nr_items;
-    memory_id = vrms_client_create_memory(client, &address, size_of_buffer);
-    if (0 == memory_id) {
-        return 0;
-    }
-
-    memcpy(address, render_buffer, size_of_buffer);
-
-    uint32_t render_ret = vrms_client_render_buffer_set(client, memory_id, nr_items);
-
-    return render_ret;
-}

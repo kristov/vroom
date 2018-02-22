@@ -142,11 +142,12 @@ struct  _SetRenderBuffer
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t memory_id;
-  int32_t nr_objects;
+  int32_t memory_offset;
+  int32_t memory_length;
 };
 #define SET_RENDER_BUFFER__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&set_render_buffer__descriptor) \
-    , 0, 0, 0 }
+    , 0, 0, 0, 0 }
 
 
 struct  _UpdateSystemMatrix

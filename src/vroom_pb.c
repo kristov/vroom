@@ -1066,7 +1066,7 @@ const ProtobufCMessageDescriptor create_texture_object__descriptor =
   (ProtobufCMessageInit) create_texture_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[3] =
+static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
 {
   {
     "scene_id",
@@ -1093,12 +1093,24 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[3] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "nr_objects",
+    "memory_offset",
     3,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(SetRenderBuffer, nr_objects),
+    offsetof(SetRenderBuffer, memory_offset),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_length",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SetRenderBuffer, memory_length),
     NULL,
     NULL,
     0,             /* flags */
@@ -1107,13 +1119,14 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[3] =
 };
 static const unsigned set_render_buffer__field_indices_by_name[] = {
   1,   /* field[1] = memory_id */
-  2,   /* field[2] = nr_objects */
+  3,   /* field[3] = memory_length */
+  2,   /* field[2] = memory_offset */
   0,   /* field[0] = scene_id */
 };
 static const ProtobufCIntRange set_render_buffer__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 4 }
 };
 const ProtobufCMessageDescriptor set_render_buffer__descriptor =
 {
@@ -1123,7 +1136,7 @@ const ProtobufCMessageDescriptor set_render_buffer__descriptor =
   "SetRenderBuffer",
   "",
   sizeof(SetRenderBuffer),
-  3,
+  4,
   set_render_buffer__field_descriptors,
   set_render_buffer__field_indices_by_name,
   1,  set_render_buffer__number_ranges,

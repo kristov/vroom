@@ -14,7 +14,7 @@ typedef struct vrms_scene {
     vrms_queue_item_t** outbound_queue;
     uint32_t outbound_queue_index;
     pthread_mutex_t* outbound_queue_lock;
-    uint32_t render_buffer_nr_objects;
+    uint32_t render_buffer_size;
     uint32_t* render_buffer;
     pthread_mutex_t* render_buffer_lock;
     GLuint onecolor_shader_id;
@@ -30,7 +30,7 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_i
 uint32_t vrms_scene_create_object_geometry(vrms_scene_t* scene, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 uint32_t vrms_scene_create_object_mesh_color(vrms_scene_t* scene, uint32_t geometry_id, float r, float g, float b, float a);
 uint32_t vrms_scene_create_object_mesh_texture(vrms_scene_t* scene, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
-uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t nr_objects);
+uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length);
 
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id);
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id, uint32_t offset, uint32_t size, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);

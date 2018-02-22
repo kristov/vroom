@@ -330,7 +330,7 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_set_render_buffer(vrms_scene, cs_msg->memory_id, cs_msg->nr_objects);
+        id = vrms_scene_set_render_buffer(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
     }
 
     if (0 == id) {
