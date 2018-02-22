@@ -25,7 +25,7 @@ int main(void) {
         exit(1);
     }
 
-    cube_id = vrms_geometry_cube(client, 2, 2, 2, 0.5, 1.0, 0.5, 1.0);
+    cube_id = vrms_geometry_cube(client, 2, 2, 2, 0.7, 1.0, 0.6, 1.0);
     if (cube_id == 0) {
         fprintf(stderr, "Unable to create cube\n");
         vrms_destroy_scene(client);
@@ -33,8 +33,9 @@ int main(void) {
     }
 
     model_matrix = esmCreate();
-    esmRotatef(model_matrix, 2.0f, 1, 0, 0);
-    esmTranslatef(model_matrix, -1.0f, -1.0f, -1.0f);
+    //esmRotatef(model_matrix, 0.1f, 0, 1, 0);
+    esmTranslatef(model_matrix, -1.0f, -1.0f, -5.0f);
+    //esmRotatef(model_matrix, 0.5f, 1, 0, 0);
 
     matrix_id = vrms_geometry_load_matrix_data(client, 1, model_matrix);
 
@@ -45,7 +46,7 @@ int main(void) {
     render_ret = vrms_geometry_render_buffer_set(client, 1, render_buffer);
     fprintf(stderr, "render_ret: %d\n", render_ret);
 
-    sleep(10);
+    sleep(30);
 
     vrms_destroy_scene(client);
     return 0;

@@ -24,7 +24,7 @@ int main(void) {
         exit(1);
     }
 
-    skybox_id = vrms_geometry_skybox(client, "temp/miramar_large.png");
+    skybox_id = vrms_geometry_skybox(client, "temp/miramar_large_o.png");
     if (skybox_id == 0) {
         fprintf(stderr, "Unable to create skybox\n");
         vrms_destroy_scene(client);
