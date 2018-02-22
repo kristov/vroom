@@ -189,8 +189,8 @@ void opengl_stereo_create_render_texture(opengl_stereo* ostereo) {
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ostereo->width / 2, ostereo->height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
@@ -400,7 +400,7 @@ void initGL(opengl_stereo* ostereo) {
 
 void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
     ostereo->IOD = 0.5;
-    ostereo->depthZ = -10.0;
+    ostereo->depthZ = -5.0;
     ostereo->fovy = 45;
     ostereo->nearZ = 3.0;
     ostereo->farZ = 30.0;
@@ -411,10 +411,12 @@ void opengl_stereo_init_system(opengl_stereo* ostereo) {
     initGL(ostereo);
 
     ostereo->aspect = ( ostereo->width / 2 ) / ostereo->height;
-    double half_screen_width = ostereo->physical_width / 2;
-    double half_iod = ostereo->IOD / 2;
-    double correction_ratio = 2 / ostereo->physical_width;
-    ostereo->texture_shift = (half_screen_width - half_iod) * correction_ratio;
+    //double half_screen_width = ostereo->physical_width / 2;
+    //double half_iod = ostereo->IOD / 2;
+    //double correction_ratio = 2 / ostereo->physical_width;
+
+    ostereo->texture_shift = 0;
+    //ostereo->texture_shift = (half_screen_width - half_iod) * correction_ratio;
 
     //fprintf(stderr, "           Physical width (dm): %0.2f\n", ostereo->physical_width);
     //fprintf(stderr, "              Correction ratio: %0.2f\n", correction_ratio);
