@@ -18,12 +18,14 @@ vec2 Distort(vec2 p) {
 void main() {
     vec2 xy = 2.0 * v_texcoord - 1.0;
     vec2 uv;
+    vec4 color;
     float d = length(xy);
     if (d < 1.0) {
         uv = Distort(xy);
+        color = texture2D(tex0, uv);
     }
     else {
-        uv = v_texcoord;
+        color = vec4(0.0, 0.0, 0.0, 1.0);
     }
-    gl_FragColor = texture2D(tex0, uv);
+    gl_FragColor = color;
 }
