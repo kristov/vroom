@@ -20,7 +20,7 @@ void main() {
     vec2 uv;
     vec4 color;
     float d = length(xy);
-    if (d < 1.0) {
+    if (d < 1.15) {
         uv = Distort(xy);
         color = texture2D(tex0, uv);
     }
