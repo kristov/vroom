@@ -51,24 +51,23 @@ int main(void) {
     model_matrix = (float*)shared_mem;
     render_buffer = (uint32_t*)&shared_mem[matrix_size];
 
-    //esmRotatef(model_matrix, 0.1f, 0, 1, 0);
     esmLoadIdentity(model_matrix);
     esmTranslatef(model_matrix, -1.0f, -1.0f, -5.0f);
-    //esmRotatef(model_matrix, 0.5f, 1, 0, 0);
+    esmRotatef(model_matrix, 0.5f, 1, 0, 0);
 
     render_buffer[0] = memory_id;
     render_buffer[1] = 0;
     render_buffer[2] = cube_id;
 
-    render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, sizeof(uint32_t) * 3);
+    render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
     fprintf(stderr, "render_ret: %d\n", render_ret);
 
     nr_loops = 0;
     while (nr_loops < 30) {
         sleep(1);
         nr_loops++;
-        esmRotatef(model_matrix, 0.5f, 1, 0, 0);
-        render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, sizeof(uint32_t) * 3);
+        esmTranslatef(model_matrix, 0.0f, 0.0f, -0.1f);
+        render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
         fprintf(stderr, "render_ret: %d\n", render_ret);
     }
 

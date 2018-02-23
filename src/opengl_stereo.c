@@ -400,10 +400,10 @@ void initGL(opengl_stereo* ostereo) {
 
 void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
     ostereo->IOD = 0.5;
-    ostereo->depthZ = -5.0;
+    ostereo->depthZ = 0.0;
     ostereo->fovy = 45;
     ostereo->nearZ = 3.0;
-    ostereo->farZ = 30.0;
+    ostereo->farZ = 300.0;
     ostereo->screenZ = 10;
 }
 

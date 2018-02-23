@@ -398,6 +398,8 @@ void vrms_server_draw_skybox(vrms_scene_t* scene, vrms_object_skybox_t* skybox, 
     glUseProgram(shader_id);
 printOpenGLError();
 
+    glDisable(GL_DEPTH_TEST);
+printOpenGLError();
     mvp_matrix = esmCreateCopy(projection_matrix);
 //    esmMultiply(mvp_matrix, view_matrix);
 
@@ -408,10 +410,10 @@ printOpenGLError();
 printOpenGLError();
 
     s_tex = glGetUniformLocation(shader_id, "s_tex");
-    glActiveTexture(GL_TEXTURE0);
+    glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->texture_gl_id);
-//printOpenGLError();
+printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
@@ -424,6 +426,7 @@ printOpenGLError();
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void vrms_server_draw_scene_object_mesh(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, vrms_object_t* mesh_object, float* projection_matrix, float* view_matrix, float* model_matrix) {
