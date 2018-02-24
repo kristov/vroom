@@ -64,7 +64,7 @@ int main(void) {
     while (nr_loops < 30) {
         sleep(1);
         nr_loops++;
-        esmTranslatef(model_matrix, 0, 0, -1);
+        esmRotatef(model_matrix, 0.2, 1, 0, 0);
         render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
         fprintf(stderr, "render_ret: %d\n", render_ret);
     }

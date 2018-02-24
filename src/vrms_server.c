@@ -419,13 +419,15 @@ printOpenGLError();
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
 printOpenGLError();
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skybox->index_gl_id);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, NULL);
 printOpenGLError();
 
     esmDestroy(mvp_matrix);
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glEnable(GL_DEPTH_TEST);
 }
 

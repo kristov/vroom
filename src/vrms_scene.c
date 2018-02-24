@@ -71,13 +71,85 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     return object->object.object_memory;
 }
 
+void vrms_scene_destroy_object_memory(vrms_object_memory_t* memory) {
+    if (NULL != memory->address) {
+        munmap(memory->address, memory->size);
+    }
+    vrms_object_memory_destroy(memory);
+}
+
+void vrms_scene_destroy_object_data(vrms_object_data_t* data) {
+    if (NULL != data->local_storage) {
+        free(data->local_storage);
+    }
+    if (data->gl_id > 0) {
+        glDeleteBuffers(1, &data->gl_id);
+    }
+    vrms_object_data_destroy(data);
+}
+
+void vrms_scene_destroy_object_texture(vrms_object_texture_t* texture) {
+    if (texture->gl_id > 0) {
+        glDeleteBuffers(1, &texture->gl_id);
+    }
+    vrms_object_texture_destroy(texture);
+}
+
+void vrms_scene_destroy_object_skybox(vrms_object_skybox_t* skybox) {
+    if (NULL != skybox->vertex_data) {
+        free(skybox->vertex_data);
+    }
+    if (NULL != skybox->index_data) {
+        free(skybox->index_data);
+    }
+    if (skybox->vertex_gl_id > 0) {
+        glDeleteBuffers(1, &skybox->vertex_gl_id);
+    }
+    if (skybox->index_gl_id > 0) {
+        glDeleteBuffers(1, &skybox->index_gl_id);
+    }
+    vrms_object_skybox_destroy(skybox);
+}
+
+void vrms_scene_destroy_object(vrms_object_t* object) {
+    switch (object->type) {
+        case VRMS_OBJECT_MEMORY:
+            vrms_scene_destroy_object_memory(object->object.object_memory);
+            break;
+        case VRMS_OBJECT_DATA:
+            vrms_scene_destroy_object_data(object->object.object_data);
+            break;
+        case VRMS_OBJECT_TEXTURE:
+            vrms_scene_destroy_object_texture(object->object.object_texture);
+            break;
+        case VRMS_OBJECT_SKYBOX:
+            vrms_scene_destroy_object_skybox(object->object.object_skybox);
+            break;
+        case VRMS_OBJECT_GEOMETRY:
+            vrms_object_geometry_destroy(object->object.object_geometry);
+            break;
+        case VRMS_OBJECT_MESH_COLOR:
+            vrms_object_mesh_color_destroy(object->object.object_mesh_color);
+            break;
+        case VRMS_OBJECT_MESH_TEXTURE:
+            vrms_object_mesh_texture_destroy(object->object.object_mesh_texture);
+            break;
+        case VRMS_OBJECT_SCENE:
+            // Not done here
+            break;
+        case VRMS_OBJECT_INVALID:
+            // N/A
+            break;
+    }
+}
+
 void vrms_scene_destroy_objects(vrms_scene_t* scene) {
     uint32_t idx;
     vrms_object_t* object;
 
     for (idx = 1; idx < scene->next_object_id; idx++) {
         object = vrms_scene_get_object_by_id(scene, idx);
-        vrms_object_destroy(object);
+        vrms_scene_destroy_object(object);
     }
 
     free(scene->objects);
@@ -138,7 +210,7 @@ uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t siz
         return 0;
     }
 
-    vrms_object_t* object = vrms_object_memory_create(address, size);
+    vrms_object_t* object = vrms_object_memory_create(fd, address, size);
     vrms_scene_add_object(scene, object);
 
     return object->id;
@@ -236,58 +308,43 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id
 }
 
 uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_id, uint32_t size) {
-    float points[] = {
-        -30.0f,  30.0f, -30.0f,
-        -30.0f, -30.0f, -30.0f,
-         30.0f, -30.0f, -30.0f,
-         30.0f, -30.0f, -30.0f,
-         30.0f,  30.0f, -30.0f,
-        -30.0f,  30.0f, -30.0f,
+    vrms_object_skybox_t* skybox;
 
-        -30.0f, -30.0f,  30.0f,
-        -30.0f, -30.0f, -30.0f,
-        -30.0f,  30.0f, -30.0f,
-        -30.0f,  30.0f, -30.0f,
-        -30.0f,  30.0f,  30.0f,
-        -30.0f, -30.0f,  30.0f,
-
-         30.0f, -30.0f, -30.0f,
+    float vertex_data[] = {
          30.0f, -30.0f,  30.0f,
-         30.0f,  30.0f,  30.0f,
-         30.0f,  30.0f,  30.0f,
-         30.0f,  30.0f, -30.0f,
          30.0f, -30.0f, -30.0f,
-
-        -30.0f, -30.0f,  30.0f,
-        -30.0f,  30.0f,  30.0f,
          30.0f,  30.0f,  30.0f,
-         30.0f,  30.0f,  30.0f,
-         30.0f, -30.0f,  30.0f,
-        -30.0f, -30.0f,  30.0f,
-
-        -30.0f,  30.0f, -30.0f,
          30.0f,  30.0f, -30.0f,
-         30.0f,  30.0f,  30.0f,
-         30.0f,  30.0f,  30.0f,
-        -30.0f,  30.0f,  30.0f,
-        -30.0f,  30.0f, -30.0f,
-
         -30.0f, -30.0f, -30.0f,
         -30.0f, -30.0f,  30.0f,
-         30.0f, -30.0f, -30.0f,
-         30.0f, -30.0f, -30.0f,
-        -30.0f, -30.0f,  30.0f,
-         30.0f, -30.0f,  30.0f
+        -30.0f,  30.0f, -30.0f,
+        -30.0f,  30.0f,  30.0f
+    };
+
+    uint16_t index_data[] = {
+        1, 2, 3, 3, 2, 4,
+        5, 6, 7, 7, 6, 8,
+        8, 3, 7, 7, 3, 4,
+        5, 2, 6, 6, 2, 1,
+        6, 1, 8, 8, 1, 3,
+        2, 5, 4, 4, 5, 7
     };
 
     vrms_object_t* object = vrms_object_skybox_create(texture_id, size);
     vrms_scene_add_object(scene, object);
+    skybox = object->object.object_skybox;
 
-    uint32_t memory_length = 36 * 3 * sizeof(float);
-    object->object.object_skybox->tmp_data = SAFEMALLOC(memory_length);
-    memcpy(object->object.object_skybox->tmp_data, (unsigned char*)points, memory_length);
+    uint16_t vertex_length = 8 * 3 * sizeof(float);
+    skybox->vertex_data = SAFEMALLOC(vertex_length);
+    memcpy(skybox->vertex_data, (uint8_t*)vertex_data, vertex_length);
 
-    vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_skybox->vertex_gl_id, VRMS_VERTEX, object->object.object_skybox->tmp_data);
+    vrms_server_queue_add_data_load(scene->server, vertex_length, &skybox->vertex_gl_id, VRMS_VERTEX, skybox->vertex_data);
+
+    uint16_t index_length = 36 * sizeof(float);
+    skybox->index_data = SAFEMALLOC(index_length);
+    memcpy(skybox->index_data, (uint8_t*)index_data, index_length);
+
+    vrms_server_queue_add_data_load(scene->server, index_length, &skybox->index_gl_id, VRMS_INDEX, skybox->index_data);
 
     return object->id;
 }
@@ -494,6 +551,10 @@ vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t 
     }
     skybox = object->object.object_skybox;
 
+    if ((0 != skybox->vertex_gl_id) && (0 != skybox->texture_gl_id)) {
+        return skybox;
+    }
+
     object = vrms_scene_get_object_by_id(scene, skybox->texture_id);
     if (NULL == object) {
         return 0;
@@ -513,3 +574,4 @@ vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t 
 
     return skybox;
 }
+

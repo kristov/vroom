@@ -12,7 +12,7 @@ vrms_object_t* vrms_object_create() {
     return object;
 }
 
-vrms_object_t* vrms_object_memory_create(void* address, uint32_t size) {
+vrms_object_t* vrms_object_memory_create(uint32_t fd, void* address, uint32_t size) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MEMORY;
     object->realized = 1;
@@ -20,6 +20,7 @@ vrms_object_t* vrms_object_memory_create(void* address, uint32_t size) {
     vrms_object_memory_t* object_memory = SAFEMALLOC(sizeof(vrms_object_memory_t));
     memset(object_memory, 0, sizeof(vrms_object_memory_t));
 
+    object_memory->fd = fd;
     object_memory->address = address;
     object_memory->size = size;
     object->object.object_memory = object_memory;
@@ -123,13 +124,11 @@ vrms_object_t* vrms_object_skybox_create(uint32_t texture_id, uint32_t size) {
     return object;
 }
 
+void vrms_object_memory_destroy(vrms_object_memory_t* memory) {
+    free(memory);
+}
+
 void vrms_object_data_destroy(vrms_object_data_t* data) {
-    if (NULL != data->local_storage) {
-        free(data->local_storage);
-    }
-    if (0 < data->gl_id) {
-        glDeleteBuffers(1, &data->gl_id);
-    }
     free(data);
 }
 
@@ -145,6 +144,10 @@ void vrms_object_mesh_texture_destroy(vrms_object_mesh_texture_t* mesh_texture) 
     free(mesh_texture);
 }
 
+void vrms_object_texture_destroy(vrms_object_texture_t* texture) {
+    free(texture);
+}
+
 void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
     free(matrix->data);
     free(matrix);
@@ -152,23 +155,4 @@ void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
 
 void vrms_object_skybox_destroy(vrms_object_skybox_t* skybox) {
     free(skybox);
-}
-
-void vrms_object_destroy(vrms_object_t* object) {
-    // Needs work
-    if (VRMS_OBJECT_DATA == object->type) {
-        vrms_object_data_destroy(object->object.object_data);
-    }
-    else if (VRMS_OBJECT_GEOMETRY == object->type) {
-        vrms_object_geometry_destroy(object->object.object_geometry);
-    }
-    else if (VRMS_OBJECT_MESH_COLOR == object->type) {
-        vrms_object_mesh_color_destroy(object->object.object_mesh_color);
-    }
-    else if (VRMS_OBJECT_MESH_TEXTURE == object->type) {
-        vrms_object_mesh_texture_destroy(object->object.object_mesh_texture);
-    }
-    else if (VRMS_OBJECT_SKYBOX == object->type) {
-        vrms_object_skybox_destroy(object->object.object_skybox);
-    }
 }
