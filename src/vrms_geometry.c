@@ -3,6 +3,7 @@
 #include "safe_malloc.h"
 #include "vrms_client.h"
 #include "vrms_geometry.h"
+#include "esm.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -862,4 +863,40 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
     uint32_t matrix_id = vrms_client_create_data_object(client, VRMS_MATRIX, memory_id, 0, size_of_matricies, sizeof(float));
 
     return matrix_id;
+}
+
+uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object_id, float x, float y, float z) {
+    uint32_t memory_id;
+    uint32_t render_ret;
+    uint32_t matrix_size;
+    uint32_t render_size;
+    uint8_t* shared_mem;
+    float* model_matrix;
+    uint32_t* render_buffer;
+
+    matrix_size = sizeof(float) * 16;
+    render_size = sizeof(uint32_t) * 3;
+    memory_id = vrms_client_create_memory(client, &shared_mem, matrix_size + render_size);
+
+    if (NULL == shared_mem) {
+        fprintf(stderr, "Unable to initialize shared memory\n");
+        return 0;
+    }
+
+    model_matrix = (float*)shared_mem;
+    render_buffer = (uint32_t*)&shared_mem[matrix_size];
+
+    esmLoadIdentity(model_matrix);
+    esmTranslatef(model_matrix, x, y, z);
+
+    render_buffer[0] = memory_id;
+    render_buffer[1] = 0;
+    render_buffer[2] = object_id;
+
+    render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
+
+    if (render_ret) {
+        return 1;
+    }
+    return 0;
 }
