@@ -726,7 +726,6 @@ void draw_scene(opengl_stereo* ostereo) {
 }
 
 void vrms_server_socket_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
-    fprintf(stderr, ".");
     memcpy(ostereo->hmd_matrix, matrix, sizeof(float) * 16);
 }
 

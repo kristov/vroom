@@ -480,6 +480,48 @@ uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
     uint8_t* data = NULL;
     uint8_t* address = NULL;
     uint32_t total_byte_size;
+    uint32_t dest_off;
+
+    width = 0;
+    height = 0;
+    bytes_pp = 0;
+    data = stbi_load(filename, &width, &height, &bytes_pp, 3);
+    if (NULL == data) {
+        return 0;
+    }
+
+    total_byte_size = width * height * bytes_pp;
+
+    memory_id = vrms_client_create_memory(client, &address, total_byte_size * 6);
+    if (0 == memory_id) {
+        stbi_image_free(data);
+        return 0;
+    }
+
+    dest_off = 0;
+    memcpy(&address[dest_off], data, total_byte_size);
+    dest_off += total_byte_size;
+    memcpy(&address[dest_off], data, total_byte_size);
+    dest_off += total_byte_size;
+    memcpy(&address[dest_off], data, total_byte_size);
+    dest_off += total_byte_size;
+    memcpy(&address[dest_off], data, total_byte_size);
+    dest_off += total_byte_size;
+    memcpy(&address[dest_off], data, total_byte_size);
+    dest_off += total_byte_size;
+    memcpy(&address[dest_off], data, total_byte_size);
+
+    uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, 0, total_byte_size, width, height, VRMS_RGB8, VRMS_TEXTURE_CUBE_MAP);
+
+    return texture_id;
+}
+
+uint32_t vrms_load_skybox_texture_old(vrms_client_t* client, const char* filename) {
+    int32_t memory_id;
+    int32_t width, height, bytes_pp;
+    uint8_t* data = NULL;
+    uint8_t* address = NULL;
+    uint32_t total_byte_size;
     uint32_t square_px;
     uint32_t bytes_sq;
     uint32_t bytes_pl;

@@ -401,7 +401,7 @@ printOpenGLError();
     glDisable(GL_DEPTH_TEST);
 printOpenGLError();
     mvp_matrix = esmCreateCopy(projection_matrix);
-//    esmMultiply(mvp_matrix, view_matrix);
+    esmMultiply(mvp_matrix, view_matrix);
 
     glBindBuffer(GL_ARRAY_BUFFER, skybox->vertex_gl_id);
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
