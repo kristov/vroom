@@ -60,6 +60,9 @@ test/test_hid_device: lib/hid_device.o lib/test_harness.o src/test_hid_device.c
 
 test/test_hid_monitor: lib/hid_monitor.o src/test_hid_monitor.c
 	$(CC) $(CFLAGS) -ludev $(INCDIRS) -o $@ lib/hid_monitor.o src/test_hid_monitor.c
+
+test/test_render_vm: lib/vrms_render_vm.o lib/test_harness.o src/test_render_vm.c
+	$(CC) $(CFLAGS) $(INCDIRS) -o $@ lib/vrms_render_vm.o lib/test_harness.o src/test_render_vm.c
 #### END TESTS ####
 
 lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h

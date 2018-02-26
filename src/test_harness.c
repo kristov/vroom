@@ -54,7 +54,7 @@ void is_equal_string(test_harness_t* test, char* provided, const char* desired, 
         test->failures++;
         if (test->verbose) {
             fprintf(stderr, "FAIL: %s\n", test_name);
-            fprintf(stderr, "    provided: '%s', desired: '%s'\n", provided, desired);
+            fprintf(stderr, "    provided: '%s', expected: '%s'\n", provided, desired);
         }
     }
     else {
