@@ -208,23 +208,45 @@ void opengl_stereo_create_render_texture(opengl_stereo* ostereo) {
     return;
 }
 
+void opengl_stereo_camera_frustrum_R(opengl_stereo_camera* right_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
+    right_camera->model_translation = -IODh;
+    esmFrustumf(
+        right_camera->projection_matrix,
+        -right - frustumshift,
+        right - frustumshift,
+        -top,
+        top,
+        nearZ,
+        farZ
+    );
+}
+
+void opengl_stereo_camera_frustrum_L(opengl_stereo_camera* left_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
+    left_camera->model_translation = IODh;
+    esmFrustumf(
+        left_camera->projection_matrix,
+        -right + frustumshift,
+        right + frustumshift,
+        -top,
+        top,
+        nearZ,
+        farZ
+    );
+}
+
 void opengl_stereo_set_frustum(opengl_stereo* ostereo) {
-    double top = ostereo->nearZ * tan(DTR * ostereo->fovy / 2);
+    double IODh;
+    double top;
+    double right;
+    double frustumshift;
 
-    double right = ostereo->aspect * top;
-    double frustumshift = (ostereo->IOD / 2) * ostereo->nearZ / ostereo->screenZ;
+    IODh = ostereo->IOD / 2;
+    top = ostereo->nearZ * tan(DTR * ostereo->fovy / 2);
+    right = ostereo->aspect * top;
+    frustumshift = IODh * ostereo->nearZ / ostereo->screenZ;
 
-    ostereo->left_camera->top_frustum = top;
-    ostereo->left_camera->bottom_frustum = -top;
-    ostereo->left_camera->left_frustum = -right + frustumshift;
-    ostereo->left_camera->right_frustum = right + frustumshift;
-    ostereo->left_camera->model_translation = ostereo->IOD / 2;
-
-    ostereo->right_camera->top_frustum = top;
-    ostereo->right_camera->bottom_frustum = -top;
-    ostereo->right_camera->left_frustum = -right - frustumshift;
-    ostereo->right_camera->right_frustum = right - frustumshift;
-    ostereo->right_camera->model_translation = -ostereo->IOD / 2;
+    opengl_stereo_camera_frustrum_L(ostereo->left_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
+    opengl_stereo_camera_frustrum_R(ostereo->right_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
 }
 
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h) {
@@ -250,9 +272,7 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     esmLoadIdentity(ostereo->view_matrix);
     esmLoadIdentity(ostereo->model_matrix);
 
-    esmFrustumf(ostereo->projection_matrix, ostereo->left_camera->left_frustum, ostereo->left_camera->right_frustum,
-                ostereo->left_camera->bottom_frustum, ostereo->left_camera->top_frustum,
-                ostereo->nearZ, ostereo->farZ);
+    ostereo->projection_matrix = ostereo->left_camera->projection_matrix;
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
@@ -296,9 +316,7 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     esmLoadIdentity(ostereo->view_matrix);
     esmLoadIdentity(ostereo->model_matrix);
 
-    esmFrustumf(ostereo->projection_matrix, ostereo->right_camera->left_frustum, ostereo->right_camera->right_frustum,
-                ostereo->right_camera->bottom_frustum, ostereo->right_camera->top_frustum,
-                ostereo->nearZ, ostereo->farZ);
+    ostereo->projection_matrix = ostereo->right_camera->projection_matrix;
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
 
@@ -340,9 +358,6 @@ void opengl_stereo_render_mono_scene(opengl_stereo* ostereo) {
     esmLoadIdentity(ostereo->view_matrix);
     esmLoadIdentity(ostereo->model_matrix);
 
-    esmFrustumf(ostereo->projection_matrix, ostereo->left_camera->left_frustum, ostereo->left_camera->right_frustum,
-                ostereo->left_camera->bottom_frustum, ostereo->left_camera->top_frustum,
-                ostereo->nearZ, ostereo->farZ);
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
@@ -395,6 +410,7 @@ void initGL(opengl_stereo* ostereo) {
     glMatrixMode(GL_PROJECTION);
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_CUBE_MAP);
     glLoadIdentity();
 }
 
@@ -404,7 +420,7 @@ void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
     ostereo->fovy = 45;
     ostereo->nearZ = 0.1;
     ostereo->farZ = 300.0;
-    ostereo->screenZ = 10;
+    ostereo->screenZ = 100.0;
 }
 
 void opengl_stereo_init_system(opengl_stereo* ostereo) {
@@ -436,10 +452,7 @@ void opengl_stereo_init(opengl_stereo* ostereo) {
 
 opengl_stereo_camera* opengl_stereo_camera_new() {
     opengl_stereo_camera* camera = SAFEMALLOC(sizeof(opengl_stereo_camera));
-    camera->left_frustum = 0;
-    camera->right_frustum = 0;
-    camera->bottom_frustum = 0;
-    camera->top_frustum = 0;
+    camera->projection_matrix = esmCreate();
     camera->model_translation = 0.0f;
     return camera;
 }
@@ -479,7 +492,6 @@ opengl_stereo* opengl_stereo_create(int width, int height, double physical_width
     ostereo->model_matrix = esmCreate();
     ostereo->view_matrix = esmCreate();
     ostereo->hmd_matrix = esmCreate();
-    ostereo->projection_matrix = esmCreate();
     opengl_stereo_init(ostereo);
     return ostereo;
 }

@@ -1,8 +1,5 @@
 typedef struct opengl_stereo_camera {
-    GLfloat left_frustum;
-    GLfloat right_frustum;
-    GLfloat bottom_frustum;
-    GLfloat top_frustum;
+    float* projection_matrix;
     GLfloat model_translation;
 } opengl_stereo_camera;
 
