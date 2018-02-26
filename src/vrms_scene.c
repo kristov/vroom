@@ -499,55 +499,12 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     return 0;
 }
 
-vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id) {
+uint8_t vrms_scene_skybox_realize(vrms_scene_t* scene, vrms_object_skybox_t* skybox) {
     vrms_object_t* object;
-
-    if (0 == mesh_id) {
-        debug_print("vrms_scene_get_mesh_by_id: no mesh id passed\n");
-        return NULL;
-    }
-
-    object = vrms_scene_get_object_by_id(scene, mesh_id);
-    if (NULL == object) {
-        return NULL;
-    }
-
-    switch (object->type) {
-        case VRMS_OBJECT_MESH_COLOR:
-            object->realized = vrms_scene_mesh_color_realize(scene, object->object.object_mesh_color);
-            break;
-        case VRMS_OBJECT_MESH_TEXTURE:
-            object->realized = vrms_scene_mesh_texture_realize(scene, object->object.object_mesh_texture);
-            break;
-        default:
-            break;
-    }
-
-    if (!object->realized) {
-        return NULL;
-    }
-
-    return object;
-}
-
-vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t skybox_id) {
-    vrms_object_t* object;
-    vrms_object_skybox_t* skybox;
     vrms_object_texture_t* texture;
 
-    if (0 == skybox_id) {
-        debug_print("vrms_scene_get_skybox_by_id: no skybox id passed\n");
-        return NULL;
-    }
-
-    object = vrms_scene_get_object_by_id(scene, skybox_id);
-    if (NULL == object) {
-        return NULL;
-    }
-    skybox = object->object.object_skybox;
-
     if ((0 != skybox->vertex_gl_id) && (0 != skybox->texture_gl_id)) {
-        return skybox;
+        return 1;
     }
 
     object = vrms_scene_get_object_by_id(scene, skybox->texture_id);
@@ -560,19 +517,18 @@ vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t 
     }
 
     if ((0 != skybox->vertex_gl_id) && (0 != skybox->texture_gl_id)) {
-        object->realized = 1;
+        return 1;
     }
 
-    if (!object->realized) {
-        return NULL;
-    }
-
-    return skybox;
+    return 1;
 }
 
 void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
     vrms_object_t* object;
+    vrms_object_mesh_color_t* mesh_color;
+    vrms_object_mesh_texture_t* mesh_texture;
     vrms_object_skybox_t* skybox;
+    uint8_t realized;
 
     if (object_id >= scene->next_object_id) {
         debug_print("object: %d is out of bounds\n", object_id);
@@ -586,22 +542,25 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, floa
 
     switch (object->type) {
         case VRMS_OBJECT_MESH_COLOR:
-            object = vrms_scene_get_mesh_by_id(scene, object_id);
-            if (NULL == object) {
+            mesh_color = object->object.object_mesh_color;
+            realized = vrms_scene_mesh_color_realize(scene, mesh_color);
+            if (!realized) {
                 return;
             }
-            vrms_server_draw_mesh_color(scene->server, object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_mesh_color(scene->server, mesh_color, projection_matrix, view_matrix, model_matrix);
             break;
         case VRMS_OBJECT_MESH_TEXTURE:
-            object = vrms_scene_get_mesh_by_id(scene, object_id);
-            if (NULL == object) {
+            mesh_texture = object->object.object_mesh_texture;
+            realized = vrms_scene_mesh_texture_realize(scene, mesh_texture);
+            if (!realized) {
                 return;
             }
-            vrms_server_draw_mesh_texture(scene->server, object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_mesh_texture(scene->server, mesh_texture, projection_matrix, view_matrix, model_matrix);
             break;
         case VRMS_OBJECT_SKYBOX:
-            skybox = vrms_scene_get_skybox_by_id(scene, object_id);
-            if (NULL == skybox) {
+            skybox = object->object.object_skybox;
+            realized = vrms_scene_skybox_realize(scene, skybox);
+            if (!realized) {
                 return;
             }
             vrms_server_draw_skybox(scene->server, skybox, projection_matrix, view_matrix, model_matrix);
@@ -626,7 +585,7 @@ void vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_
             fprintf(stderr, "\nRAN %d cycles (last instruction: %d)\n", cycles, vrms_render_vm_last_opcode(scene->vm));
         }
         pthread_mutex_unlock(scene->render_buffer_lock);
-        //vrms_render_vm_resume(scene->vm);
+        vrms_render_vm_resume(scene->vm);
     }
     else {
         debug_print("lock on render bufer\n");
@@ -672,10 +631,6 @@ void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* matrix, uint32_t object_id,
 
     projection_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG0);
     view_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG1);
-
-    esmDump(matrix, "model matrix");
-    esmDump(projection_matrix, "projection matrix");
-    esmDump(view_matrix, "view matrix");
 
     vrms_server_draw_scene_object(scene, object_id, matrix, projection_matrix, view_matrix);
 }
