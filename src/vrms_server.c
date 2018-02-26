@@ -25,6 +25,7 @@
 
 #include "safe_malloc.h"
 #include "vrms_object.h"
+#include "vrms_render_vm.h"
 #include "vrms_scene.h"
 #include "vrms_server.h"
 #include "esm.h"
@@ -163,10 +164,6 @@ uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
     // somewhere. Scene shaders should be created in vrms_server.c except the
     // screen plane shader in opengl_stereo which should be put in some standard
     // place.
-    scene->onecolor_shader_id = server->onecolor_shader_id;
-    scene->texture_shader_id = server->texture_shader_id;
-    scene->cubemap_shader_id = server->cubemap_shader_id;
-
     scene->server = server;
 
     server->scenes[server->next_scene_id] = scene;
@@ -290,11 +287,17 @@ void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_t
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    GLuint b_vertex, b_normal, u_color, m_mvp, m_mv;
+void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
+    GLuint b_vertex;
+    GLuint b_normal;
+    GLuint u_color;
+    GLuint m_mvp;
+    GLuint m_mv;
+    GLuint shader_id;
     float* mvp_matrix;
     float* mv_matrix;
 
+    shader_id = server->color_shader_id;
     glUseProgram(shader_id);
 
     mv_matrix = esmCreateCopy(view_matrix);
@@ -334,12 +337,18 @@ void vrms_server_draw_mesh_color(vrms_scene_t* scene, GLuint shader_id, vrms_obj
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-
-    GLuint b_vertex, b_normal, b_uv, s_tex, m_mvp, m_mv;
+void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
+    GLuint b_vertex;
+    GLuint b_normal;
+    GLuint b_uv;
+    GLuint s_tex;
+    GLuint m_mvp;
+    GLuint m_mv;
+    GLuint shader_id;
     float* mvp_matrix;
     float* mv_matrix;
 
+    shader_id = server->texture_shader_id;
     glUseProgram(shader_id);
 
     mv_matrix = esmCreateCopy(view_matrix);
@@ -386,14 +395,14 @@ void vrms_server_draw_mesh_texture(vrms_scene_t* scene, GLuint shader_id, vrms_o
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void vrms_server_draw_skybox(vrms_scene_t* scene, vrms_object_skybox_t* skybox, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float* projection_matrix, float* view_matrix, float* model_matrix) {
     GLuint b_vertex;
     GLuint s_tex;
     GLuint m_mvp;
     GLuint shader_id;
     float* mvp_matrix;
 
-    shader_id = scene->cubemap_shader_id;
+    shader_id = server->cubemap_shader_id;
     glUseProgram(shader_id);
 
     glDisable(GL_DEPTH_TEST);
@@ -428,104 +437,6 @@ printOpenGLError();
     glEnable(GL_DEPTH_TEST);
 }
 
-void vrms_server_draw_scene_object_mesh(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, vrms_object_t* mesh_object, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    vrms_object_t* memory_object;
-    vrms_object_memory_t* memory;
-    float* matrix_buffer;
-    uint32_t offset;
-
-    if (memory_id >= scene->next_object_id) {
-        debug_print("memory object: %d is out of bounds\n", memory_id);
-        return;
-    }
-
-    memory_object = vrms_scene_get_object_by_id(scene, memory_id);
-    memory = memory_object->object.object_memory;
-
-    if (NULL != memory->address) {
-        offset = matrix_idx;
-        matrix_buffer = &((float*)memory->address)[offset];
-        esmMultiply(model_matrix, matrix_buffer);
-    }
-
-    switch (mesh_object->type) {
-        case VRMS_OBJECT_MESH_COLOR:
-            vrms_server_draw_mesh_color(scene, scene->onecolor_shader_id, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
-            break;
-        case VRMS_OBJECT_MESH_TEXTURE:
-           vrms_server_draw_mesh_texture(scene, scene->texture_shader_id, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
-            break;
-        default:
-            break;
-    }
-}
-
-void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
-    vrms_object_t* object;
-    vrms_object_skybox_t* skybox;
-
-    // TODO: clean up this function and the one above it (combine)
-    if (object_id >= scene->next_object_id) {
-        debug_print("object: %d is out of bounds\n", object_id);
-        return;
-    }
-
-    object = vrms_scene_get_object_by_id(scene, object_id);
-    if (NULL == object) {
-        return;
-    }
-
-    switch (object->type) {
-        case VRMS_OBJECT_MESH_COLOR:
-            object = vrms_scene_get_mesh_by_id(scene, object_id);
-            if (NULL == object) {
-                return;
-            }
-            vrms_server_draw_scene_object_mesh(scene, memory_id, matrix_idx, object, projection_matrix, view_matrix, model_matrix);
-            break;
-        case VRMS_OBJECT_MESH_TEXTURE:
-            object = vrms_scene_get_mesh_by_id(scene, object_id);
-            if (NULL == object) {
-                return;
-            }
-            vrms_server_draw_scene_object_mesh(scene, memory_id, matrix_idx, object, projection_matrix, view_matrix, model_matrix);
-            break;
-        case VRMS_OBJECT_SKYBOX:
-            skybox = vrms_scene_get_skybox_by_id(scene, object_id);
-            if (NULL == skybox) {
-                return;
-            }
-            vrms_server_draw_skybox(scene, skybox, skybox_projection_matrix, view_matrix, model_matrix);
-            break;
-        default:
-            break;
-    }
-}
-
-void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
-    uint32_t memory_id;
-    uint32_t matrix_idx;
-    uint32_t object_id;
-    uint32_t i = 0;
-    uint32_t nr_items = scene->render_buffer_size / sizeof(uint32_t);
-
-    if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
-        while (i < nr_items) {
-            memory_id = scene->render_buffer[i];
-            i++;
-            matrix_idx = scene->render_buffer[i];
-            i++;
-            object_id = scene->render_buffer[i];
-            i++;
-            vrms_server_draw_scene_object(scene, memory_id, matrix_idx, object_id, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
-        };
-        pthread_mutex_unlock(scene->render_buffer_lock);
-    }
-    else {
-        debug_print("lock on render bufer\n");
-    }
-}
-
 void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     int si;//, oi;
     vrms_scene_t* scene;
@@ -534,7 +445,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
         esmLoadIdentity(model_matrix);
         scene = server->scenes[si];
         if (NULL != scene) {
-            vrms_server_draw_scene_buffer(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
+            vrms_scene_draw(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
         }
         if (si >= 2000) break;
     }

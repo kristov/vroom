@@ -20,6 +20,8 @@
 #include "array_heap.h"
 #include "vroom_pb.h"
 #include "safe_malloc.h"
+#include "vrms_render_vm.h"
+#include "vrms_object.h"
 #include "vrms_server.h"
 #include "vrms_scene.h"
 #include "esm.h"
@@ -736,7 +738,7 @@ void vrms_server_socket_init(int width, int height, double physical_width) {
     ostereo->draw_scene_function = &draw_scene;
 
     vrms_server = vrms_server_create();
-    vrms_server->onecolor_shader_id = ostereo->onecolor_shader_id;
+    vrms_server->color_shader_id = ostereo->onecolor_shader_id;
     vrms_server->texture_shader_id = ostereo->texture_shader_id;
     vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_server_socket_system_matrix_update;

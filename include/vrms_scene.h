@@ -16,10 +16,8 @@ typedef struct vrms_scene {
     pthread_mutex_t* outbound_queue_lock;
     uint32_t render_buffer_size;
     uint32_t* render_buffer;
+    vrms_render_vm_t* vm;
     pthread_mutex_t* render_buffer_lock;
-    GLuint onecolor_shader_id;
-    GLuint texture_shader_id;
-    GLuint cubemap_shader_id;
 } vrms_scene_t;
 
 vrms_scene_t* vrms_scene_create(char* name);
@@ -37,3 +35,4 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id
 uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_id, uint32_t size);
 vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id);
 vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t skybox_id);
+void vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix);
