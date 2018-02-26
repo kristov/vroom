@@ -7,7 +7,7 @@
 #include <time.h>
 
 #define NANO_SECOND_MULTIPLIER 1000000
-const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
+const long INTERVAL_MS = 100 * NANO_SECOND_MULTIPLIER;
 
 int main(void) {
     uint32_t scene_id;
@@ -19,9 +19,6 @@ int main(void) {
     uint8_t* shared_mem;
     float* model_matrix;
     uint32_t* render_buffer;
-    uint8_t nr_loops;
-    float rotation;
-    struct timespec ts;
 
     client = vrms_connect();
     if (NULL == client) {
@@ -36,7 +33,7 @@ int main(void) {
         exit(1);
     }
 
-    skybox_id = vrms_geometry_skybox(client, "temp/wolf3d.png");
+    skybox_id = vrms_geometry_skybox(client, "temp/miramar_large_o.png");
     if (skybox_id == 0) {
         fprintf(stderr, "Unable to create skybox\n");
         vrms_destroy_scene(client);
@@ -63,19 +60,7 @@ int main(void) {
     esmLoadIdentity(model_matrix);
     vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
 
-    ts.tv_sec = 0;
-    ts.tv_nsec = INTERVAL_MS;
-
-    nr_loops = 0;
-    rotation = 0.0f;
-    while (nr_loops < 300) {
-        rotation += 0.1f;
-        nr_loops++;
-        esmLoadIdentity(model_matrix);
-        esmRotatef(model_matrix, rotation, 0, 1, 0);
-        vrms_client_update_system_matrix(client, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, memory_id, 0, matrix_size);
-        nanosleep(&ts, NULL);
-    }
+    sleep(60);
 
     vrms_destroy_scene(client);
     return 0;

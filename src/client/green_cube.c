@@ -68,13 +68,12 @@ int main(void) {
     translation = -10.0f;
     rotation = 0.0f;
     while (nr_loops < 300) {
-        translation -= 0.1f;
+        //translation -= 0.1f;
         rotation += 0.1f;
         nr_loops++;
         esmLoadIdentity(model_matrix);
         esmTranslatef(model_matrix, 0.0f, 0.0f, translation);
         esmRotatef(model_matrix, rotation, 1, 0, 0);
-        //esmTranslatef(model_matrix, -1.0f, -1.0f, 0.0f);
         vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
         nanosleep(&ts, NULL);
     }
