@@ -578,11 +578,10 @@ void vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_
         vrms_render_vm_sysmregister_set(scene->vm, VM_REG0, projection_matrix);
         vrms_render_vm_sysmregister_set(scene->vm, VM_REG1, view_matrix);
         while (vrms_render_vm_exec(scene->vm, scene->render_buffer, scene->render_buffer_size)) {
-            fprintf(stderr, ".");
             cycles++;
         }
         if (cycles) {
-            fprintf(stderr, "\nRAN %d cycles (last instruction: %d)\n", cycles, vrms_render_vm_last_opcode(scene->vm));
+            //fprintf(stderr, "\nRAN %d cycles (last instruction: %d)\n", cycles, vrms_render_vm_last_opcode(scene->vm));
         }
         pthread_mutex_unlock(scene->render_buffer_lock);
         vrms_render_vm_resume(scene->vm);
@@ -618,7 +617,7 @@ float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint3
     return matrix;
 }
 
-void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* matrix, uint32_t object_id, void* user_data) {
+void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* model_matrix, uint32_t object_id, void* user_data) {
     vrms_scene_t* scene;
     float* projection_matrix;
     float* view_matrix;
@@ -632,7 +631,7 @@ void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* matrix, uint32_t object_id,
     projection_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG0);
     view_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG1);
 
-    vrms_server_draw_scene_object(scene, object_id, matrix, projection_matrix, view_matrix);
+    vrms_server_draw_scene_object(scene, object_id, projection_matrix, view_matrix, model_matrix);
 }
 
 vrms_scene_t* vrms_scene_create(char* name) {
