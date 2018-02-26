@@ -32,9 +32,39 @@ uint32_t vrms_render_vm_iregister_value(vrms_render_vm_t* vm, uint8_t reg) {
     return vm->iregister[reg];
 }
 
+float* vrms_render_vm_mregister_value(vrms_render_vm_t* vm, uint8_t reg) {
+    if (reg >= NUM_REGS) {
+        return 0;
+    }
+    return vm->mregister[reg];
+}
+
+float* vrms_render_vm_sysmregister_value(vrms_render_vm_t* vm, uint8_t reg) {
+    if (reg >= NUM_REGS) {
+        return 0;
+    }
+    return vm->sysmregister[reg];
+}
+
 void vrms_render_vm_reset(vrms_render_vm_t* vm) {
-    memset(vm, 0, sizeof(vrms_render_vm_t));
+    uint8_t i;
     vm->running = 1;
+    vm->program_counter = 0;
+    vm->last_opcode = 0;
+    for (i = 0; i < NUM_REGS; i++) {
+        vm->iregister[i] = 0;
+    }
+    for (i = 0; i < NUM_REGS; i++) {
+        vm->mregister[i] = NULL;
+    }
+}
+
+void vrms_render_vm_sysmregister_set(vrms_render_vm_t* vm, uint8_t reg, float* matrix) {
+    if (reg >= NUM_REGS) {
+        return;
+    }
+    vm->sysmregister[reg] = matrix;
+    return;
 }
 
 uint8_t vrms_render_vm_last_opcode(vrms_render_vm_t* vm) {
@@ -49,23 +79,29 @@ uint8_t vrms_render_vm_resume(vrms_render_vm_t* vm) {
 void vrms_render_vm_load_matrix(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t reg_mem, uint8_t reg_off) {
     uint32_t memory_id;
     uint32_t offset;
-    float* matrix;
 
-    matrix = &vm->mregister[reg_mat * 16];
     memory_id = vm->iregister[reg_mem];
     offset = vm->iregister[reg_off];
 
-    vm->load_matrix(matrix, memory_id, offset, vm->user_data);
+    if (NULL == vm->load_matrix) {
+        return;
+    }
+
+    vm->mregister[reg_mat] = vm->load_matrix(vm, memory_id, offset, vm->user_data);
 }
 
 void vrms_render_vm_draw(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t obj_reg) {
     uint32_t object_id;
     float* matrix;
 
-    matrix = &vm->mregister[reg_mat * 16];
+    matrix = vm->mregister[reg_mat];
     object_id = vm->iregister[obj_reg];
 
-    vm->draw(matrix, object_id, vm->user_data);
+    if (NULL == vm->draw) {
+        return;
+    }
+
+    vm->draw(vm, matrix, object_id, vm->user_data);
 }
 
 uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t length) {
@@ -156,6 +192,9 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             }
             ival1 = vm->iregister[reg1];
             PC = ival1;
+            break;
+        default:
+            vm->running = 0;
             break;
     }
 

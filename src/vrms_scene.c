@@ -23,23 +23,6 @@
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-vrms_scene_t* vrms_scene_create(char* name) {
-    vrms_scene_t* scene = SAFEMALLOC(sizeof(vrms_scene_t));
-    memset(scene, 0, sizeof(vrms_scene_t));
-
-    scene->objects = SAFEMALLOC(sizeof(vrms_object_t) * 10);
-    memset(scene->objects, 0, sizeof(vrms_object_t) * 10);
-    scene->next_object_id = 1;
-
-    scene->render_buffer_size = 0;
-    scene->render_buffer_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
-    memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
-
-    scene->vm = vrms_render_vm_create();
-
-    return scene;
-}
-
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (scene->next_object_id <= id) {
@@ -379,6 +362,12 @@ uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, u
     memcpy(scene->render_buffer, &((uint8_t*)memory->address)[memory_offset], memory_length);
     pthread_mutex_unlock(scene->render_buffer_lock);
 
+    uint8_t i;
+    for (i = 0; i < memory_length; i++) {
+        fprintf(stderr, "%02x ", scene->render_buffer[i]);
+    }
+    fprintf(stderr, "\n");
+
     vrms_render_vm_reset(scene->vm);
     return 1;
 }
@@ -581,43 +570,10 @@ vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t 
     return skybox;
 }
 
-void vrms_server_draw_scene_object_mesh(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, vrms_object_t* mesh_object, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    vrms_object_t* memory_object;
-    vrms_object_memory_t* memory;
-    float* matrix_buffer;
-    uint32_t offset;
-
-    if (memory_id >= scene->next_object_id) {
-        debug_print("memory object: %d is out of bounds\n", memory_id);
-        return;
-    }
-
-    memory_object = vrms_scene_get_object_by_id(scene, memory_id);
-    memory = memory_object->object.object_memory;
-
-    if (NULL != memory->address) {
-        offset = matrix_idx;
-        matrix_buffer = &((float*)memory->address)[offset];
-        esmMultiply(model_matrix, matrix_buffer);
-    }
-
-    switch (mesh_object->type) {
-        case VRMS_OBJECT_MESH_COLOR:
-            vrms_server_draw_mesh_color(scene->server, mesh_object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
-            break;
-        case VRMS_OBJECT_MESH_TEXTURE:
-           vrms_server_draw_mesh_texture(scene->server, mesh_object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
-            break;
-        default:
-            break;
-    }
-}
-
-void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
+void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
     vrms_object_t* object;
     vrms_object_skybox_t* skybox;
 
-    // TODO: clean up this function and the one above it (combine)
     if (object_id >= scene->next_object_id) {
         debug_print("object: %d is out of bounds\n", object_id);
         return;
@@ -634,21 +590,21 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint
             if (NULL == object) {
                 return;
             }
-            vrms_server_draw_scene_object_mesh(scene, memory_id, matrix_idx, object, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_mesh_color(scene->server, object->object.object_mesh_color, projection_matrix, view_matrix, model_matrix);
             break;
         case VRMS_OBJECT_MESH_TEXTURE:
             object = vrms_scene_get_mesh_by_id(scene, object_id);
             if (NULL == object) {
                 return;
             }
-            vrms_server_draw_scene_object_mesh(scene, memory_id, matrix_idx, object, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_mesh_texture(scene->server, object->object.object_mesh_texture, projection_matrix, view_matrix, model_matrix);
             break;
         case VRMS_OBJECT_SKYBOX:
             skybox = vrms_scene_get_skybox_by_id(scene, object_id);
             if (NULL == skybox) {
                 return;
             }
-            vrms_server_draw_skybox(scene->server, skybox, skybox_projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_skybox(scene->server, skybox, projection_matrix, view_matrix, model_matrix);
             break;
         default:
             break;
@@ -656,26 +612,90 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint
 }
 
 void vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
-    uint32_t memory_id;
-    uint32_t matrix_idx;
-    uint32_t object_id;
-    uint32_t i = 0;
-    uint32_t nr_items = scene->render_buffer_size / sizeof(uint32_t);
+    uint8_t cycles;
 
+    cycles = 0;
     if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
-        while (i < nr_items) {
-            memory_id = scene->render_buffer[i];
-            i++;
-            matrix_idx = scene->render_buffer[i];
-            i++;
-            object_id = scene->render_buffer[i];
-            i++;
-            vrms_server_draw_scene_object(scene, memory_id, matrix_idx, object_id, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
-        };
+        vrms_render_vm_sysmregister_set(scene->vm, VM_REG0, projection_matrix);
+        vrms_render_vm_sysmregister_set(scene->vm, VM_REG1, view_matrix);
+        while (vrms_render_vm_exec(scene->vm, scene->render_buffer, scene->render_buffer_size)) {
+            fprintf(stderr, ".");
+            cycles++;
+        }
+        if (cycles) {
+            fprintf(stderr, "\nRAN %d cycles (last instruction: %d)\n", cycles, vrms_render_vm_last_opcode(scene->vm));
+        }
         pthread_mutex_unlock(scene->render_buffer_lock);
+        //vrms_render_vm_resume(scene->vm);
     }
     else {
         debug_print("lock on render bufer\n");
     }
 }
 
+float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t matrix_idx, void* user_data) {
+    vrms_scene_t* scene;
+    vrms_object_t* memory_object;
+    vrms_object_memory_t* memory;
+    float* matrix;
+
+    matrix = NULL;
+    if (NULL == user_data) {
+        return matrix;
+    }
+
+    scene = (vrms_scene_t*)user_data;
+
+    memory_object = vrms_scene_get_object_by_id(scene, memory_id);
+    if (NULL == memory_object) {
+        return matrix;
+    }
+
+    memory = memory_object->object.object_memory;
+    if (NULL != memory->address) {
+        matrix = &((float*)memory->address)[matrix_idx];
+    }
+
+    return matrix;
+}
+
+void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* matrix, uint32_t object_id, void* user_data) {
+    vrms_scene_t* scene;
+    float* projection_matrix;
+    float* view_matrix;
+
+    if (NULL == user_data) {
+        return;
+    }
+
+    scene = (vrms_scene_t*)user_data;
+
+    projection_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG0);
+    view_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG1);
+
+    esmDump(matrix, "model matrix");
+    esmDump(projection_matrix, "projection matrix");
+    esmDump(view_matrix, "view matrix");
+
+    vrms_server_draw_scene_object(scene, object_id, matrix, projection_matrix, view_matrix);
+}
+
+vrms_scene_t* vrms_scene_create(char* name) {
+    vrms_scene_t* scene = SAFEMALLOC(sizeof(vrms_scene_t));
+    memset(scene, 0, sizeof(vrms_scene_t));
+
+    scene->objects = SAFEMALLOC(sizeof(vrms_object_t) * 10);
+    memset(scene->objects, 0, sizeof(vrms_object_t) * 10);
+    scene->next_object_id = 1;
+
+    scene->render_buffer_size = 0;
+    scene->render_buffer_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
+    memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
+
+    scene->vm = vrms_render_vm_create();
+    scene->vm->load_matrix = &vrms_scene_vm_load_matrix;
+    scene->vm->draw = &vrms_scene_vm_draw;
+    scene->vm->user_data = (void*)scene;
+
+    return scene;
+}

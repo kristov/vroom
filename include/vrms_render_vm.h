@@ -24,17 +24,22 @@ struct vrms_render_vm {
     uint8_t running;
     uint32_t program_counter;
     uint8_t last_opcode;
-    float mregister[MATRIX_FLOATS];
+    float* sysmregister[2];
+    float* mregister[NUM_REGS];
     uint8_t iregister[NUM_REGS];
-    void (*load_matrix)(float* matrix, uint32_t memory_id, uint32_t offset, void* user_data);
-    void (*draw)(float* matrix, uint32_t object_id, void* user_data);
+    float* (*load_matrix)(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t offset, void* user_data);
+    void (*draw)(vrms_render_vm_t* vm, float* matrix, uint32_t object_id, void* user_data);
     void* user_data;
 };
 
 vrms_render_vm_t* vrms_render_vm_create();
 void vrms_render_vm_destroy(vrms_render_vm_t* vm);
 uint32_t vrms_render_vm_iregister_value(vrms_render_vm_t* vm, uint8_t reg);
+float* vrms_render_vm_mregister_value(vrms_render_vm_t* vm, uint8_t reg);
+float* vrms_render_vm_sysmregister_value(vrms_render_vm_t* vm, uint8_t reg);
+void vrms_render_vm_sysmregister_set(vrms_render_vm_t* vm, uint8_t reg, float* matrix);
 uint8_t vrms_render_vm_last_opcode(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_resume(vrms_render_vm_t* vm);
 void vrms_render_vm_reset(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t length);
+

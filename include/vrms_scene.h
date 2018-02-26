@@ -15,7 +15,7 @@ typedef struct vrms_scene {
     uint32_t outbound_queue_index;
     pthread_mutex_t* outbound_queue_lock;
     uint32_t render_buffer_size;
-    uint32_t* render_buffer;
+    uint8_t* render_buffer;
     vrms_render_vm_t* vm;
     pthread_mutex_t* render_buffer_lock;
 } vrms_scene_t;

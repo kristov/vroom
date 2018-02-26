@@ -3,15 +3,17 @@
 #include "vrms_render_vm.h"
 #include "test_harness.h"
 
-void load_matrix(float* matrix, uint32_t memory_id, uint32_t offset, void* user_data) {
+float* load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t offset, void* user_data) {
     test_harness_t* test;
     test = (test_harness_t*)user_data;
 
     is_equal_uint32(test, memory_id, 3, "load_matrix call returns correct memory_id");
     is_equal_uint32(test, offset, 80, "load_matrix call returns correct offset");
+
+    return NULL;
 }
 
-void draw(float* matrix, uint32_t object_id, void* user_data) {
+void draw(vrms_render_vm_t* vm, float* matrix, uint32_t object_id, void* user_data) {
     test_harness_t* test;
     test = (test_harness_t*)user_data;
 
