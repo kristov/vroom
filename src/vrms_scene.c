@@ -311,36 +311,36 @@ uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_i
     vrms_object_skybox_t* skybox;
 
     float vertex_data[] = {
-         30.0f, -30.0f,  30.0f,
-         30.0f, -30.0f, -30.0f,
-         30.0f,  30.0f,  30.0f,
-         30.0f,  30.0f, -30.0f,
-        -30.0f, -30.0f, -30.0f,
-        -30.0f, -30.0f,  30.0f,
-        -30.0f,  30.0f, -30.0f,
-        -30.0f,  30.0f,  30.0f
+         100.0f, -100.0f,  100.0f,
+         100.0f, -100.0f, -100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f, -100.0f,
+        -100.0f, -100.0f, -100.0f,
+        -100.0f, -100.0f,  100.0f,
+        -100.0f,  100.0f, -100.0f,
+        -100.0f,  100.0f,  100.0f
     };
 
     uint16_t index_data[] = {
-        1, 2, 3, 3, 2, 4,
-        5, 6, 7, 7, 6, 8,
-        8, 3, 7, 7, 3, 4,
-        5, 2, 6, 6, 2, 1,
-        6, 1, 8, 8, 1, 3,
-        2, 5, 4, 4, 5, 7
+        0, 1, 2, 2, 1, 3,
+        4, 5, 6, 6, 5, 7,
+        7, 2, 6, 6, 2, 3,
+        4, 1, 5, 5, 1, 0,
+        5, 0, 7, 7, 0, 2,
+        1, 4, 3, 3, 4, 6
     };
 
     vrms_object_t* object = vrms_object_skybox_create(texture_id, size);
     vrms_scene_add_object(scene, object);
     skybox = object->object.object_skybox;
 
-    uint16_t vertex_length = 8 * 3 * sizeof(float);
+    uint32_t vertex_length = 8 * 3 * sizeof(float);
     skybox->vertex_data = SAFEMALLOC(vertex_length);
     memcpy(skybox->vertex_data, (uint8_t*)vertex_data, vertex_length);
 
     vrms_server_queue_add_data_load(scene->server, vertex_length, &skybox->vertex_gl_id, VRMS_VERTEX, skybox->vertex_data);
 
-    uint16_t index_length = 36 * sizeof(float);
+    uint32_t index_length = 36 * sizeof(uint16_t);
     skybox->index_data = SAFEMALLOC(index_length);
     memcpy(skybox->index_data, (uint8_t*)index_data, index_length);
 

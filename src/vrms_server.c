@@ -394,12 +394,9 @@ void vrms_server_draw_skybox(vrms_scene_t* scene, vrms_object_skybox_t* skybox, 
     float* mvp_matrix;
 
     shader_id = scene->cubemap_shader_id;
-
     glUseProgram(shader_id);
-printOpenGLError();
 
     glDisable(GL_DEPTH_TEST);
-printOpenGLError();
     mvp_matrix = esmCreateCopy(projection_matrix);
     esmMultiply(mvp_matrix, view_matrix);
 
@@ -463,7 +460,7 @@ void vrms_server_draw_scene_object_mesh(vrms_scene_t* scene, uint32_t memory_id,
     }
 }
 
-void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint32_t matrix_idx, uint32_t object_id, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     vrms_object_t* object;
     vrms_object_skybox_t* skybox;
 
@@ -498,14 +495,14 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t memory_id, uint
             if (NULL == skybox) {
                 return;
             }
-            vrms_server_draw_skybox(scene, skybox, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_skybox(scene, skybox, skybox_projection_matrix, view_matrix, model_matrix);
             break;
         default:
             break;
     }
 }
 
-void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     uint32_t memory_id;
     uint32_t matrix_idx;
     uint32_t object_id;
@@ -520,7 +517,7 @@ void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix
             i++;
             object_id = scene->render_buffer[i];
             i++;
-            vrms_server_draw_scene_object(scene, memory_id, matrix_idx, object_id, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_scene_object(scene, memory_id, matrix_idx, object_id, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
         };
         pthread_mutex_unlock(scene->render_buffer_lock);
     }
@@ -529,7 +526,7 @@ void vrms_server_draw_scene_buffer(vrms_scene_t* scene, float* projection_matrix
     }
 }
 
-void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix) {
+void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     int si;//, oi;
     vrms_scene_t* scene;
 
@@ -537,7 +534,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
         esmLoadIdentity(model_matrix);
         scene = server->scenes[si];
         if (NULL != scene) {
-            vrms_server_draw_scene_buffer(scene, projection_matrix, view_matrix, model_matrix);
+            vrms_server_draw_scene_buffer(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
         }
         if (si >= 2000) break;
     }
@@ -604,7 +601,7 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
             break;
         case VRMS_TEXTURE_CUBE_MAP:
             off = 0;
-            part_offset = (w * h) * 3;
+            part_offset = w * h * 3;
             glGenTextures(1, load->destination);
             glBindTexture(GL_TEXTURE_CUBE_MAP, *load->destination);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -612,23 +609,25 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             off += part_offset;
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             off += part_offset;
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             off += part_offset;
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             off += part_offset;
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             off += part_offset;
             tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)tmp);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
             debug_print("vrms_queue_load_gl_texture_buffer(GL_TEXTURE_CUBE_MAP) loaded GL id: %d\n", *load->destination);
             break;
         default:

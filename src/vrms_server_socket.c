@@ -721,7 +721,7 @@ void* start_socket_thread(void* ptr) {
 
 void draw_scene(opengl_stereo* ostereo) {
     if (NULL != vrms_server) {
-        vrms_server_draw_scenes(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix);
+        vrms_server_draw_scenes(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix, ostereo->skybox_camera->projection_matrix);
     }
 }
 

@@ -208,6 +208,19 @@ void opengl_stereo_create_render_texture(opengl_stereo* ostereo) {
     return;
 }
 
+void opengl_stereo_camera_frustrum_L(opengl_stereo_camera* left_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
+    left_camera->model_translation = IODh;
+    esmFrustumf(
+        left_camera->projection_matrix,
+        -right + frustumshift,
+        right + frustumshift,
+        -top,
+        top,
+        nearZ,
+        farZ
+    );
+}
+
 void opengl_stereo_camera_frustrum_R(opengl_stereo_camera* right_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
     right_camera->model_translation = -IODh;
     esmFrustumf(
@@ -221,12 +234,12 @@ void opengl_stereo_camera_frustrum_R(opengl_stereo_camera* right_camera, double 
     );
 }
 
-void opengl_stereo_camera_frustrum_L(opengl_stereo_camera* left_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
-    left_camera->model_translation = IODh;
+void opengl_stereo_camera_frustrum_I(opengl_stereo_camera* camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
+    camera->model_translation = 0.0;
     esmFrustumf(
-        left_camera->projection_matrix,
-        -right + frustumshift,
-        right + frustumshift,
+        camera->projection_matrix,
+        -right,
+        right,
         -top,
         top,
         nearZ,
@@ -247,6 +260,7 @@ void opengl_stereo_set_frustum(opengl_stereo* ostereo) {
 
     opengl_stereo_camera_frustrum_L(ostereo->left_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
     opengl_stereo_camera_frustrum_R(ostereo->right_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
+    opengl_stereo_camera_frustrum_I(ostereo->skybox_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
 }
 
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h) {
@@ -452,6 +466,7 @@ void opengl_stereo_init(opengl_stereo* ostereo) {
 
 opengl_stereo_camera* opengl_stereo_camera_new() {
     opengl_stereo_camera* camera = SAFEMALLOC(sizeof(opengl_stereo_camera));
+    memset(camera, 0, sizeof(opengl_stereo_camera));
     camera->projection_matrix = esmCreate();
     camera->model_translation = 0.0f;
     return camera;
@@ -459,24 +474,13 @@ opengl_stereo_camera* opengl_stereo_camera_new() {
 
 opengl_stereo_buffer_store* opengl_stereo_buffer_store_new() {
     opengl_stereo_buffer_store* buffer = SAFEMALLOC(sizeof(opengl_stereo_buffer_store));
-    buffer->buffer = 0;
-    buffer->rendered_texture = 0;
+    memset(buffer, 0, sizeof(opengl_stereo_buffer_store));
     return buffer;
 }
 
 opengl_stereo* opengl_stereo_new() {
     opengl_stereo* ostereo = SAFEMALLOC(sizeof(opengl_stereo));
-    ostereo->width = 0;
-    ostereo->height = 0;
-    ostereo->left_camera = NULL;
-    ostereo->right_camera = NULL;
-    ostereo->screen_buffers = NULL;
-    ostereo->draw_scene_function = NULL;
-    ostereo->screen_matrix = NULL;
-    ostereo->model_matrix = NULL;
-    ostereo->view_matrix = NULL;
-    ostereo->hmd_matrix = NULL;
-    ostereo->projection_matrix = NULL;
+    memset(ostereo, 0, sizeof(opengl_stereo));
     return ostereo;
 }
 
@@ -487,6 +491,7 @@ opengl_stereo* opengl_stereo_create(int width, int height, double physical_width
     ostereo->physical_width = physical_width;
     ostereo->left_camera = opengl_stereo_camera_new();
     ostereo->right_camera = opengl_stereo_camera_new();
+    ostereo->skybox_camera = opengl_stereo_camera_new();
     ostereo->screen_buffers = opengl_stereo_buffer_store_new();
     ostereo->screen_matrix = esmCreate();
     ostereo->model_matrix = esmCreate();

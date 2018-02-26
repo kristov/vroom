@@ -37,6 +37,7 @@ typedef struct opengl_stereo {
     GLuint barrel_power_id;
     opengl_stereo_camera* left_camera;
     opengl_stereo_camera* right_camera;
+    opengl_stereo_camera* skybox_camera;
     opengl_stereo_buffer_store* screen_buffers;
 } opengl_stereo;
 
