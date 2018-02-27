@@ -36,7 +36,7 @@ int main(void) {
         VM_LOADMM, VM_REG0, VM_REG1, VM_REG2,
         VM_DRAW, VM_REG0, VM_REG0,
         VM_FRWAIT,
-        VM_GOTO, VM_REG3
+        VM_GOTO, 16
     };
 
     vm = vrms_render_vm_create();
