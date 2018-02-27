@@ -557,7 +557,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_REPLY:
             error = VRMS_INVALIDREQUEST;
             fprintf(stderr, "received a reply message as a request\n");
-        break;
+            break;
         case VRMS_CREATESCENE:
             if (client->vrms_scene_id > 0) {
                 error = VRMS_INVALIDREQUEST;
@@ -570,34 +570,34 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
                     client->vrms_scene_id = id;
                 }
             }
-        break;
+            break;
         case VRMS_DESTROYSCENE:
-        break;
+            break;
         case VRMS_CREATEMEMORY:
             id = receive_create_memory(vrms_server, in_buf, length_r, &error, shm_fd);
-        break;
+            break;
         case VRMS_CREATEDATAOBJECT:
             id = receive_create_data_object(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_DESTROYDATAOBJECT:
-        break;
+            break;
         case VRMS_CREATETEXTUREOBJECT:
             id = receive_create_texture_object(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_DESTROYTEXTUREOBJECT:
-        break;
+            break;
         case VRMS_CREATEGEOMETRYOBJECT:
             id = receive_create_geometry_object(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_CREATEMESHCOLOR:
             id = receive_create_mesh_color(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_CREATEMESHTEXTURE:
             id = receive_create_mesh_texture(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_SETRENDERBUFFER:
             id = receive_set_render_buffer(vrms_server, in_buf, length_r, &error);
-        break;
+            break;
         case VRMS_UPDATESYSTEMMATRIX:
             id = receive_update_system_matrix(vrms_server, in_buf, length_r, &error);
             break;
