@@ -456,6 +456,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
         if (si >= 2000) break;
     }
 
+    // Maintain a list of NR_RENDER_AVG render times for calculating an average
     for (i = NR_RENDER_AVG; i > 0; i--) {
         server->render_usecs[i] = server->render_usecs[i - 1];
         //fprintf(stderr, "%d ", server->render_usecs[i - 1]);

@@ -395,7 +395,6 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     uint8_t i;
     uint32_t program_memory_length;
 
-    debug_print("vrms_scene_run_program(scene[%p], program_id[%d], memory_id[%d], memory_offset[%d], memory_length[%d])\n", scene, program_id, memory_id, memory_offset, memory_length);
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
     if (NULL == memory) {
         return 0;
@@ -430,11 +429,6 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     scene->render_buffer_size = program_memory_length;
     memcpy(scene->render_buffer, program->data, program_memory_length);
     pthread_mutex_unlock(scene->render_buffer_lock);
-
-    for (i = 0; i < program_memory_length; i++) {
-        fprintf(stderr, "0x%02x ", scene->render_buffer[i]);
-    }
-    fprintf(stderr, "\n");
 
     return 1;
 }
@@ -669,7 +663,7 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
 
             if (usec_elapsed > render_allocation_usec) {
                 vrms_render_vm_alloc_ex_interrupt(vm);
-                fprintf(stderr, "render allocation exceeded after %d microseconds\n", usec_elapsed);
+                debug_print("render allocation exceeded after %d microseconds\n", usec_elapsed);
             }
         }
         if (vrms_render_vm_has_exception(vm)) {
