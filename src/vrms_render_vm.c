@@ -32,6 +32,13 @@ uint32_t vrms_render_vm_iregister_value(vrms_render_vm_t* vm, uint8_t reg) {
     return vm->iregister[reg];
 }
 
+void vrms_render_vm_iregister_set(vrms_render_vm_t* vm, uint8_t reg, uint32_t value) {
+    if (reg >= NUM_REGS) {
+        return;
+    }
+    vm->iregister[reg] = value;
+}
+
 float* vrms_render_vm_mregister_value(vrms_render_vm_t* vm, uint8_t reg) {
     if (reg >= NUM_REGS) {
         return 0;
@@ -44,6 +51,15 @@ float* vrms_render_vm_sysmregister_value(vrms_render_vm_t* vm, uint8_t reg) {
         return 0;
     }
     return vm->sysmregister[reg];
+}
+
+void vrms_render_vm_alloc_ex_interrupt(vrms_render_vm_t* vm) {
+    // TODO: Set the instruction pointer to the time allocation interrupt
+}
+
+uint8_t vrms_render_vm_has_exception(vrms_render_vm_t* vm) {
+    // TODO: Change the return type to an actual exception
+    return 0;
 }
 
 void vrms_render_vm_reset(vrms_render_vm_t* vm) {
@@ -183,14 +199,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             vm->running = 0;
             break;
         case VM_GOTO:
-            reg1 = program[PC];
-            PC++;
-            if (reg1 >= NUM_REGS) {
-                PC = 0;
-                vm->running = 0;
-                break;
-            }
-            ival1 = vm->iregister[reg1];
+            ival1 = program[PC];
             PC = ival1;
             break;
         default:

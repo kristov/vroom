@@ -23,6 +23,9 @@
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
+#define ALLOCATION_US_30FPS 33000
+#define ALLOCATION_US_60FPS 16666
+
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (scene->next_object_id <= id) {
@@ -55,6 +58,27 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     }
 
     return object->object.object_memory;
+}
+
+vrms_object_program_t* vrms_scene_get_program_object_by_id(vrms_scene_t* scene, uint32_t program_id) {
+    vrms_object_t* object;
+
+    if (0 == program_id) {
+        debug_print("vrms_scene_get_program_object_by_id: no program id passed\n");
+        return NULL;
+    }
+
+    object = vrms_scene_get_object_by_id(scene, program_id);
+    if (NULL == object) {
+        return NULL;
+    }
+
+    if (VRMS_OBJECT_PROGRAM != object->type) {
+        debug_print("vrms_scene_get_program_object_by_id: asked for an id that is not a program object\n");
+        return NULL;
+    }
+
+    return object->object.object_program;
 }
 
 void vrms_scene_destroy_object_memory(vrms_object_memory_t* memory) {
@@ -119,6 +143,9 @@ void vrms_scene_destroy_object(vrms_object_t* object) {
             break;
         case VRMS_OBJECT_MESH_TEXTURE:
             vrms_object_mesh_texture_destroy(object->object.object_mesh_texture);
+            break;
+        case VRMS_OBJECT_PROGRAM:
+            vrms_object_program_destroy(object->object.object_program);
             break;
         case VRMS_OBJECT_SCENE:
             // Not done here
@@ -222,12 +249,12 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, vrms_data_type_t typ
 
     if (VRMS_MATRIX == type) {
         buffer = SAFEMALLOC(memory_length);
-        memcpy(buffer, &((unsigned char*)memory->address)[memory_offset], memory_length);
+        memcpy(buffer, &((uint8_t*)memory->address)[memory_offset], memory_length);
         object->object.object_data->local_storage = buffer;
         object->realized = 1;
     }
     else {
-        buffer = &((unsigned char*)memory->address)[memory_offset];
+        buffer = &((uint8_t*)memory->address)[memory_offset];
         vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_data->gl_id, type, buffer);
     }
 
@@ -248,7 +275,7 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t memory_i
         debug_print("create_object_texture: read beyond memory size!\n");
     }
 
-    buffer = &((unsigned char*)memory->address)[memory_offset];
+    buffer = &((uint8_t*)memory->address)[memory_offset];
 
     vrms_object_t* object = vrms_object_texture_create(memory_length, width, height, format, type);
     vrms_scene_add_object(scene, object);
@@ -289,7 +316,7 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t memory_id
         debug_print("vrms_scene_update_system_matrix: read beyond memory size!\n");
     }
 
-    buffer = &((unsigned char*)memory->address)[offset];
+    buffer = &((uint8_t*)memory->address)[offset];
     vrms_server_queue_update_system_matrix(scene->server, matrix_type, update_type, buffer);
 
     return 1;
@@ -337,38 +364,78 @@ uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_i
     return object->id;
 }
 
-uint32_t vrms_scene_set_render_buffer(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+uint32_t vrms_scene_create_program(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
     vrms_object_memory_t* memory;
+    vrms_object_program_t* program;
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
     if (NULL == memory) {
         return 0;
     }
 
-    if (memory_length > memory->size) {
-        debug_print("vrms_scene_set_render_buffer: read beyond memory size!\n");
+    if ((memory_offset + memory_length) > memory->size) {
+        debug_print("vrms_scene_create_program: read beyond memory size!\n");
     }
 
-    // TODO: No need to memcpy here, just use memory->address when rendering
-    // and make sure it can be locked there and check here for locks.
+    vrms_object_t* object = vrms_object_program_create(memory_length);
+    vrms_scene_add_object(scene, object);
+    program = object->object.object_program;
+
+    program->data = SAFEMALLOC(memory_length);
+    memcpy(program->data, &((uint8_t*)memory->address)[memory_offset], memory_length);
+
+    return object->id;
+}
+
+uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+    vrms_object_memory_t* memory;
+    vrms_object_program_t* program;
+    uint32_t nr_regs;
+    uint32_t* registers;
+    uint8_t i;
+    uint32_t program_memory_length;
+
+    debug_print("vrms_scene_run_program(scene[%p], program_id[%d], memory_id[%d], memory_offset[%d], memory_length[%d])\n", scene, program_id, memory_id, memory_offset, memory_length);
+    memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
+    if (NULL == memory) {
+        return 0;
+    }
+
+    program = vrms_scene_get_program_object_by_id(scene, program_id);
+    if (NULL == program) {
+        return 0;
+    }
+
+    if ((memory_offset + memory_length) > memory->size) {
+        debug_print("vrms_scene_run_program: read beyond memory size!\n");
+    }
+
+    vrms_render_vm_reset(scene->vm);
+    nr_regs = memory_length / sizeof(uint32_t);
+    registers = &((uint32_t*)memory->address)[memory_offset];
+
+    for (i = 0; i < nr_regs; i++) {
+        debug_print("setting register %d to %d\n", i, registers[i]);
+        vrms_render_vm_iregister_set(scene->vm, i, registers[i]);
+    }
+
+    program_memory_length = program->length * sizeof(uint8_t);
+    debug_print("copying program of length[%d] to render buffer\n", program->length);
+
     pthread_mutex_lock(scene->render_buffer_lock);
     if (NULL != scene->render_buffer) {
         free(scene->render_buffer);
     }
-
-    debug_print("copying memory_length[%d] bytes to render buffer\n", memory_length);
-    scene->render_buffer = SAFEMALLOC(memory_length);
-    scene->render_buffer_size = memory_length;
-    memcpy(scene->render_buffer, &((uint8_t*)memory->address)[memory_offset], memory_length);
+    scene->render_buffer = SAFEMALLOC(program_memory_length);
+    scene->render_buffer_size = program_memory_length;
+    memcpy(scene->render_buffer, program->data, program_memory_length);
     pthread_mutex_unlock(scene->render_buffer_lock);
 
-    uint8_t i;
-    for (i = 0; i < memory_length; i++) {
-        fprintf(stderr, "%02x ", scene->render_buffer[i]);
+    for (i = 0; i < program_memory_length; i++) {
+        fprintf(stderr, "0x%02x ", scene->render_buffer[i]);
     }
     fprintf(stderr, "\n");
 
-    vrms_render_vm_reset(scene->vm);
     return 1;
 }
 
@@ -570,25 +637,54 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, floa
     }
 }
 
-void vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
-    uint8_t cycles;
+uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
+    struct timespec start;
+    struct timespec end;
+    uint32_t render_allocation_usec;
+    uint32_t usec_elapsed;
+    uint64_t nsec_elapsed;
+    vrms_render_vm_t* vm;
 
-    cycles = 0;
+    render_allocation_usec = scene->render_allocation_usec;
+    render_allocation_usec = ALLOCATION_US_60FPS;
+    vm = scene->vm;
+
     if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
-        vrms_render_vm_sysmregister_set(scene->vm, VM_REG0, projection_matrix);
-        vrms_render_vm_sysmregister_set(scene->vm, VM_REG1, view_matrix);
-        while (vrms_render_vm_exec(scene->vm, scene->render_buffer, scene->render_buffer_size)) {
-            cycles++;
+
+        vrms_render_vm_sysmregister_set(vm, VM_REG0, projection_matrix);
+        vrms_render_vm_sysmregister_set(vm, VM_REG1, view_matrix);
+
+        start.tv_sec = 0;
+        start.tv_nsec = 0;
+        end.tv_sec = 0;
+        end.tv_nsec = 0;
+        usec_elapsed = 0;
+
+        clock_gettime(CLOCK_MONOTONIC, &start);
+        while (vrms_render_vm_exec(vm, scene->render_buffer, scene->render_buffer_size)) {
+
+            clock_gettime(CLOCK_MONOTONIC, &end);
+            nsec_elapsed = ((1.0e+9 * end.tv_sec) + end.tv_nsec) - ((1.0e+9 * start.tv_sec) + start.tv_nsec);
+            usec_elapsed += nsec_elapsed / 1000;
+
+            if (usec_elapsed > render_allocation_usec) {
+                vrms_render_vm_alloc_ex_interrupt(vm);
+                fprintf(stderr, "render allocation exceeded after %d microseconds\n", usec_elapsed);
+            }
         }
-        if (cycles) {
-            //fprintf(stderr, "\nRAN %d cycles (last instruction: %d)\n", cycles, vrms_render_vm_last_opcode(scene->vm));
+        if (vrms_render_vm_has_exception(vm)) {
+            // TODO: queue message to client that exception occurred
+            vrms_render_vm_reset(vm);
         }
+
         pthread_mutex_unlock(scene->render_buffer_lock);
         vrms_render_vm_resume(scene->vm);
     }
     else {
         debug_print("lock on render bufer\n");
     }
+
+    return usec_elapsed;
 }
 
 float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t matrix_idx, void* user_data) {

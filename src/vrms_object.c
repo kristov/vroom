@@ -95,6 +95,20 @@ vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, floa
     return object;
 }
 
+vrms_object_t* vrms_object_program_create(uint32_t program_length) {
+    vrms_object_t* object = vrms_object_create();
+    object->type = VRMS_OBJECT_PROGRAM;
+    object->realized = 0;
+
+    vrms_object_program_t* object_program = SAFEMALLOC(sizeof(vrms_object_program_t));
+    memset(object_program, 0, sizeof(vrms_object_program_t));
+    object_program->length = program_length;
+    object_program->data = NULL;
+    object->object.object_program = object_program;
+
+    return object;
+}
+
 vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MESH_TEXTURE;
@@ -146,6 +160,13 @@ void vrms_object_mesh_texture_destroy(vrms_object_mesh_texture_t* mesh_texture) 
 
 void vrms_object_texture_destroy(vrms_object_texture_t* texture) {
     free(texture);
+}
+
+void vrms_object_program_destroy(vrms_object_program_t* program) {
+    if (NULL != program->data) {
+        free(program->data);
+    }
+    free(program);
 }
 
 void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {

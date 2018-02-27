@@ -290,7 +290,7 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
-    ostereo->draw_scene_function(ostereo);
+    ostereo->draw_scene_callback(ostereo);
 
     glUseProgram(ostereo->screen_shader_program_id);
 
@@ -334,7 +334,7 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
 
-    ostereo->draw_scene_function(ostereo);
+    ostereo->draw_scene_callback(ostereo);
 
     glUseProgram(ostereo->screen_shader_program_id);
 
@@ -375,7 +375,7 @@ void opengl_stereo_render_mono_scene(opengl_stereo* ostereo) {
     esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
     esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
-    ostereo->draw_scene_function(ostereo);
+    ostereo->draw_scene_callback(ostereo);
 }
 
 void opengl_stereo_render_scene(opengl_stereo* ostereo) {
@@ -412,8 +412,8 @@ void opengl_stereo_render_scene(opengl_stereo* ostereo) {
             opengl_stereo_render_buffer_to_window()
 */
 void opengl_stereo_display(opengl_stereo* ostereo) {
-    if (ostereo->draw_scene_function == NULL) {
-        fprintf(stderr, "opengl_stereo_ERROR: draw_scene_function not attached\n");
+    if (ostereo->draw_scene_callback == NULL) {
+        fprintf(stderr, "opengl_stereo_ERROR: draw_scene_callback not attached\n");
         return;
     }
     opengl_stereo_render_scene(ostereo);

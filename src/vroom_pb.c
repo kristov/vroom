@@ -265,47 +265,90 @@ void   create_texture_object__free_unpacked
   assert(message->base.descriptor == &create_texture_object__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   set_render_buffer__init
-                     (SetRenderBuffer         *message)
+void   create_program__init
+                     (CreateProgram         *message)
 {
-  static SetRenderBuffer init_value = SET_RENDER_BUFFER__INIT;
+  static CreateProgram init_value = CREATE_PROGRAM__INIT;
   *message = init_value;
 }
-size_t set_render_buffer__get_packed_size
-                     (const SetRenderBuffer *message)
+size_t create_program__get_packed_size
+                     (const CreateProgram *message)
 {
-  assert(message->base.descriptor == &set_render_buffer__descriptor);
+  assert(message->base.descriptor == &create_program__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t set_render_buffer__pack
-                     (const SetRenderBuffer *message,
+size_t create_program__pack
+                     (const CreateProgram *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &set_render_buffer__descriptor);
+  assert(message->base.descriptor == &create_program__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t set_render_buffer__pack_to_buffer
-                     (const SetRenderBuffer *message,
+size_t create_program__pack_to_buffer
+                     (const CreateProgram *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &set_render_buffer__descriptor);
+  assert(message->base.descriptor == &create_program__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-SetRenderBuffer *
-       set_render_buffer__unpack
+CreateProgram *
+       create_program__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (SetRenderBuffer *)
-     protobuf_c_message_unpack (&set_render_buffer__descriptor,
+  return (CreateProgram *)
+     protobuf_c_message_unpack (&create_program__descriptor,
                                 allocator, len, data);
 }
-void   set_render_buffer__free_unpacked
-                     (SetRenderBuffer *message,
+void   create_program__free_unpacked
+                     (CreateProgram *message,
                       ProtobufCAllocator *allocator)
 {
-  assert(message->base.descriptor == &set_render_buffer__descriptor);
+  assert(message->base.descriptor == &create_program__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
+void   run_program__init
+                     (RunProgram         *message)
+{
+  static RunProgram init_value = RUN_PROGRAM__INIT;
+  *message = init_value;
+}
+size_t run_program__get_packed_size
+                     (const RunProgram *message)
+{
+  assert(message->base.descriptor == &run_program__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t run_program__pack
+                     (const RunProgram *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &run_program__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t run_program__pack_to_buffer
+                     (const RunProgram *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &run_program__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+RunProgram *
+       run_program__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (RunProgram *)
+     protobuf_c_message_unpack (&run_program__descriptor,
+                                allocator, len, data);
+}
+void   run_program__free_unpacked
+                     (RunProgram *message,
+                      ProtobufCAllocator *allocator)
+{
+  assert(message->base.descriptor == &run_program__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   update_system_matrix__init
@@ -1066,7 +1109,7 @@ const ProtobufCMessageDescriptor create_texture_object__descriptor =
   (ProtobufCMessageInit) create_texture_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
+static const ProtobufCFieldDescriptor create_program__field_descriptors[4] =
 {
   {
     "scene_id",
@@ -1074,7 +1117,7 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(SetRenderBuffer, scene_id),
+    offsetof(CreateProgram, scene_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -1086,7 +1129,7 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(SetRenderBuffer, memory_id),
+    offsetof(CreateProgram, memory_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -1098,7 +1141,7 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(SetRenderBuffer, memory_offset),
+    offsetof(CreateProgram, memory_offset),
     NULL,
     NULL,
     0,             /* flags */
@@ -1110,37 +1153,127 @@ static const ProtobufCFieldDescriptor set_render_buffer__field_descriptors[4] =
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(SetRenderBuffer, memory_length),
+    offsetof(CreateProgram, memory_length),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned set_render_buffer__field_indices_by_name[] = {
+static const unsigned create_program__field_indices_by_name[] = {
   1,   /* field[1] = memory_id */
   3,   /* field[3] = memory_length */
   2,   /* field[2] = memory_offset */
   0,   /* field[0] = scene_id */
 };
-static const ProtobufCIntRange set_render_buffer__number_ranges[1 + 1] =
+static const ProtobufCIntRange create_program__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 4 }
 };
-const ProtobufCMessageDescriptor set_render_buffer__descriptor =
+const ProtobufCMessageDescriptor create_program__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "SetRenderBuffer",
-  "SetRenderBuffer",
-  "SetRenderBuffer",
+  "CreateProgram",
+  "CreateProgram",
+  "CreateProgram",
   "",
-  sizeof(SetRenderBuffer),
+  sizeof(CreateProgram),
   4,
-  set_render_buffer__field_descriptors,
-  set_render_buffer__field_indices_by_name,
-  1,  set_render_buffer__number_ranges,
-  (ProtobufCMessageInit) set_render_buffer__init,
+  create_program__field_descriptors,
+  create_program__field_indices_by_name,
+  1,  create_program__number_ranges,
+  (ProtobufCMessageInit) create_program__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
+static const ProtobufCFieldDescriptor run_program__field_descriptors[5] =
+{
+  {
+    "scene_id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(RunProgram, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "program_id",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(RunProgram, program_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_id",
+    3,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(RunProgram, memory_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_offset",
+    4,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(RunProgram, memory_offset),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "memory_length",
+    5,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(RunProgram, memory_length),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned run_program__field_indices_by_name[] = {
+  2,   /* field[2] = memory_id */
+  4,   /* field[4] = memory_length */
+  3,   /* field[3] = memory_offset */
+  1,   /* field[1] = program_id */
+  0,   /* field[0] = scene_id */
+};
+static const ProtobufCIntRange run_program__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 5 }
+};
+const ProtobufCMessageDescriptor run_program__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "RunProgram",
+  "RunProgram",
+  "RunProgram",
+  "",
+  sizeof(RunProgram),
+  5,
+  run_program__field_descriptors,
+  run_program__field_indices_by_name,
+  1,  run_program__number_ranges,
+  (ProtobufCMessageInit) run_program__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCEnumValue update_system_matrix__matrix_type__enum_values_by_number[2] =

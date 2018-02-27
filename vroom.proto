@@ -53,11 +53,19 @@ message CreateTextureObject {
     required Type type = 8;
 }
 
-message SetRenderBuffer {
+message CreateProgram {
     required int32 scene_id = 1;
     required int32 memory_id = 2;
     required int32 memory_offset = 3;
     required int32 memory_length = 4;
+}
+
+message RunProgram {
+    required int32 scene_id = 1;
+    required int32 program_id = 2;
+    required int32 memory_id = 3;
+    required int32 memory_offset = 4;
+    required int32 memory_length = 5;
 }
 
 message UpdateSystemMatrix {

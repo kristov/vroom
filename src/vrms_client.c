@@ -354,9 +354,9 @@ uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, u
     return id;
 }
 
-uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
     uint32_t ret;
-    SetRenderBuffer msg = SET_RENDER_BUFFER__INIT;
+    CreateProgram msg = CREATE_PROGRAM__INIT;
     void* buf;
     uint32_t length;
 
@@ -365,12 +365,35 @@ uint32_t vrms_client_render_buffer_set(vrms_client_t* client, int32_t memory_id,
     msg.memory_offset = memory_offset;
     msg.memory_length = memory_length;
 
-    length = set_render_buffer__get_packed_size(&msg);
+    length = create_program__get_packed_size(&msg);
 
     buf = SAFEMALLOC(length);
-    set_render_buffer__pack(&msg, buf);
+    create_program__pack(&msg, buf);
 
-    ret = vrms_client_send_message(client, VRMS_SETRENDERBUFFER, buf, length, 0);
+    ret = vrms_client_send_message(client, VRMS_CREATEPROGRAM, buf, length, 0);
+
+    free(buf);
+    return ret;
+}
+
+uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+    uint32_t ret;
+    RunProgram msg = RUN_PROGRAM__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.program_id = program_id;
+    msg.memory_id = memory_id;
+    msg.memory_offset = memory_offset;
+    msg.memory_length = memory_length;
+
+    length = run_program__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    run_program__pack(&msg, buf);
+
+    ret = vrms_client_send_message(client, VRMS_RUNPROGRAM, buf, length, 0);
 
     free(buf);
     return ret;

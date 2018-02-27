@@ -440,15 +440,28 @@ printOpenGLError();
 void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     int si;//, oi;
     vrms_scene_t* scene;
+    uint32_t usec_elapsed;
+    uint8_t i;
 
+    // TODO: Dont loop through scenes like this, but do round robin on the VM calls
+    // across the scenes, so its not that one scene gets to draw everything, and
+    // other scenes starve. Sounds a bit like a task scheduler.
+    usec_elapsed = 0;
     for (si = 1; si < server->next_scene_id; si++) {
         esmLoadIdentity(model_matrix);
         scene = server->scenes[si];
         if (NULL != scene) {
-            vrms_scene_draw(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
+            usec_elapsed += vrms_scene_draw(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);
         }
         if (si >= 2000) break;
     }
+
+    for (i = NR_RENDER_AVG; i > 0; i--) {
+        server->render_usecs[i] = server->render_usecs[i - 1];
+        //fprintf(stderr, "%d ", server->render_usecs[i - 1]);
+    }
+    //fprintf(stderr, "%d\n", usec_elapsed);
+    server->render_usecs[0] = usec_elapsed;
 }
 
 void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* load) {

@@ -868,55 +868,68 @@ uint32_t vrms_geometry_load_matrix_data(vrms_client_t* client, uint32_t nr_matri
 
 uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object_id, float x, float y, float z) {
     uint32_t memory_id;
+    uint32_t program_id;
     uint32_t render_ret;
     uint32_t matrix_size;
-    uint32_t render_size;
+    uint32_t prog_size;
+    uint32_t reg_size;
+    uint32_t total_size;
     uint8_t* shared_mem;
     float* model_matrix;
-    uint8_t* render_buffer;
+    uint8_t* program;
+    uint32_t* registers;
+    uint32_t prog_off;
+    uint32_t reg_off;
 
     matrix_size = sizeof(float) * 16;
-    render_size = sizeof(uint8_t) * 22;
-    memory_id = vrms_client_create_memory(client, &shared_mem, matrix_size + render_size);
+    prog_size = sizeof(uint8_t) * 10;
+    reg_size = sizeof(uint32_t) * 8;
+    total_size = matrix_size + prog_size + reg_size;
+    memory_id = vrms_client_create_memory(client, &shared_mem, total_size);
 
     if (NULL == shared_mem) {
         fprintf(stderr, "Unable to initialize shared memory\n");
         return 0;
     }
 
-    model_matrix = (float*)shared_mem;
-    render_buffer = (uint8_t*)&shared_mem[matrix_size];
+    prog_off = matrix_size;
+    reg_off = matrix_size + prog_size;
 
-    render_buffer[0] = VM_LOADI;
-    render_buffer[1] = VM_REG0;
-    render_buffer[2] = object_id;
-    render_buffer[3] = VM_LOADI;
-    render_buffer[4] = VM_REG1;
-    render_buffer[5] = memory_id;
-    render_buffer[6] = VM_LOADI;
-    render_buffer[7] = VM_REG2;
-    render_buffer[8] = 0;
-    render_buffer[9] = VM_LOADI;
-    render_buffer[10] = VM_REG3;
-    render_buffer[11] = 16;
-    render_buffer[12] = VM_LOADMM;
-    render_buffer[13] = VM_REG0;
-    render_buffer[14] = VM_REG1;
-    render_buffer[15] = VM_REG2;
-    render_buffer[16] = VM_DRAW;
-    render_buffer[17] = VM_REG0;
-    render_buffer[18] = VM_REG0;
-    render_buffer[19] = VM_FRWAIT;
-    render_buffer[20] = VM_GOTO;
-    render_buffer[21] = VM_REG3;
+    model_matrix = (float*)shared_mem;
+    program = &((uint8_t*)shared_mem)[prog_off];
+    registers = &((uint32_t*)shared_mem)[reg_off];
+
+    registers[0] = object_id;
+    registers[1] = memory_id;
+    registers[2] = 0; // index to matrix in memory
+    registers[3] = 0;
+    registers[4] = 0;
+    registers[5] = 0;
+    registers[6] = 0;
+    registers[7] = 0;
+
+    program[0] = VM_LOADMM;
+    program[1] = VM_REG0;
+    program[2] = VM_REG1;
+    program[3] = VM_REG2;
+    program[4] = VM_DRAW;
+    program[5] = VM_REG0;
+    program[6] = VM_REG0;
+    program[7] = VM_FRWAIT;
+    program[8] = VM_GOTO;
+    program[9] = 0x04;
 
     esmLoadIdentity(model_matrix);
     esmTranslatef(model_matrix, x, y, z);
 
-    render_ret = vrms_client_render_buffer_set(client, memory_id, matrix_size, render_size);
-
-    if (render_ret) {
-        return 1;
+    program_id = vrms_client_create_program(client, memory_id, prog_off, prog_size);
+    if (0 == program_id) {
+        return 0;
     }
-    return 0;
+
+    render_ret = vrms_client_run_program(client, program_id, memory_id, reg_off, reg_size);
+    if (0 == render_ret) {
+        return 0;
+    }
+    return 1;
 }

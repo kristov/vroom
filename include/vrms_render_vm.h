@@ -35,6 +35,7 @@ struct vrms_render_vm {
 vrms_render_vm_t* vrms_render_vm_create();
 void vrms_render_vm_destroy(vrms_render_vm_t* vm);
 uint32_t vrms_render_vm_iregister_value(vrms_render_vm_t* vm, uint8_t reg);
+void vrms_render_vm_iregister_set(vrms_render_vm_t* vm, uint8_t reg, uint32_t value);
 float* vrms_render_vm_mregister_value(vrms_render_vm_t* vm, uint8_t reg);
 float* vrms_render_vm_sysmregister_value(vrms_render_vm_t* vm, uint8_t reg);
 void vrms_render_vm_sysmregister_set(vrms_render_vm_t* vm, uint8_t reg, float* matrix);
@@ -42,4 +43,5 @@ uint8_t vrms_render_vm_last_opcode(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_resume(vrms_render_vm_t* vm);
 void vrms_render_vm_reset(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t length);
-
+void vrms_render_vm_alloc_ex_interrupt(vrms_render_vm_t* vm);
+uint8_t vrms_render_vm_has_exception(vrms_render_vm_t* vm);

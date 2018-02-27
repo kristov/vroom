@@ -36,6 +36,7 @@ int main(void) {
 
     vrms_geometry_render_buffer_basic(client, cube_id, 0.0f, 0.0f, -10.0f);
 
+    fprintf(stderr, "sleeping 60 sec\n");
     sleep(60);
 
     vrms_destroy_scene(client);

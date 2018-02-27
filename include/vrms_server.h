@@ -1,7 +1,13 @@
 #include "vrms.h"
 
+#define NR_RENDER_AVG 10
+
 typedef struct vrms_scene vrms_scene_t;
+
 typedef struct vrms_queue_item vrms_queue_item_t;
+
+typedef void (*system_matrix_callback_t)(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
+
 typedef struct vrms_server {
     uint32_t next_scene_id;
     vrms_scene_t** scenes;
@@ -13,7 +19,8 @@ typedef struct vrms_server {
     GLuint cubemap_shader_id;
     float* head_matrix;
     float* body_matrix;
-    void (*system_matrix_update)(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
+    system_matrix_callback_t system_matrix_update;
+    uint32_t render_usecs[NR_RENDER_AVG];
 } vrms_server_t;
 
 vrms_server_t* vrms_server_create();

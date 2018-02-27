@@ -21,7 +21,8 @@ typedef struct _DestroyScene DestroyScene;
 typedef struct _CreateMemory CreateMemory;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _CreateTextureObject CreateTextureObject;
-typedef struct _SetRenderBuffer SetRenderBuffer;
+typedef struct _CreateProgram CreateProgram;
+typedef struct _RunProgram RunProgram;
 typedef struct _UpdateSystemMatrix UpdateSystemMatrix;
 typedef struct _DestroyDataObject DestroyDataObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
@@ -137,7 +138,7 @@ struct  _CreateTextureObject
     , 0, 0, 0, 0, 0, 0, 0, 0 }
 
 
-struct  _SetRenderBuffer
+struct  _CreateProgram
 {
   ProtobufCMessage base;
   int32_t scene_id;
@@ -145,9 +146,23 @@ struct  _SetRenderBuffer
   int32_t memory_offset;
   int32_t memory_length;
 };
-#define SET_RENDER_BUFFER__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&set_render_buffer__descriptor) \
+#define CREATE_PROGRAM__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&create_program__descriptor) \
     , 0, 0, 0, 0 }
+
+
+struct  _RunProgram
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t program_id;
+  int32_t memory_id;
+  int32_t memory_offset;
+  int32_t memory_length;
+};
+#define RUN_PROGRAM__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&run_program__descriptor) \
+    , 0, 0, 0, 0, 0 }
 
 
 struct  _UpdateSystemMatrix
@@ -343,24 +358,43 @@ CreateTextureObject *
 void   create_texture_object__free_unpacked
                      (CreateTextureObject *message,
                       ProtobufCAllocator *allocator);
-/* SetRenderBuffer methods */
-void   set_render_buffer__init
-                     (SetRenderBuffer         *message);
-size_t set_render_buffer__get_packed_size
-                     (const SetRenderBuffer   *message);
-size_t set_render_buffer__pack
-                     (const SetRenderBuffer   *message,
+/* CreateProgram methods */
+void   create_program__init
+                     (CreateProgram         *message);
+size_t create_program__get_packed_size
+                     (const CreateProgram   *message);
+size_t create_program__pack
+                     (const CreateProgram   *message,
                       uint8_t             *out);
-size_t set_render_buffer__pack_to_buffer
-                     (const SetRenderBuffer   *message,
+size_t create_program__pack_to_buffer
+                     (const CreateProgram   *message,
                       ProtobufCBuffer     *buffer);
-SetRenderBuffer *
-       set_render_buffer__unpack
+CreateProgram *
+       create_program__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   set_render_buffer__free_unpacked
-                     (SetRenderBuffer *message,
+void   create_program__free_unpacked
+                     (CreateProgram *message,
+                      ProtobufCAllocator *allocator);
+/* RunProgram methods */
+void   run_program__init
+                     (RunProgram         *message);
+size_t run_program__get_packed_size
+                     (const RunProgram   *message);
+size_t run_program__pack
+                     (const RunProgram   *message,
+                      uint8_t             *out);
+size_t run_program__pack_to_buffer
+                     (const RunProgram   *message,
+                      ProtobufCBuffer     *buffer);
+RunProgram *
+       run_program__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   run_program__free_unpacked
+                     (RunProgram *message,
                       ProtobufCAllocator *allocator);
 /* UpdateSystemMatrix methods */
 void   update_system_matrix__init
@@ -496,8 +530,11 @@ typedef void (*CreateDataObject_Closure)
 typedef void (*CreateTextureObject_Closure)
                  (const CreateTextureObject *message,
                   void *closure_data);
-typedef void (*SetRenderBuffer_Closure)
-                 (const SetRenderBuffer *message,
+typedef void (*CreateProgram_Closure)
+                 (const CreateProgram *message,
+                  void *closure_data);
+typedef void (*RunProgram_Closure)
+                 (const RunProgram *message,
                   void *closure_data);
 typedef void (*UpdateSystemMatrix_Closure)
                  (const UpdateSystemMatrix *message,
@@ -532,7 +569,8 @@ extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
 extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__type__descriptor;
-extern const ProtobufCMessageDescriptor set_render_buffer__descriptor;
+extern const ProtobufCMessageDescriptor create_program__descriptor;
+extern const ProtobufCMessageDescriptor run_program__descriptor;
 extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__update_type__descriptor;

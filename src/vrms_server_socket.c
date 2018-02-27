@@ -313,9 +313,9 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
     return id;
 }
 
-uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+uint32_t receive_create_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    SetRenderBuffer* cs_msg;
+    CreateProgram* cs_msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -323,7 +323,7 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
         return 0;
     }
 
-    cs_msg = set_render_buffer__unpack(NULL, length, in_buf);
+    cs_msg = create_program__unpack(NULL, length, in_buf);
     if (cs_msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
@@ -332,12 +332,46 @@ uint32_t receive_set_render_buffer(vrms_server_t* vrms_server, uint8_t* in_buf, 
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_set_render_buffer(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
+        id = vrms_scene_create_program(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
     }
 
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "set render buffer: out of memory\n");
+        fprintf(stderr, "create program: out of memory\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(cs_msg);
+    return id;
+}
+
+uint32_t receive_run_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
+    uint32_t id;
+    RunProgram* cs_msg;
+
+    if (NULL == vrms_server) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    cs_msg = run_program__unpack(NULL, length, in_buf);
+    if (cs_msg == NULL) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    if (NULL != vrms_scene) {
+        id = vrms_scene_run_program(vrms_scene, cs_msg->program_id, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
+    }
+
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "run program: out of memory\n");
     }
     else {
         *error = VRMS_OK;
@@ -595,8 +629,11 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_CREATEMESHTEXTURE:
             id = receive_create_mesh_texture(vrms_server, in_buf, length_r, &error);
             break;
-        case VRMS_SETRENDERBUFFER:
-            id = receive_set_render_buffer(vrms_server, in_buf, length_r, &error);
+        case VRMS_CREATEPROGRAM:
+            id = receive_create_program(vrms_server, in_buf, length_r, &error);
+            break;
+        case VRMS_RUNPROGRAM:
+            id = receive_run_program(vrms_server, in_buf, length_r, &error);
             break;
         case VRMS_UPDATESYSTEMMATRIX:
             id = receive_update_system_matrix(vrms_server, in_buf, length_r, &error);
@@ -735,7 +772,7 @@ void vrms_server_socket_init(int width, int height, double physical_width) {
     int32_t thread_ret;
 
     ostereo = opengl_stereo_create(width, height, physical_width);
-    ostereo->draw_scene_function = &draw_scene;
+    ostereo->draw_scene_callback = &draw_scene;
 
     vrms_server = vrms_server_create();
     vrms_server->color_shader_id = ostereo->onecolor_shader_id;
