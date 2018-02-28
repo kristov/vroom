@@ -11,6 +11,7 @@
 #define VM_GOTO     0x05
 #define VM_JNZ      0x06
 #define VM_DEC      0x07
+#define VM_INC      0x08
 
 #define VM_REG0     0x00
 #define VM_REG1     0x01

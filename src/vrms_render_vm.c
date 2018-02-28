@@ -233,7 +233,22 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
         case VM_DEC:
             reg1 = program[PC];
             PC++;
+            if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
+                PC = 0;
+                break;
+            }
             vm->iregister[reg1]--;
+            break;
+        case VM_INC:
+            reg1 = program[PC];
+            PC++;
+            if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
+                PC = 0;
+                break;
+            }
+            vm->iregister[reg1]++;
             break;
         default:
             vrms_render_vm_exception(vm, X_INVALID_OPCODE);
