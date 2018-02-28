@@ -17,16 +17,22 @@
 #include "vroom_pb.h"
 #include "vrms_client.h"
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
 #define SOCK_PATH "/tmp/libev-echo.sock"
 #define MAX_MSG_SIZE 1024
 
 uint32_t data_object_type_map[] = {
-    CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
-    CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
     CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
     CREATE_DATA_OBJECT__TYPE__NORMAL,   // VRMS_NORMAL
     CREATE_DATA_OBJECT__TYPE__INDEX,    // VRMS_INDEX
-    CREATE_DATA_OBJECT__TYPE__MATRIX    // VRMS_MATRIX
+    CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
+    CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
+    CREATE_DATA_OBJECT__TYPE__TEXTURE,  // VRMS_TEXTURE
+    CREATE_DATA_OBJECT__TYPE__MATRIX,   // VRMS_MATRIX
+    CREATE_DATA_OBJECT__TYPE__PROGRAM,  // VRMS_PROGRAM
+    CREATE_DATA_OBJECT__TYPE__REGISTER  // VRMS_REGISTER
 };
 
 uint32_t matrix_type_map[] = {
@@ -197,24 +203,25 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
     return id;
 }
 
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t value_length) {
+uint32_t vrms_client_create_data_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type) {
     uint32_t id;
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
     void* buf;
     uint32_t length;
 
     uint32_t data_object_type_map_index = (uint32_t)type;
-    if (data_object_type_map_index < 0 || data_object_type_map_index > 6) {
+    if (data_object_type_map_index < 0 || data_object_type_map_index > 8) {
         return 0;
     }
     uint32_t pb_type = data_object_type_map[data_object_type_map_index];
 
     msg.scene_id = client->scene_id;
     msg.memory_id = memory_id;
-    msg.type = pb_type;
     msg.memory_offset = memory_offset;
     msg.memory_length = memory_length;
-    msg.value_length = value_length;
+    msg.item_length = item_length;
+    msg.data_length = data_length;
+    msg.type = pb_type;
 
     length = create_data_object__get_packed_size(&msg);
 
@@ -227,7 +234,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
     return id;
 }
 
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
     uint32_t id;
     CreateTextureObject msg = CREATE_TEXTURE_OBJECT__INIT;
     void* buf;
@@ -246,9 +253,7 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory
     uint32_t pb_type = texture_type_map[texture_type_index];
 
     msg.scene_id = client->scene_id;
-    msg.memory_id = memory_id;
-    msg.memory_offset = memory_offset;
-    msg.memory_length = memory_length;
+    msg.data_id = data_id;
     msg.width = width;
     msg.height = height;
     msg.format = pb_format;
@@ -333,7 +338,7 @@ uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometr
     return id;
 }
 
-uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, uint32_t size) {
+uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id) {
     uint32_t id;
     CreateSkybox msg = CREATE_SKYBOX__INIT;
     void* buf;
@@ -341,7 +346,6 @@ uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, u
 
     msg.scene_id = client->scene_id;
     msg.texture_id = texture_id;
-    msg.size = size;
 
     length = create_skybox__get_packed_size(&msg);
 
@@ -354,16 +358,14 @@ uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, u
     return id;
 }
 
-uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+uint32_t vrms_client_create_program_object(vrms_client_t* client, uint32_t data_id) {
     uint32_t ret;
     CreateProgram msg = CREATE_PROGRAM__INIT;
     void* buf;
     uint32_t length;
 
     msg.scene_id = client->scene_id;
-    msg.memory_id = memory_id;
-    msg.memory_offset = memory_offset;
-    msg.memory_length = memory_length;
+    msg.data_id = data_id;
 
     length = create_program__get_packed_size(&msg);
 
@@ -376,7 +378,7 @@ uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t memory_id, u
     return ret;
 }
 
-uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length) {
+uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t register_id) {
     uint32_t ret;
     RunProgram msg = RUN_PROGRAM__INIT;
     void* buf;
@@ -384,9 +386,7 @@ uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uin
 
     msg.scene_id = client->scene_id;
     msg.program_id = program_id;
-    msg.memory_id = memory_id;
-    msg.memory_offset = memory_offset;
-    msg.memory_length = memory_length;
+    msg.register_id = register_id;
 
     length = run_program__get_packed_size(&msg);
 
@@ -399,7 +399,7 @@ uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uin
     return ret;
 }
 
-uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, int32_t memory_id, uint32_t offset, uint32_t size) {
+uint32_t vrms_client_update_system_matrix(vrms_client_t* client, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
     uint32_t ret;
     UpdateSystemMatrix msg = UPDATE_SYSTEM_MATRIX__INIT;
     void* buf;
@@ -418,11 +418,10 @@ uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_typ
     uint32_t pb_update_type = update_type_map[update_type_index];
 
     msg.scene_id = client->scene_id;
-    msg.memory_id = memory_id;
+    msg.data_id = data_id;
+    msg.data_index = data_index;
     msg.matrix_type = pb_matrix_type;
     msg.update_type = pb_update_type;
-    msg.offset = offset;
-    msg.size = size;
 
     length = update_system_matrix__get_packed_size(&msg);
 

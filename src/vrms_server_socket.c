@@ -28,6 +28,9 @@
 #include "opengl_stereo.h"
 #include "vrms.h"
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
 #define MAX_MSG_SIZE 1024
 
 opengl_stereo* ostereo;
@@ -118,7 +121,7 @@ uint32_t receive_create_memory(vrms_server_t* vrms_server, uint8_t* in_buf, int3
 
 uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateDataObject* cs_msg;
+    CreateDataObject* msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -126,40 +129,58 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
         return 0;
     }
 
-    cs_msg = create_data_object__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = create_data_object__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
     vrms_data_type_t vrms_type;
-    switch (cs_msg->type) {
+    switch (msg->type) {
         case CREATE_DATA_OBJECT__TYPE__UV:
+            debug_print("received data type: VRMS_UV\n");
             vrms_type = VRMS_UV;
             break;
         case CREATE_DATA_OBJECT__TYPE__COLOR:
+            debug_print("received data type: VRMS_COLOR\n");
             vrms_type = VRMS_COLOR;
             break;
         case CREATE_DATA_OBJECT__TYPE__VERTEX:
+            debug_print("received data type: VRMS_VERTEX\n");
             vrms_type = VRMS_VERTEX;
             break;
         case CREATE_DATA_OBJECT__TYPE__NORMAL:
+            debug_print("received data type: VRMS_NORMAL\n");
             vrms_type = VRMS_NORMAL;
             break;
         case CREATE_DATA_OBJECT__TYPE__INDEX:
+            debug_print("received data type: VRMS_INDEX\n");
             vrms_type = VRMS_INDEX;
             break;
         case CREATE_DATA_OBJECT__TYPE__MATRIX:
+            debug_print("received data type: VRMS_MATRIX\n");
             vrms_type = VRMS_MATRIX;
+            break;
+        case CREATE_DATA_OBJECT__TYPE__TEXTURE:
+            debug_print("received data type: VRMS_TEXTURE\n");
+            vrms_type = VRMS_TEXTURE;
+            break;
+        case CREATE_DATA_OBJECT__TYPE__PROGRAM:
+            debug_print("received data type: VRMS_PROGRAM\n");
+            vrms_type = VRMS_PROGRAM;
+            break;
+        case CREATE_DATA_OBJECT__TYPE__REGISTER:
+            debug_print("received data type: VRMS_REGISTER\n");
+            vrms_type = VRMS_REGISTER;
             break;
         case _CREATE_DATA_OBJECT__TYPE_IS_INT_SIZE:
             break;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_data(vrms_scene, vrms_type, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length, cs_msg->value_length);
+        id = vrms_scene_create_object_data(vrms_scene, msg->memory_id, msg->memory_offset, msg->memory_length, msg->item_length, msg->data_length, vrms_type);
     }
 
     if (0 == id) {
@@ -170,13 +191,13 @@ uint32_t receive_create_data_object(vrms_server_t* vrms_server, uint8_t* in_buf,
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return id;
 }
 
 uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateTextureObject* cs_msg;
+    CreateTextureObject* msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -184,19 +205,19 @@ uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_b
         return 0;
     }
 
-    cs_msg = create_texture_object__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = create_texture_object__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         fprintf(stderr, "unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
         return 0;
     }
 
-    vrms_texture_format_t format = cs_msg->format;
-    vrms_texture_type_t type = cs_msg->type;
+    vrms_texture_format_t format = msg->format;
+    vrms_texture_type_t type = msg->type;
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_texture(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length, cs_msg->width, cs_msg->height, format, type);
+        id = vrms_scene_create_object_texture(vrms_scene, msg->data_id, msg->width, msg->height, format, type);
     }
 
     if (0 == id) {
@@ -207,7 +228,7 @@ uint32_t receive_create_texture_object(vrms_server_t* vrms_server, uint8_t* in_b
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return id;
 }
 
@@ -315,7 +336,7 @@ uint32_t receive_create_mesh_texture(vrms_server_t* vrms_server, uint8_t* in_buf
 
 uint32_t receive_create_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateProgram* cs_msg;
+    CreateProgram* msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -323,16 +344,16 @@ uint32_t receive_create_program(vrms_server_t* vrms_server, uint8_t* in_buf, int
         return 0;
     }
 
-    cs_msg = create_program__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = create_program__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_program(vrms_scene, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
+        id = vrms_scene_create_program(vrms_scene, msg->data_id);
     }
 
     if (0 == id) {
@@ -343,13 +364,13 @@ uint32_t receive_create_program(vrms_server_t* vrms_server, uint8_t* in_buf, int
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return id;
 }
 
 uint32_t receive_run_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    RunProgram* cs_msg;
+    RunProgram* msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -357,16 +378,16 @@ uint32_t receive_run_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_
         return 0;
     }
 
-    cs_msg = run_program__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = run_program__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_run_program(vrms_scene, cs_msg->program_id, cs_msg->memory_id, cs_msg->memory_offset, cs_msg->memory_length);
+        id = vrms_scene_run_program(vrms_scene, msg->program_id, msg->register_id);
     }
 
     if (0 == id) {
@@ -377,13 +398,13 @@ uint32_t receive_run_program(vrms_server_t* vrms_server, uint8_t* in_buf, int32_
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return id;
 }
 
 uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t ok;
-    UpdateSystemMatrix* cs_msg;
+    UpdateSystemMatrix* msg;
     vrms_matrix_type_t matrix_type;
     vrms_update_type_t update_type;
 
@@ -393,14 +414,14 @@ uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_bu
         return 0;
     }
 
-    cs_msg = update_system_matrix__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = update_system_matrix__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
-    switch (cs_msg->matrix_type) {
+    switch (msg->matrix_type) {
         case UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD:
             matrix_type = VRMS_MATRIX_HEAD;
             break;
@@ -411,7 +432,7 @@ uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_bu
             break;
     }
 
-    switch (cs_msg->update_type) {
+    switch (msg->update_type) {
         case UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY:
             update_type = VRMS_UPDATE_MULTIPLY;
             break;
@@ -422,9 +443,9 @@ uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_bu
             break;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        ok = vrms_scene_update_system_matrix(vrms_scene, cs_msg->memory_id, cs_msg->offset, cs_msg->size, matrix_type, update_type);
+        ok = vrms_scene_update_system_matrix(vrms_scene, msg->data_id, msg->data_index, matrix_type, update_type);
     }
 
 
@@ -436,13 +457,13 @@ uint32_t receive_update_system_matrix(vrms_server_t* vrms_server, uint8_t* in_bu
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return ok;
 }
 
 uint32_t receive_create_skybox(vrms_server_t* vrms_server, uint8_t* in_buf, int32_t length, vrms_error_t* error) {
     uint32_t id;
-    CreateSkybox* cs_msg;
+    CreateSkybox* msg;
 
     if (NULL == vrms_server) {
         *error = VRMS_INVALIDREQUEST;
@@ -450,16 +471,16 @@ uint32_t receive_create_skybox(vrms_server_t* vrms_server, uint8_t* in_buf, int3
         return 0;
     }
 
-    cs_msg = create_skybox__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    msg = create_skybox__unpack(NULL, length, in_buf);
+    if (msg == NULL) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, cs_msg->scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_server, msg->scene_id);
     if (NULL != vrms_scene) {
-        id = vrms_scene_create_object_skybox(vrms_scene, cs_msg->texture_id, cs_msg->size);
+        id = vrms_scene_create_object_skybox(vrms_scene, msg->texture_id);
     }
 
     if (0 == id) {
@@ -470,7 +491,7 @@ uint32_t receive_create_skybox(vrms_server_t* vrms_server, uint8_t* in_buf, int3
         *error = VRMS_OK;
     }
 
-    free(cs_msg);
+    free(msg);
     return id;
 }
 

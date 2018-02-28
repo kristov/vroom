@@ -34,12 +34,15 @@ typedef struct _CreateSkybox CreateSkybox;
 /* --- enums --- */
 
 typedef enum _CreateDataObject__Type {
-  CREATE_DATA_OBJECT__TYPE__UV = 0,
-  CREATE_DATA_OBJECT__TYPE__COLOR = 1,
-  CREATE_DATA_OBJECT__TYPE__VERTEX = 2,
-  CREATE_DATA_OBJECT__TYPE__NORMAL = 3,
-  CREATE_DATA_OBJECT__TYPE__INDEX = 4,
-  CREATE_DATA_OBJECT__TYPE__MATRIX = 5
+  CREATE_DATA_OBJECT__TYPE__VERTEX = 0,
+  CREATE_DATA_OBJECT__TYPE__NORMAL = 1,
+  CREATE_DATA_OBJECT__TYPE__INDEX = 2,
+  CREATE_DATA_OBJECT__TYPE__COLOR = 3,
+  CREATE_DATA_OBJECT__TYPE__UV = 4,
+  CREATE_DATA_OBJECT__TYPE__TEXTURE = 5,
+  CREATE_DATA_OBJECT__TYPE__MATRIX = 6,
+  CREATE_DATA_OBJECT__TYPE__PROGRAM = 7,
+  CREATE_DATA_OBJECT__TYPE__REGISTER = 8
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_DATA_OBJECT__TYPE)
 } CreateDataObject__Type;
 typedef enum _CreateTextureObject__Format {
@@ -111,23 +114,22 @@ struct  _CreateDataObject
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t memory_id;
-  CreateDataObject__Type type;
   int32_t memory_offset;
   int32_t memory_length;
-  int32_t value_length;
+  int32_t item_length;
+  int32_t data_length;
+  CreateDataObject__Type type;
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0, 0 }
 
 
 struct  _CreateTextureObject
 {
   ProtobufCMessage base;
   int32_t scene_id;
-  int32_t memory_id;
-  int32_t memory_offset;
-  int32_t memory_length;
+  int32_t data_id;
   int32_t width;
   int32_t height;
   CreateTextureObject__Format format;
@@ -135,20 +137,18 @@ struct  _CreateTextureObject
 };
 #define CREATE_TEXTURE_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_texture_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0, 0 }
 
 
 struct  _CreateProgram
 {
   ProtobufCMessage base;
   int32_t scene_id;
-  int32_t memory_id;
-  int32_t memory_offset;
-  int32_t memory_length;
+  int32_t data_id;
 };
 #define CREATE_PROGRAM__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_program__descriptor) \
-    , 0, 0, 0, 0 }
+    , 0, 0 }
 
 
 struct  _RunProgram
@@ -156,28 +156,25 @@ struct  _RunProgram
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t program_id;
-  int32_t memory_id;
-  int32_t memory_offset;
-  int32_t memory_length;
+  int32_t register_id;
 };
 #define RUN_PROGRAM__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&run_program__descriptor) \
-    , 0, 0, 0, 0, 0 }
+    , 0, 0, 0 }
 
 
 struct  _UpdateSystemMatrix
 {
   ProtobufCMessage base;
   int32_t scene_id;
-  int32_t memory_id;
+  int32_t data_id;
+  int32_t data_index;
   UpdateSystemMatrix__MatrixType matrix_type;
   UpdateSystemMatrix__UpdateType update_type;
-  int32_t offset;
-  int32_t size;
 };
 #define UPDATE_SYSTEM_MATRIX__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&update_system_matrix__descriptor) \
-    , 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0 }
 
 
 struct  _DestroyDataObject

@@ -20,19 +20,23 @@ message CreateMemory {
 
 message CreateDataObject {
     enum Type {
-        UV = 0;
-        COLOR = 1;
-        VERTEX = 2;
-        NORMAL = 3;
-        INDEX = 4;
-        MATRIX = 5;
+        VERTEX = 0;
+        NORMAL = 1;
+        INDEX = 2;
+        COLOR = 3;
+        UV = 4;
+        TEXTURE = 5;
+        MATRIX = 6;
+        PROGRAM = 7;
+        REGISTER = 8;
     }
     required int32 scene_id = 1;
     required int32 memory_id = 2;
-    required Type type = 3;
-    required int32 memory_offset = 4;
-    required int32 memory_length = 5;
-    required int32 value_length = 6;
+    required int32 memory_offset = 3;
+    required int32 memory_length = 4;
+    required int32 item_length = 5;
+    required int32 data_length = 6;
+    required Type type = 7;
 }
 
 message CreateTextureObject {
@@ -44,28 +48,22 @@ message CreateTextureObject {
         TEXTURE_CUBE_MAP = 1;
     }
     required int32 scene_id = 1;
-    required int32 memory_id = 2;
-    required int32 memory_offset = 3;
-    required int32 memory_length = 4;
-    required int32 width = 5;
-    required int32 height = 6;
-    required Format format = 7;
-    required Type type = 8;
+    required int32 data_id = 2;
+    required int32 width = 3;
+    required int32 height = 4;
+    required Format format = 5;
+    required Type type = 6;
 }
 
 message CreateProgram {
     required int32 scene_id = 1;
-    required int32 memory_id = 2;
-    required int32 memory_offset = 3;
-    required int32 memory_length = 4;
+    required int32 data_id = 2;
 }
 
 message RunProgram {
     required int32 scene_id = 1;
     required int32 program_id = 2;
-    required int32 memory_id = 3;
-    required int32 memory_offset = 4;
-    required int32 memory_length = 5;
+    required int32 register_id = 3;
 }
 
 message UpdateSystemMatrix {
@@ -78,11 +76,10 @@ message UpdateSystemMatrix {
         SET = 1;
     }
     required int32 scene_id = 1;
-    required int32 memory_id = 2;
-    required MatrixType matrix_type = 3;
-    required UpdateType update_type = 4;
-    required int32 offset = 5;
-    required int32 size = 6;
+    required int32 data_id = 2;
+    required int32 data_index = 3;
+    required MatrixType matrix_type = 4;
+    required UpdateType update_type = 5;
 }
 
 message DestroyDataObject {

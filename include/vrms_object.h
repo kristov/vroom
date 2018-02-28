@@ -15,9 +15,12 @@ typedef struct vrms_object_memory {
 } vrms_object_memory_t;
 
 typedef struct vrms_object_data {
-    vrms_data_type_t type;
+    uint32_t memory_id;
+    uint32_t memory_offset;
     uint32_t memory_length;
-    uint32_t value_length;
+    uint32_t item_length;
+    uint32_t data_length;
+    vrms_data_type_t type;
     GLuint gl_id;
     void* local_storage;
 } vrms_object_data_t;
@@ -73,7 +76,6 @@ typedef struct vrms_object_program {
 typedef struct vrms_object_skybox {
     uint32_t id;
     uint32_t texture_id;
-    uint32_t size;
     float* vertex_data;
     uint16_t* index_data;
     GLuint vertex_gl_id;
@@ -104,13 +106,13 @@ typedef struct vrms_object {
 
 vrms_object_t* vrms_object_create();
 vrms_object_t* vrms_object_memory_create(uint32_t fd, void* address, uint32_t size);
-vrms_object_t* vrms_object_data_create(vrms_data_type_t type, uint32_t memory_length, uint32_t value_length);
+vrms_object_t* vrms_object_data_create(uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type);
 vrms_object_t* vrms_object_texture_create(uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
 vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
 vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, float g, float b, float a);
 vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
 vrms_object_t* vrms_object_program_create(uint32_t program_length);
-vrms_object_t* vrms_object_skybox_create(uint32_t texture_id, uint32_t size);
+vrms_object_t* vrms_object_skybox_create(uint32_t texture_id);
 void vrms_object_memory_destroy(vrms_object_memory_t* memory);
 void vrms_object_data_destroy(vrms_object_data_t* data);
 void vrms_object_geometry_destroy(vrms_object_geometry_t* geometry);

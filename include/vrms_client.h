@@ -92,15 +92,20 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
 /**
  * @brief Create a data object
  *
- * This creates an object representing some data within a shared memory chunk
- * that needs to be used by the server.
+ * This creates an object representing some data within a shared memory chunk.
  *
  * @code{.c}
- * uint32_t data_id = vrms_client_create_data_object(client, type, memory_id, memory_offset, memory_length, value_length);
+ * uint32_t data_id = vrms_client_create_data_object(client, memory_id, memory_offset, memory_length, item_length, data_lengthi, type);
  * @endcode
+ * @param memory_id
+ * @param memory_offset
+ * @param memory_length
+ * @param item_length
+ * @param data_length
+ * @param type
  * @return A new object id
  */
-uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t type, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t value_length);
+uint32_t vrms_client_create_data_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
 
 /**
  * @brief Create a texture object
@@ -115,18 +120,16 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, vrms_data_type_t 
  * loaded into memory in the order XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG.
  *
  * @code{.c}
- * uint32_t texture_id = vrms_client_create_texture_object(client, memory_id, memory_offset, memory_length, width, height, format, type);
+ * uint32_t texture_id = vrms_client_create_texture_object(client, data_id, width, height, format, type);
  * @endcode
- * @param memory_id A shared memory object where the program is stored
- * @param memory_offset Memory offset for the location of the program
- * @param memory_length Length of the program in the memory object
+ * @param data_id A data object containing a texture
  * @param width The width of the texture
  * @param height The height of the texture
  * @param format The pixel format
  * @param type What type of texture (2D or Cube map)
  * @return A new object id
  */
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
+uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
 
 /**
  * @brief Create a new geometry object
@@ -175,7 +178,7 @@ uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_
  * @endcode
  * @param geometry_id The object id of a geometry
  * @param texture_id The object id of a texture
- * @param uv_id The object id of a data object containing UV coords
+ * @param uv_id A data object containing UV mapping coordinates
  * @return A new object id
  */
 uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
@@ -186,14 +189,12 @@ uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometr
  * Loads a program from a memory object.
  *
  * @code{.c}
- * uint32_t program_id = vrms_client_create_program(client, memory_id, memory_offset, memory_length);
+ * uint32_t program_id = vrms_client_create_program(client, data_id);
  * @endcode
- * @param memory_id A shared memory object where the program is stored
- * @param memory_offset Memory offset for the location of the program
- * @param memory_length Length of the program in the memory object
+ * @param data_id
  * @return A new object id
  */
-uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length);
+uint32_t vrms_client_create_program_object(vrms_client_t* client, uint32_t data_id);
 
 /**
  * @brief Run a program
@@ -207,15 +208,13 @@ uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t memory_id, u
  * lists of objects that can be referred to by indicies.
  *
  * @code{.c}
- * uint32_t ok = vrms_client_run_program(client, program_id, memory_id, memory_offset, memory_length);
+ * uint32_t ok = vrms_client_run_program(client, program_id, register_id);
  * @endcode
  * @param program_id Object id of a program to be run
- * @param memory_id A shared memory object where the register data can be found
- * @param memory_offset Memory offset for the location of the registers
- * @param memory_length Length of the register data in the memory object
+ * @param register_id A data object containing regester initialization values
  * @return A status
  */
-uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length);
+uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
 
 /**
  * @brief Update a system matrix
@@ -224,17 +223,15 @@ uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uin
  * from a client.
  *
  * @code{.c}
- * uint32_t ok = vrms_client_update_system_matrix(client, matrix_type, update_type, memory_id, offset, size);
+ * uint32_t ok = vrms_client_update_system_matrix(client, data_id, data_index, matrix_type, update_type);
  * @endcode
+ * @param data_id A data object containing matricies
+ * @param data_index An index into that array where the matrix is stored
  * @param matrix_type View or projection matrix
  * @param update_type Multiply or set
- * @param memory_id Where to find the matrix data
- * @param offset The memory offset of the matrix data
- * @param size Hos much data
- * the type VRMS_TEXTURE_CUBE_MAP
- * @return A new object id
+ * @return OK
  */
-uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, int32_t memory_id, uint32_t offset, uint32_t size);
+uint32_t vrms_client_update_system_matrix(vrms_client_t* client, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
 
 /**
  * @brief Create a Skybox
@@ -248,8 +245,7 @@ uint32_t vrms_client_update_system_matrix(vrms_client_t* client, vrms_matrix_typ
  * uint32_t skybox_id = vrms_client_create_skybox(client, texture_id, size);
  * @endcode
  * @param texture_id An object id for a loaded texture. The texture must be of
- * @param size Unused (TODO: delete this param)
  * the type VRMS_TEXTURE_CUBE_MAP
  * @return A new object id
  */
-uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id, uint32_t size);
+uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id);

@@ -14,12 +14,15 @@ typedef enum vrms_object_type {
 } vrms_object_type_t;
 
 typedef enum vrms_data_type {
-    VRMS_UV,
-    VRMS_COLOR,
     VRMS_VERTEX,
     VRMS_NORMAL,
     VRMS_INDEX,
-    VRMS_MATRIX
+    VRMS_COLOR,
+    VRMS_UV,
+    VRMS_TEXTURE,
+    VRMS_MATRIX,
+    VRMS_PROGRAM,
+    VRMS_REGISTER
 } vrms_data_type_t;
 
 typedef enum vrms_texture_format {
