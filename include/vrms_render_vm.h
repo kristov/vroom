@@ -9,6 +9,8 @@
 #define VM_DRAW     0x03
 #define VM_FRWAIT   0x04
 #define VM_GOTO     0x05
+#define VM_JNZ      0x06
+#define VM_DEC      0x07
 
 #define VM_REG0     0x00
 #define VM_REG1     0x01
@@ -19,6 +21,12 @@
 #define VM_REG6     0x06
 #define VM_REG7     0x07
 
+typedef enum vrms_render_vm_exception {
+    X_NO_EXCEPTION,
+    X_INVALID_OPCODE,
+    X_REGISTER_OUT_OF_BOUNDS
+} vrms_render_vm_exception_t;
+
 typedef struct vrms_render_vm vrms_render_vm_t;
 struct vrms_render_vm {
     uint8_t running;
@@ -27,6 +35,7 @@ struct vrms_render_vm {
     float* sysmregister[2];
     float* mregister[NUM_REGS];
     uint8_t iregister[NUM_REGS];
+    vrms_render_vm_exception_t exception;
     float* (*load_matrix)(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t offset, void* user_data);
     void (*draw)(vrms_render_vm_t* vm, float* matrix, uint32_t object_id, void* user_data);
     void* user_data;

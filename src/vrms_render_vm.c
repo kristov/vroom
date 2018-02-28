@@ -59,7 +59,9 @@ void vrms_render_vm_alloc_ex_interrupt(vrms_render_vm_t* vm) {
 }
 
 uint8_t vrms_render_vm_has_exception(vrms_render_vm_t* vm) {
-    // TODO: Change the return type to an actual exception
+    if (vm->exception) {
+        return 1;
+    }
     return 0;
 }
 
@@ -121,11 +123,17 @@ void vrms_render_vm_draw(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t obj_reg)
     vm->draw(vm, matrix, object_id, vm->user_data);
 }
 
+void vrms_render_vm_exception(vrms_render_vm_t* vm, vrms_render_vm_exception_t exception) {
+    vm->running = 0;
+    vm->exception = exception;
+}
+
 uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t length) {
     uint8_t reg1;
     uint8_t reg2;
     uint8_t reg3;
     uint32_t ival1;
+    uint32_t ival2;
     uint8_t opcode;
     uint32_t PC;
 
@@ -133,8 +141,12 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
         return vm->running;
     }
 
-    vm->running = 1;
     PC = vm->program_counter;
+    if (PC >= length) {
+        vrms_render_vm_reset(vm);
+        return 0;
+    }
+
     opcode = program[PC];
     PC++;
 
@@ -149,8 +161,8 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             ival1 = program[PC];
             PC++;
             if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             vm->iregister[reg1] = ival1;
@@ -163,18 +175,18 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             reg3 = program[PC];
             PC++;
             if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             if (reg2 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             if (reg3 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             vrms_render_vm_load_matrix(vm, reg1, reg2, reg3);
@@ -185,13 +197,13 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             reg2 = program[PC];
             PC++;
             if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             if (reg2 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
                 PC = 0;
-                vm->running = 0;
                 break;
             }
             vrms_render_vm_draw(vm, reg1, reg2);
@@ -203,7 +215,28 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             ival1 = program[PC];
             PC = ival1;
             break;
+        case VM_JNZ:
+            reg1 = program[PC];
+            PC++;
+            if (reg1 >= NUM_REGS) {
+                vrms_render_vm_exception(vm, X_REGISTER_OUT_OF_BOUNDS);
+                PC = 0;
+                break;
+            }
+            ival1 = vm->iregister[reg1];
+            ival2 = program[PC];
+            PC++;
+            if (ival1 != 0) {
+                PC = ival2;
+            }
+            break;
+        case VM_DEC:
+            reg1 = program[PC];
+            PC++;
+            vm->iregister[reg1]--;
+            break;
         default:
+            vrms_render_vm_exception(vm, X_INVALID_OPCODE);
             vm->running = 0;
             break;
     }
