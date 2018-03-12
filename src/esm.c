@@ -7,7 +7,7 @@
 #else /* not RASPBERRYPI */
 #include <GL/gl.h>
 #endif /* RASPBERRYPI */
-#include "safe_malloc.h"
+#include "safemalloc.h"
 #include "esm.h"
 
 #define PI 3.1415926535f

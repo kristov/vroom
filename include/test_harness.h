@@ -14,3 +14,4 @@ void test_harness_exit_with_status(test_harness_t* test);
 void is_equal_string(test_harness_t* test, char* provided, const char* desired, const char* test_name);
 void is_equal_uint32(test_harness_t* test, uint32_t provided, uint32_t desired, const char* test_name);
 void is_equal_uint8(test_harness_t* test, uint8_t provided, uint8_t desired, const char* test_name);
+void is_equal_float(test_harness_t* test, float provided, float desired, const char* test_name);

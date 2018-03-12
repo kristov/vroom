@@ -32,7 +32,7 @@
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (scene->next_object_id <= id) {
-        debug_print("id out of range\n");
+        debug_print("id: %d out of range\n", id);
         return NULL;
     }
     vrms_object = scene->objects[id];
@@ -744,8 +744,9 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
     debug_render_print("vrms_scene_draw(): allocation for render is %d usec\n", render_allocation_usec);
     if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
 
-        vrms_render_vm_sysmregister_set(vm, VM_REG0, projection_matrix);
-        vrms_render_vm_sysmregister_set(vm, VM_REG1, view_matrix);
+        vrms_render_vm_sysmregister_set(vm, VM_SYSMREG_PROJECTION, projection_matrix);
+        vrms_render_vm_sysmregister_set(vm, VM_SYSMREG_VIEW, view_matrix);
+        vrms_render_vm_sysiregister_set(vm, VM_SYSIREG_USEC_ALLOC, render_allocation_usec);
 
         start.tv_sec = 0;
         start.tv_nsec = 0;
@@ -753,7 +754,9 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
         end.tv_nsec = 0;
         usec_elapsed = 0;
 
+        vrms_render_vm_sysiregister_set(vm, VM_SYSIREG_USEC_ELAPSED, usec_elapsed);
         clock_gettime(CLOCK_MONOTONIC, &start);
+
         while (vrms_render_vm_exec(vm, scene->render_buffer, scene->render_buffer_size)) {
 
             clock_gettime(CLOCK_MONOTONIC, &end);
@@ -766,6 +769,8 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
                 vrms_render_vm_alloc_ex_interrupt(vm);
                 debug_render_print("vrms_scene_draw(): allocation exceeded after %d usec\n", usec_elapsed);
             }
+
+            vrms_render_vm_sysiregister_set(vm, VM_SYSIREG_USEC_ELAPSED, usec_elapsed);
         }
         if (vrms_render_vm_has_exception(vm)) {
             // TODO: queue message to client that exception occurred
@@ -824,8 +829,8 @@ void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* model_matrix, uint32_t obje
 
     scene = (vrms_scene_t*)user_data;
 
-    projection_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG0);
-    view_matrix = vrms_render_vm_sysmregister_value(vm, VM_REG1);
+    projection_matrix = vrms_render_vm_sysmregister_get(vm, VM_REG0);
+    view_matrix = vrms_render_vm_sysmregister_get(vm, VM_REG1);
 
     vrms_server_draw_scene_object(scene, object_id, projection_matrix, view_matrix, model_matrix);
 }

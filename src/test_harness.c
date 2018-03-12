@@ -90,3 +90,17 @@ void is_equal_uint8(test_harness_t* test, uint8_t provided, uint8_t desired, con
         if (test->verbose) fprintf(stderr, "pass: %s\n", test_name);
     }
 }
+
+void is_equal_float(test_harness_t* test, float provided, float desired, const char* test_name) {
+    if (provided != desired) {
+        test->failures++;
+        if (test->verbose) {
+            fprintf(stderr, "FAIL: %s\n", test_name);
+            fprintf(stderr, "    provided: %0.4f, desired: %0.4f\n", provided, desired);
+        }
+    }
+    else {
+        test->passes++;
+        if (test->verbose) fprintf(stderr, "pass: %s\n", test_name);
+    }
+}
