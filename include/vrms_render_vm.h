@@ -109,7 +109,7 @@ struct vrms_render_vm {
     uint32_t program_counter;
     uint8_t last_opcode;
     float* sysmregister[2];
-    vrms_render_vm_sysireg_t sysiregister[1];
+    vrms_render_vm_sysireg_t sysiregister[2];
     uint32_t iregister[INT_REG_SIZE];
     float fregister[FLO_REG_SIZE];
     float vregister[VEC_REG_SIZE];
