@@ -93,15 +93,23 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
  * @brief Create a data object
  *
  * This creates an object representing some data within a shared memory chunk.
+ * It has three length variables that describe the data in a data object. The
+ * memory_length refers to the total length of the data object in bytes. The
+ * item_length refers to the length in bytes of a single item in the data
+ * object. For a vertex containing three floats this is sizeof(float) * 3. The
+ * data_length refers to the length in bytes of a value inside an item. For a
+ * vertex this is sizeof(float). If you want to know how many floats make up a
+ * vertex it is item_length / data_length. If you want to know how many
+ * verticies in the data object it is memory_length / item_length.
  *
  * @code{.c}
- * uint32_t data_id = vrms_client_create_data_object(client, memory_id, memory_offset, memory_length, item_length, data_lengthi, type);
+ * uint32_t data_id = vrms_client_create_data_object(client, memory_id, memory_offset, memory_length, item_length, data_length, type);
  * @endcode
- * @param memory_id
- * @param memory_offset
- * @param memory_length
- * @param item_length
- * @param data_length
+ * @param memory_id The memory object this data object is in
+ * @param memory_offset The offset into this memory object where the data begins in bytes
+ * @param memory_length The total length of this data object in bytes
+ * @param item_length The length of each component within the data object in bytes
+ * @param data_length The length of each value within a component in bytes
  * @param type
  * @return A new object id
  */
