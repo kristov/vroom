@@ -161,6 +161,10 @@ void vrms_render_vm_load_matrix(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t r
         return;
     }
 
+    // TODO: BAD - load_matrix() is probably called a lot, meaning memcpy()
+    // calls all over the show. It might be better to mount a block of memory
+    // into the VM from a matrix data object, and then use an integer register
+    // as an index into that mounted block for the draw calls
     memcpy(&vm->mregister[reg_mat * 16], matrix, 16 * sizeof(float));
 }
 
