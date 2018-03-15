@@ -8,14 +8,14 @@ TESTDIR := test
 INCDIR := include
 EXTDIR := external
 
-SERVEROBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_server_socket.o array_heap.o safe_malloc.o vrms_render_vm.o)
+SERVEROBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_server_socket.o array_heap.o vrms_render_vm.o)
 SERVERLINKS := -lrt -lev -lprotobuf-c -lm -lpthread
 
-CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square mixed input_openhmd)
-CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o safe_malloc.o)
+CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox)
+CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
 
-TESTS := $(addprefix $(TESTDIR)/, test_hid_device test_hid_monitor)
+TESTS := $(addprefix $(TESTDIR)/, test_hid_device test_hid_monitor test_render_vm)
 
 EXTGL := -lGL -lGLU -lglut
 INCDIRS := -I$(INCDIR) -I$(EXTDIR)
