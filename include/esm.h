@@ -7,6 +7,7 @@ void esmFrustumf(float* M, float left, float right, float bottom, float top, flo
 void esmPerspectivef(float* M, float fovy, float aspect, float near, float far);
 void esmOrthof(float* M, float left, float right, float bottom, float top, float near, float far);
 void esmLoadIdentity(float* M);
+void esmQuaternionToMatrix(float* M, float x, float y, float z, float w);
 float* esmNormalMatrixFromProjection(float* M);
 float* esmCreate();
 void esmCopy(float* dst, float* src);

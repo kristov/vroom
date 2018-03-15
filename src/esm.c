@@ -118,6 +118,46 @@ void esmTranslatef(float* M, float x, float y, float z) {
     M[15] = M[3] * x + M[7] * y + M[11] * z + M[15];
 }
 
+void esmQuaternionToMatrix(float* M, float x, float y, float z, float w) {
+    float xsq;
+    float ysq;
+    float zsq;
+    float xy;
+    float xz;
+    float yz;
+    float wx;
+    float wy;
+    float wz;
+
+    xsq = x * x;
+    ysq = y * y;
+    zsq = z * z;
+
+    xy = x * y;
+    xz = x * z;
+    yz = y * z;
+    wx = w * x;
+    wy = w * y;
+    wz = w * z;
+
+    M[0] = 1 - (2 * ysq) - (2 * zsq);
+    M[1] = (2 * xy) + (2 * wz);
+    M[2] = (2 * xz) - (2 * wy);
+    M[3] = 0;
+    M[4] = (2 * xy) - (2 * wz);
+    M[5] = 1 - (2 * xsq) - (2 * zsq);
+    M[6] = (2 * yz) + (2 * wx);
+    M[7] = 0;
+    M[8] = (2 * xz) + (2 * wy);
+    M[9] = (2 * yz) - (2 * wx);
+    M[10] = 1 - (2 * xsq) - (2 * ysq);
+    M[11] = 0;
+    M[12] = 0;
+    M[13] = 0;
+    M[14] = 0;
+    M[15] = 1;
+}
+
 void esmRotatef(float* M, float angle, float x, float y, float z) {
     float len = sqrt(x * x + y * y + z * z),
             s, c, t,
