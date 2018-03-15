@@ -937,6 +937,9 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     program = &((uint8_t*)shared_mem)[prog_off];
     registers = &((uint32_t*)shared_mem)[reg_off];
 
+    esmLoadIdentity(model_matrix);
+    esmTranslatef(model_matrix, x, y, z);
+
     registers[0] = object_id;
     registers[1] = memory_id;
     registers[2] = 0; // index to matrix in memory
@@ -946,19 +949,19 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     registers[6] = 0;
     registers[7] = 0;
 
-    program[0] = VM_LOADMM;
+    program[0] = VM_MATLM;
     program[1] = VM_REG0;
     program[2] = VM_REG1;
     program[3] = VM_REG2;
+
     program[4] = VM_DRAW;
     program[5] = VM_REG0;
     program[6] = VM_REG0;
-    program[7] = VM_FRWAIT;
-    program[8] = VM_GOTO;
-    program[9] = 0x04;
 
-    esmLoadIdentity(model_matrix);
-    esmTranslatef(model_matrix, x, y, z);
+    program[7] = VM_FRWAIT;
+
+    program[8] = VM_JMP;
+    program[9] = 0x04;
 
     program_data_id = vrms_client_create_data_object(client, memory_id, prog_off, prog_size, 1, 1, VRMS_PROGRAM);
     if (0 == program_data_id) {
