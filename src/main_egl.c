@@ -1,38 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
 #include <errno.h>
-#ifdef RASPBERRYPI
+#include <gbm.h>
+#include <libdrm/drm.h>
+#include <xf86drmMode.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#else /* not RASPBERRYPI */
-#define GL_GLEXT_PROTOTYPES
-#include <GL/glut.h>
-#endif /* RASPBERRYPI */
-#include "bcm_host.h"
 #include "vrms_server_socket.h"
 
 #define NANO_SECOND_MULTIPLIER 1000000
 const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
 int32_t main(int argc, char **argv) {
-    int minor_v, major_v;
-    uint32_t width, height;
-    int32_t success;
-
-    DISPMANX_ELEMENT_HANDLE_T dispman_element;
-    DISPMANX_DISPLAY_HANDLE_T dispman_display;
-    DISPMANX_UPDATE_HANDLE_T dispman_update;
-    VC_RECT_T dst_rect;
-    VC_RECT_T src_rect;
-    EGL_DISPMANX_WINDOW_T dispman_window;
-
-    EGLBoolean result;
+    int fd;
+    struct gbm_device* gbm;
     EGLDisplay display;
     EGLint num_configs;
     EGLConfig config;
-    EGLSurface surface;
-    EGLNativeWindowType window;
     EGLContext context;
+    EGLint major_v;
+    EGLint minor_v;
+    EGLBoolean result;
+    const char* version;
+    const char* extensions;
 
     EGLint attr_context[] = {
         EGL_CONTEXT_CLIENT_VERSION, 2,
@@ -48,30 +40,110 @@ int32_t main(int argc, char **argv) {
         EGL_NONE
     };
 
-    bcm_host_init();
-    success = graphics_get_display_size( 0, &width, &height);
+    fd = open("/dev/dri/card0", O_RDWR);
 
-    if (success < 0) {
-        fprintf(stderr, "graphics_get_display_size failed (%d)\n", success);
+    gbm = gbm_create_device(fd);
+
+    display = eglGetDisplay(gbm);
+
+    result = eglInitialize(display, &major_v, &minor_v);
+    if (result == EGL_FALSE) {
+        fprintf(stderr, "eglInitialize failed\n");
         return 1;
     }
 
-    fprintf(stderr, "size: [%dx%d]\n", width, height);
+    version = eglQueryString(display, EGL_VERSION);
+    extensions = eglQueryString(display, EGL_EXTENSIONS);
 
-    vc_dispmanx_rect_set(&dst_rect, 0, 0, width, height);
-    vc_dispmanx_rect_set(&src_rect, 0, 0, width, height);
+    fprintf(stderr, "extensions: %s\n", extensions);
+    fprintf(stderr, "version: %s\n", version);
 
-    dispman_display = vc_dispmanx_display_open(0);
-    dispman_update = vc_dispmanx_update_start(0);
-    dispman_element = vc_dispmanx_element_add(dispman_update, dispman_display, 0, &dst_rect, 0, &src_rect, DISPMANX_PROTECTION_NONE, 0, 0, 0);
+    //if (!strstr(extensions, "EGL_KHR_surfaceless_opengl")) {
+    //    fprintf(stderr, "no surfaceless support, cannot initialize\n");
+    //    exit(-1);
+    //}
 
-    dispman_window.element = dispman_element;
-    dispman_window.width = width;
-    dispman_window.height = height;
+    drmModeRes *resources;
+    drmModeConnector *connector;
+    drmModeEncoder *encoder;
+    drmModeModeInfo mode;
+    int i;
+ 
+    /* Find the first available connector with modes */
+ 
+    resources = drmModeGetResources(fd);
+    if (!resources) {
+        fprintf(stderr, "drmModeGetResources failed\n");
+        return 1;
+    }
 
-    vc_dispmanx_update_submit_sync(dispman_update);
+    for (i = 0; i < resources->count_connectors; i++) {
+        connector = drmModeGetConnector(fd, resources->connectors[i]);
+        if (connector == NULL)
+            continue;
 
-    window = &dispman_window;
+        if (connector->connection == DRM_MODE_CONNECTED &&
+            connector->count_modes > 0)
+            break;
+
+        drmModeFreeConnector(connector);
+    }
+
+    if (i == resources->count_connectors) {
+        fprintf(stderr, "No currently active connector found.\n");
+        return 1;
+    }
+
+    for (i = 0; i < resources->count_encoders; i++) {
+        encoder = drmModeGetEncoder(fd, resources->encoders[i]);
+
+        if (encoder == NULL)
+            continue;
+
+        if (encoder->encoder_id == connector->encoder_id)
+            break;
+
+        drmModeFreeEncoder(encoder);
+    }
+
+    mode = connector->modes[0];
+
+    fprintf(stderr, "W: %d, H: %d\n", mode.hdisplay, mode.vdisplay);
+
+    result = eglGetConfigs(display, NULL, 0, &num_configs);
+    if (result == EGL_FALSE) {
+        fprintf(stderr, "eglGetConfigs failed (getting the number of configs)\n");
+        return 1;
+    }
+
+    result = eglChooseConfig(display, attr_list, &config, 1, &num_configs);
+    if (result == EGL_FALSE) {
+        fprintf(stderr, "eglChooseConfig failed\n");
+        return 1;
+    }
+
+    eglBindAPI(EGL_OPENGL_API);
+    context = eglCreateContext(display, NULL, EGL_NO_CONTEXT, attr_context);
+    if (context == EGL_NO_CONTEXT) {
+        fprintf(stderr, "eglCreateContext failed\n");
+        return 1;
+    }
+
+    result = eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, context);
+    if (result == EGL_FALSE) {
+        fprintf(stderr, "eglMakeCurrent failed\n");
+        return 1;
+    }
+
+
+
+/*
+    int minor_v, major_v;
+    uint32_t width, height;
+    int32_t success;
+
+    EGLBoolean result;
+    EGLDisplay display;
 
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
@@ -146,5 +218,8 @@ int32_t main(int argc, char **argv) {
     }
 
     vrms_server_socket_end();
+
+*/
+
     return 0;
 }

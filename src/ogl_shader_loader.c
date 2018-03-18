@@ -1,12 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#ifdef RASPBERRYPI
-#include <GLES2/gl2.h>
-#else /* not RASPBERRYPI */
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#endif /* RASPBERRYPI */
+#include "vrms_gl.h"
 #include "safe_malloc.h"
 
 GLchar *file_contents(const char *filename, GLint *length) {

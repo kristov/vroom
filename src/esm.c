@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
-#ifdef RASPBERRYPI
-#include <GLES/gl.h>
-#else /* not RASPBERRYPI */
-#include <GL/gl.h>
-#endif /* RASPBERRYPI */
 #include "safemalloc.h"
 #include "esm.h"
 

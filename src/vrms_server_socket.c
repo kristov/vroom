@@ -2,14 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>
-#ifdef RASPBERRYPI
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#else /* not RASPBERRYPI */
-#define GL_GLEXT_PROTOTYPES
-#include <GL/glut.h>
-#endif /* RASPBERRYPI */
+#include "vrms_gl.h"
 #include <string.h>
 #include <fcntl.h>
 #include <sys/types.h>

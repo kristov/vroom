@@ -2,14 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#ifdef RASPBERRYPI
-#include <GLES/gl.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#else /* not RASPBERRYPI */
-#define GL_GLEXT_PROTOTYPES
-#include <GL/glut.h>
-#endif /* RASPBERRYPI */
+#include "vrms_gl.h"
 #define DTR 0.0174532925
 #include "safe_malloc.h"
 #include "opengl_stereo.h"
@@ -421,11 +414,11 @@ void opengl_stereo_display(opengl_stereo* ostereo) {
 
 void initGL(opengl_stereo* ostereo) {
     glEnable(GL_DEPTH_TEST);
-    glMatrixMode(GL_PROJECTION);
-    glMatrixMode(GL_MODELVIEW);
+    //glMatrixMode(GL_PROJECTION);
+    //glMatrixMode(GL_MODELVIEW);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_CUBE_MAP);
-    glLoadIdentity();
+    //glLoadIdentity();
 }
 
 void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
