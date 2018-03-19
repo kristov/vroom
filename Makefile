@@ -22,14 +22,14 @@ INCDIRS := -I$(INCDIR) -I$(EXTDIR)
 LINKDIRS :=
 PREPROC :=
 
-rpi-server : EXTGL := -lbcm_host -lEGL -lGLESv2
-rpi-server : INCDIRS := -I/opt/vc/include -I$(INCDIR)
-rpi-server : LINKDIRS := -L/opt/vc/lib
-rpi-server : PREPROC := -DRASPBERRYPI
+eglbcm-server : EXTGL := -lbcm_host -lEGL -lGLESv2
+eglbcm-server : INCDIRS := -I/opt/vc/include -I$(INCDIR)
+eglbcm-server : LINKDIRS := -L/opt/vc/lib
+eglbcm-server : PREPROC := -DRASPBERRYPI
 
-egl-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
-egl-server : INCDIRS := -I/usr/include/libdrm -I$(INCDIR)
-egl-server : PREPROC := -DEGLGBM
+eglkms-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
+eglkms-server : INCDIRS := -I/usr/include/libdrm -I$(INCDIR)
+eglkms-server : PREPROC := -DEGLGBM
 
 all: x11-server clients tests
 
@@ -45,10 +45,10 @@ $(OBJDIR):
 x11-server: src/main_glut.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
-rpi-server: src/main_bcm.c $(SERVEROBJS)
+eglbcm-server: src/main_eglbcm.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
-egl-server: src/main_egl.c $(SERVEROBJS)
+eglkms-server: src/main_eglkms.c $(SERVEROBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
