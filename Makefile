@@ -31,7 +31,7 @@ egl-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
 egl-server : INCDIRS := -I/usr/include/libdrm -I$(INCDIR)
 egl-server : PREPROC := -DEGLGBM
 
-all: server clients tests
+all: x11-server clients tests
 
 doc: Doxyfile
 	doxygen Doxyfile
