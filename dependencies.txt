@@ -5,4 +5,5 @@ libconfig8-dev
 libev-dev
 libgles2-mesa-dev
 libudev-dev
-libopenhmd-dev
+# git clone https://github.com/OpenHMD/OpenHMD.git
+# or maybe libopenhmd-dev
