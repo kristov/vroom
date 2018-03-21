@@ -4,3 +4,5 @@ freeglut3-dev
 libconfig8-dev
 libev-dev
 libgles2-mesa-dev
+libudev-dev
+libopenhmd-dev
