@@ -84,6 +84,9 @@ protobuf: vroom.proto
 	mv vroom.pb-c.h $(INCDIR)/vroom_pb.h
 	sed -i 's/vroom.pb-c.h/vroom_pb.h/g' $(SRCDIR)/vroom_pb.c
 
+check: all
+	test/test_render_vm
+
 clean:
 	rm -f $(OBJDIR)/*
 	rm -f vroom-server
