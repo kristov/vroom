@@ -31,7 +31,7 @@ eglkms-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
 eglkms-server : INCDIRS := -I/usr/include/libdrm -I$(INCDIR)
 eglkms-server : PREPROC := -DEGLGBM
 
-all: x11-server clients tests
+all: $(BINDIR) $(OBJDIR) x11-server clients tests
 
 doc: Doxyfile
 	doxygen Doxyfile
