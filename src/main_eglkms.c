@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -11,6 +12,9 @@
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include "vrms_server_socket.h"
+
+#define NANO_SECOND_MULTIPLIER 1000000
+const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
 typedef struct eglkms_context {
     int fd;
@@ -36,11 +40,6 @@ typedef struct eglkms_context {
 //    ;
 //}
 
-void render_stuff() {
-    glClearColor(1.0f, 0.6f, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
 void render_loop(eglkms_context_t* context) {
     struct gbm_bo *previous_bo;
     uint32_t previous_fb;
@@ -49,9 +48,17 @@ void render_loop(eglkms_context_t* context) {
     uint32_t handle;
     uint32_t pitch;
     uint32_t fb;
+    struct timespec ts;
+
+    ts.tv_sec = 0;
+    ts.tv_nsec = INNER_LOOP_INTERVAL_MS;
+
+    double physical_width = 0.7;
+    vrms_server_socket_init(context->width, context->height, physical_width);
 
     quit = 0;
     do {
+        vrms_server_socket_display();
         eglSwapBuffers(context->egl_display, context->egl_surface);
         bo = gbm_surface_lock_front_buffer(context->gbm_surface);
         handle = gbm_bo_get_handle(bo).u32;
@@ -66,7 +73,8 @@ void render_loop(eglkms_context_t* context) {
         }
         previous_bo = bo;
         previous_fb = fb;
-        render_stuff();
+        vrms_server_socket_process();
+        nanosleep(&ts, NULL);
     } while (!quit);
 }
 
