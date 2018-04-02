@@ -16,6 +16,12 @@
 #define NANO_SECOND_MULTIPLIER 1000000
 const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
+#define DEBUG 1
+#define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+
+// Hack to render to Oculus rift (0 width, 0 height reported by DRM connector)
+#define MAX_WIDTH_MM_NON_HMS 200
+
 typedef struct eglkms_context {
     int fd;
     struct gbm_device* gbm;
@@ -144,39 +150,67 @@ void kms_drm(eglkms_context_t* context) {
     }
     for (i = 0; i < resources->count_connectors; i++) {
         connector = drmModeGetConnector(context->fd, resources->connectors[i]);
-        if (connector == NULL)
+
+        if (NULL == connector) {
             continue;
-        if (connector->connection == DRM_MODE_CONNECTED && connector->count_modes > 0)
-            break;
-        drmModeFreeConnector(connector);
+        }
+
+        if ((connector->connection != DRM_MODE_CONNECTED) || (connector->count_modes == 0)) {
+            drmModeFreeConnector(connector);
+            continue;
+        }
+
+        if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
+            drmModeFreeConnector(connector);
+            continue;
+        }
+
+        fprintf(stderr, "connector: %d\n", i);
+        fprintf(stderr, "     connector_type: %d\n", connector->connector_type);
+        fprintf(stderr, "         connection: %d\n", connector->connection);
+        fprintf(stderr, "        count_modes: %d\n", connector->count_modes);
+        fprintf(stderr, "            mmWidth: %d\n", connector->mmWidth);
+        fprintf(stderr, "           mmHeight: %d\n", connector->mmHeight);
+        if (NULL == context->kms_connector) {
+            context->kms_connector = connector;
+        }
+        else {
+            drmModeFreeConnector(connector);
+        }
     }
-    if (i == resources->count_connectors) {
+    if (NULL == context->kms_connector) {
         fprintf(stderr, "No currently active connector found.\n");
         return;
     }
+
+    debug_print("Found connector\n");
+
     for (i = 0; i < resources->count_encoders; i++) {
         encoder = drmModeGetEncoder(context->fd, resources->encoders[i]);
         if (encoder == NULL)
             continue;
-        if (encoder->encoder_id == connector->encoder_id)
+        if (encoder->encoder_id == context->kms_connector->encoder_id)
             break;
         drmModeFreeEncoder(encoder);
     }
+
+    debug_print("Found encoder\n");
 
     if (encoder->crtc_id) {
         context->kms_crtc = drmModeGetCrtc(context->fd, encoder->crtc_id);
     }
 
-    context->kms_connector = connector;
     context->kms_encoder = encoder;
-    context->kms_mode = connector->modes[0];
+    context->kms_mode = context->kms_connector->modes[0];
     
     context->width = context->kms_mode.hdisplay;
     context->height = context->kms_mode.vdisplay;
 
+    debug_print("Using mode %dx%d\n", context->width, context->height);
+
     egl_context(context);
 
-    drmModeFreeConnector(connector);
+    drmModeFreeConnector(context->kms_connector);
     drmModeFreeEncoder(encoder);
 }
 
