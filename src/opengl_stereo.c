@@ -438,7 +438,7 @@ void opengl_stereo_init_system(opengl_stereo* ostereo) {
     //double half_iod = ostereo->IOD / 2;
     //double correction_ratio = 2 / ostereo->physical_width;
 
-    ostereo->texture_shift = 0;
+    ostereo->texture_shift = 0.095f;
     //ostereo->texture_shift = (half_screen_width - half_iod) * correction_ratio;
 
     //fprintf(stderr, "           Physical width (dm): %0.2f\n", ostereo->physical_width);
