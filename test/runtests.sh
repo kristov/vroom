@@ -1,10 +1,11 @@
 #!/bin/bash
 
 for TEST in ./test/test_*; do
+    echo -n "${TEST}: "
     ${TEST};
     if [ $? -eq 0 ]; then
-        echo "${TEST}: OK";
+        echo "OK";
     else
-        echo "${TEST}: FAILURES $?";
+        echo "FAILURES $?";
     fi
 done
