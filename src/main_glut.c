@@ -28,7 +28,7 @@ void initWindowingSystem(int *argc, char **argv, int width, int height) {
     glutReshapeFunc(reshape);
     glutTimerFunc(10, do_timer, 1);
 
-    const GLubyte* extensions = glGetString(GL_EXTENSIONS);
+    //const GLubyte* extensions = glGetString(GL_EXTENSIONS);
     //fprintf(stderr, "extensions: %s\n", extensions);
 
     const GLubyte* shaderv = glGetString(GL_SHADING_LANGUAGE_VERSION);

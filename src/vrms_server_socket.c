@@ -569,7 +569,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     length_r = recvmsg(client->fd, &msgh, 0);
     if (-1 == length_r) {
-        fprintf(stderr, "receiving control fd\n");
+        fprintf(stderr, "error receiving control fd\n");
         send_reply(client->fd, id, &error);
         return;
     }
