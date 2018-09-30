@@ -1,0 +1,242 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Data::Dumper;
+my $opts = {};
+GetOptions(
+    $opts,
+    'input=s',
+    'output=s',
+);
+
+my %INS_ARG_LENGTH = (
+    HALT => [0x00, 0],      # Halt the program immediately. Does not reset the VM
+    FRWAIT => [0x01, 0],    # Signal to the VM that the frame drawing is complete
+    RESET => [0x02, 0],     # Reset the VM and move the instruction pointer to 0
+
+    #Control flow instructions
+    JMP => [0x03, 1],       # Move the instruction pointer to a constant
+    JMPNZ => [0x04, 2],     # Move the instruction pointer to a constant if a register is not zero
+    JMPZ => [0x05, 2],      # Move the instruction pointer to a constant if a register is zero
+    JMPI => [0x06, 1],      # Move the instruction pointer to a value stored in an integer register
+
+    # Integer register instructions
+    INTL => [0x07, 2],      # Load an integer register with a constant value
+    INTLI => [0x08, 2],     # Load an integer register with a value from another integer register
+    INTLS => [0x09, 2],     # Load an integer register from one of the system integer registers
+    INTDEC => [0x0a, 1],    # Decrement an integer register
+    INTINC => [0x0b, 1],    # Increment an integer register
+    INTMUL => [0x0c, 3],    # Multiply two integer registers together and store the result in another integer register
+    INTDIVF => [0x0d, 3],   # Divide an integer register with another integer register and store in a float register
+    INTDIVII => [0x0e, 4],  # Divide an integer register with another integer register and store the quotent in one register and the remainder in another register
+    INTLFI => [0x0f, 2],    # Load an integer register with the integer part of a float register
+    INTLFF => [0x10, 2],    # Load an integer register with the fractional part of a float register (4 decimal places 0.9999 becomes 9999)
+
+    # Float register instructions
+    FLOL => [0x11, 2],      # Load a float register with an integer constant
+    FLOADD => [0x12, 3],    # Add two float registers together and store in another float register
+    FLOMUL => [0x13, 3],    # Multiply two float registers together and store in another float register
+    FLODIV => [0x14, 3],    # Divide two float registers and store the result in another float register
+    FLOLII => [0x15, 2],    # Load the integer component of a float register from an integer register (zeros fractional part)
+    FLOLIF => [0x16, 2],    # Load the fractional component of a float register from an integer register (4 decimal places => [], if the integer is larger than 9999 it is floored to 9999)
+
+    # Vector register instructions
+    VECL => [0x17, 4],      # Load a vector register with the values of three float registers
+    VECLX => [0x18, 2],     # Load the X component of a vector from a float register
+    VECLY => [0x19, 2],     # Load the Y component of a vector from a float register
+    VECLZ => [0x1a, 2],     # Load the Z component of a vector from a float register
+    VECLXI => [0x1b, 2],    # Load the X component of a vector from an integer register
+    VECLYI => [0x1c, 2],    # Load the Y component of a vector from an integer register
+    VECLZI => [0x1d, 2],    # Load the Z component of a vector from an integer register
+    VECLXC => [0x1e, 2],    # Load the X component of a vector from an integer constant
+    VECLYC => [0x1f, 2],    # Load the Y component of a vector from an integer constant
+    VECLZC => [0x20, 2],    # Load the Z component of a vector from an integer constant
+    VECINCX => [0x21, 2],   # Increment the X component of a vector by a float register
+    VECINCY => [0x22, 2],   # Increment the Y component of a vector by a float register
+    VECINCZ => [0x23, 2],   # Increment the Z component of a vector by a float register
+    VECDECX => [0x24, 2],   # Decrement the X component of a vector by a float register
+    VECDECY => [0x25, 2],   # Decrement the X component of a vector by a float register
+    VECDECZ => [0x26, 2],   # Decrement the X component of a vector by a float register
+
+    # Matrix register instructions
+    MATLM => [0x27, 3],     # Load a matrix register with data from a matrix data object
+    MATLI => [0x28, 1],     # Load a matrix register with the identity matrix
+    MATLS => [0x29, 2],     # Load a matrix register from one of the system matrix registers
+    MATSL => [0x2a, 2],     # Load one of the system matrix registers from a matrix register (needs a permission)
+    MATM => [0x2b, 3],      # Multiply a matrix register with another matrix register and store in matrix register
+    MATMTV => [0x2c, 2],    # Translate a matrix register by a vector register
+    MATMRX => [0x2d, 2],    # Rotate a matrix around the X axis by a float register
+    MATMRY => [0x2e, 2],    # Rotate a matrix around the Y axis by a float register
+    MATMRZ => [0x2f, 2],    # Rotate a matrix around the Z axis by a float register
+
+    # Drawing instructions
+    DRAW => [0x30, 2],      # Draw an object from a matrix register and an integer register
+);
+
+my $state = {
+    addr => 0
+};
+
+compile_file($state, $opts->{input});
+resolve_markers($state);
+print Dumper($state);
+exit;
+
+sub _convert_to_hex {
+    my ($state, $something) = @_;
+    if ($something =~ /^0x[0-9a-f]+$/) {
+        return $something;
+    }
+    if ($something =~ /^[0-9]+$/) {
+        return sprintf("0x%02x", $something);
+    }
+    die sprintf(
+        "Invalid hex or decimal value: '%s' at '%s' line %d",
+        $something,
+        $state->{current_file},
+        $state->{files}->{$state->{current_file}}->{line_count}
+    );
+}
+
+sub resolve_markers {
+    my ($state) = @_;
+    my $addr = 0;
+    for my $ins (@{$state->{prg}}) {
+        if (ref($ins)) {
+            if (exists $state->{markers}->{$ins->[0]}) {
+                $state->{prg}->[$addr] = $state->{markers}->{$ins->[0]};
+            }
+            else {
+                die sprintf(
+                    "Could not resolve symbol: '%s' at '%s' line %d",
+                    $ins->[0],
+                    $ins->[1],
+                    $ins->[2]
+                );
+            }
+        }
+        $addr++;
+    }
+}
+
+sub decode_instruction {
+    my ($state, $ins, @args) = @_;
+    my $ucins = uc($ins);
+    if (!exists $INS_ARG_LENGTH{$ucins}) {
+        die sprintf(
+            "Invalid instruction: '%s' at '%s' line %d",
+            $ins,
+            $state->{current_file},
+            $state->{files}->{$state->{current_file}}->{line_count}
+        );
+    }
+
+    my ($code, $nr_args) = @{$INS_ARG_LENGTH{$ucins}};
+
+    my @codes = (sprintf('0x%02x', $code));
+    for (my $i = 0; $i < $nr_args; $i++) {
+        my $arg = $args[$i];
+        my $val;
+        if (exists $state->{defs}->{$arg}) {
+            $val = $state->{defs}->{$arg};
+        }
+        elsif (exists $state->{markers}->{$arg}) {
+            $val = $state->{markers}->{$arg};
+        }
+        elsif ($arg =~ /^0x[0-9a-f]+$/) {
+            $val = $arg;
+        }
+        else {
+            $val = [$arg, $state->{current_file}, $state->{files}->{$state->{current_file}}->{line_count}];
+        }
+        push @codes, $val;
+    }
+
+    return @codes;
+}
+
+sub compile_instruction {
+    my ($state, $ins, @args) = @_;
+
+    if ($ins eq 'defb') {
+        for my $arg (@args) {
+            if ($arg =~ /^"([^"]+)"$/) {
+                my $str_contents = $1;
+                for my $char (split(//, $str_contents)) {
+                    my $val = sprintf('0x%02x', ord($char));
+                    $state->{prg}->[$state->{addr}] = $val;
+                    $state->{addr}++;
+                }
+            }
+            else {
+                my $val = _convert_to_hex($state, $arg);
+                $state->{prg}->[$state->{addr}] = $val;
+                $state->{addr}++;
+            }
+        }
+        return;
+    }
+
+    my @codes = decode_instruction($state, $ins, @args);
+    if ($codes[0] eq '0x01') {
+        print Dumper(\@codes);
+    }
+    for my $code (@codes) {
+        $state->{prg}->[$state->{addr}] = $code;
+        $state->{addr}++;
+    }
+}
+
+sub compile_line {
+    my ($state, $line) = @_;
+
+    if ($line =~ /^([A-Za-z0-9\_]+)\s+equ\s+([0-9a-z]+)/) {
+        $state->{defs}->{$1} = _convert_to_hex($state, $2);
+        return;
+    }
+
+    if ($line =~ /^([A-Z\_]+)/) {
+        $state->{markers}->{$1} = _convert_to_hex($state, $state->{addr});
+        return;
+    }
+
+    if ($line =~ /^\s+([^;]+)/) {
+        my $command = $1;
+        $command =~ s/\s+$//;
+        if ($command =~ /^([a-z]+)\s*(.*)$/) {
+            my ($ins, $rest) = ($1, $2);
+            my @args = split(/\s*,\s*/, $rest);
+            compile_instruction($state, $ins, @args);
+        }
+    }
+}
+
+sub compile_file {
+    my ($state, $filename) = @_;
+    my $program = load_file($filename);
+    my @lines = split(/\n/, $program);
+    $state->{current_file} = $filename;
+    $state->{files}->{$state->{current_file}}->{line_count} = 1;
+    LINE: for my $line (@lines) {
+        chomp $line;
+        unless ($line) {
+            $state->{files}->{$state->{current_file}}->{line_count}++;
+            next LINE;
+        }
+        compile_line($state, $line);
+        $state->{files}->{$state->{current_file}}->{line_count}++;
+    }
+}
+
+sub load_file {
+    my ($filename) = @_;
+    my $program = "";
+    open(my $fh, '<', $filename) || die "unable to open file $filename: $!\n";
+    while (my $line = <$fh>) {
+        $program .= $line;
+    }
+    close($fh);
+    return $program;
+}
