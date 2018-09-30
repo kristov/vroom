@@ -83,3 +83,34 @@ This is completely not finished, but some things I would like to do in the near 
 I want to be able to plug in any HID device, and use the report descriptor to expose data endpoints that can be bound to matrix transformations. For example pressing and holding the "w" key can be bound to increasing a Z axis (forward motion) transformation and moving the mouse can be bound to some rotation matrix for a pointer or body movement.
 
 First I investigated the hidapi library, however it has no function for extracting the report descriptor. I then tried using libusb and was able to get somewhere, however the raw communication with the device for reports was complicated (async interface). I considered using libusb for extracting the report descriptor, and then initializing hidapi but it was a bit Frankenstein-ish. I found hidraw examples that look clean but are not cross-platform.
+
+## Wishlist
+
+Some things I want to do.
+
+### Write an assembler
+
+So I can stop writing binary instructions.
+
+### Write a compiler
+
+So I can stop writing binary instructions.
+
+### Move input into modules
+
+Current inputs are clients but that is a bit clunky. 
+
+### Support commandline params
+
+So module path can be specified at start time for example. | |
+
+### Impement a scene manager as a separate client
+
+Like a window manager in X but most likely using 100% server side code via dedicated VM that runs independently from the rendering VMs.
+
+### Come up with a workable system for managing multiple displays
+
+This should probably be some raw interface provided by the server, but inspectable and modifiable by client runtime code. So scene managers and also potentially regular application clients can know about the physical display devices and adapt or modify accordingly.
+
+
+
