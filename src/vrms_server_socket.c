@@ -27,9 +27,8 @@
 #define MAX_MSG_SIZE 1024
 
 opengl_stereo* ostereo;
-vrms_server_t* vrms_server;
-
 pthread_t socket_thread;
+pthread_t module_thread;
 
 struct sock_ev_serv {
     ev_io io;
@@ -750,18 +749,18 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
     return 0;
 }
 
-void* start_socket_thread(void* ptr) {
+void* start_socket_thread(void* data) {
     int max_queue = 128;
     struct sock_ev_serv server;
     EV_P = ev_default_loop(0);
 
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
 
-    if (NULL == vrms_server) {
+    if (NULL == data) {
         fprintf(stderr, "error creating server\n");
         return NULL;
     }
-    server.vrms_server = vrms_server;
+    server.vrms_server = (vrms_server_t*)data;
 
     ev_io_init(&server.io, server_cb, server.fd, EV_READ);
     ev_io_start(EV_A_ &server.io);
@@ -772,9 +771,13 @@ void* start_socket_thread(void* ptr) {
     return NULL;
 }
 
-void draw_scene(opengl_stereo* ostereo) {
-    if (NULL != vrms_server) {
-        vrms_server_draw_scenes(vrms_server, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix, ostereo->skybox_camera->projection_matrix);
+void* start_module_thread(void* data) {
+    return NULL;
+}
+
+void draw_scene(opengl_stereo* ostereo, void* data) {
+    if (NULL != data) {
+        vrms_server_draw_scenes((vrms_server_t*)data, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix, ostereo->skybox_camera->projection_matrix);
     }
 }
 
@@ -782,37 +785,48 @@ void vrms_server_socket_system_matrix_update(vrms_matrix_type_t matrix_type, vrm
     memcpy(ostereo->hmd_matrix, matrix, sizeof(float) * 16);
 }
 
-void vrms_server_socket_init(int width, int height, double physical_width) {
+vrms_server_t* vrms_server_socket_init(int width, int height, double physical_width) {
     int32_t thread_ret;
-
-    ostereo = opengl_stereo_create(width, height, physical_width);
-    ostereo->draw_scene_callback = &draw_scene;
+    vrms_server_t* vrms_server;
 
     vrms_server = vrms_server_create();
+
+    ostereo = opengl_stereo_create(width, height, physical_width);
+    opengl_stereo_draw_scene_callback(ostereo, draw_scene, vrms_server);
+
     vrms_server->color_shader_id = ostereo->onecolor_shader_id;
     vrms_server->texture_shader_id = ostereo->texture_shader_id;
     vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_server_socket_system_matrix_update;
 
-    thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, NULL);
+    thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, vrms_server);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start socket thread\n");
         exit(1);
     }
+
+    thread_ret = pthread_create(&module_thread, NULL, start_module_thread, vrms_server);
+    if (thread_ret != 0) {
+        fprintf(stderr, "unable to start module thread\n");
+        exit(1);
+    }
+
+    return vrms_server;
 }
 
-void vrms_server_socket_display() {
+void vrms_server_socket_display(vrms_server_t* vrms_server) {
     opengl_stereo_display(ostereo);
 }
 
-void vrms_server_socket_reshape(int w, int h) {
+void vrms_server_socket_reshape(vrms_server_t* vrms_server, int w, int h) {
     opengl_stereo_reshape(ostereo, w, h);
 }
 
-void vrms_server_socket_process() {
+void vrms_server_socket_process(vrms_server_t* vrms_server) {
     vrms_server_process_queue(vrms_server);
 }
 
-void vrms_server_socket_end() {
+void vrms_server_socket_end(vrms_server_t* vrms_server) {
     pthread_join(socket_thread, NULL);
+    pthread_join(module_thread, NULL);
 }

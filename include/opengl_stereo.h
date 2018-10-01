@@ -10,7 +10,7 @@ typedef struct opengl_stereo_buffer_store {
 
 typedef struct opengl_stereo opengl_stereo;
 
-typedef void (*ostereo_draw_scene_callback_t)(opengl_stereo* ostereo);
+typedef void (*ostereo_draw_scene_callback_t)(opengl_stereo* ostereo, void* data);
 
 typedef struct opengl_stereo {
     double width;
@@ -37,6 +37,7 @@ typedef struct opengl_stereo {
     float* hmd_matrix;
     float* projection_matrix;
     ostereo_draw_scene_callback_t draw_scene_callback;
+    void* draw_scene_callback_data;
     GLuint barrel_power_id;
     opengl_stereo_camera* left_camera;
     opengl_stereo_camera* right_camera;
@@ -44,6 +45,7 @@ typedef struct opengl_stereo {
     opengl_stereo_buffer_store* screen_buffers;
 } opengl_stereo;
 
+void opengl_stereo_draw_scene_callback(opengl_stereo* ostereo, ostereo_draw_scene_callback_t callback, void* callback_data);
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h);
 void opengl_stereo_display(opengl_stereo* ostereo);
 opengl_stereo* opengl_stereo_create(int width, int height, double physical_width);

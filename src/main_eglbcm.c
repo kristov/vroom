@@ -11,6 +11,8 @@
 #include "bcm_host.h"
 #include "vrms_server_socket.h"
 
+vrms_server_t* vrms_server;
+
 #define NANO_SECOND_MULTIPLIER 1000000
 const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
@@ -132,19 +134,19 @@ int32_t main(int argc, char **argv) {
 
     double physical_width = 0.7;
 
-    vrms_server_socket_init((int)width, (int)height, physical_width);
+    vrms_server = vrms_server_socket_init((int)width, (int)height, physical_width);
 
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = INNER_LOOP_INTERVAL_MS;
 
     while (GL_TRUE) {
-        vrms_server_socket_display();
+        vrms_server_socket_display(vrms_server);
         eglSwapBuffers(display, surface);
-        vrms_server_socket_process();
+        vrms_server_socket_process(vrms_server);
         nanosleep(&ts, NULL);
     }
 
-    vrms_server_socket_end();
+    vrms_server_socket_end(vrms_server);
     return 0;
 }

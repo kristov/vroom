@@ -4,17 +4,19 @@
 #include <GL/glut.h>
 #include "vrms_server_socket.h"
 
+vrms_server_t* vrms_server;
+
 GLvoid reshape(int w, int h) {
-    vrms_server_socket_reshape(w, h);
+    vrms_server_socket_reshape(vrms_server, w, h);
 }
 
 GLvoid display(GLvoid) {
-    vrms_server_socket_display();
+    vrms_server_socket_display(vrms_server);
     glutSwapBuffers();
 }
 
 void do_timer(int timer_event) {
-    vrms_server_socket_process();
+    vrms_server_socket_process(vrms_server);
     glutPostRedisplay();
     glutTimerFunc(10, do_timer, 1);
 }
@@ -41,14 +43,13 @@ void init(int *argc, char **argv) {
     double physical_width = 1.347;
 
     initWindowingSystem(argc, argv, width, height);
-    vrms_server_socket_init(width, height, physical_width);
+    vrms_server = vrms_server_socket_init(width, height, physical_width);
 }
 
 int32_t main(int argc, char **argv) {
-
     init(&argc, argv);
     glutMainLoop();
 
-    vrms_server_socket_end();
+    vrms_server_socket_end(vrms_server);
     return 0;
 }
