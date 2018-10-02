@@ -90,15 +90,15 @@ Some things I want to do.
 
 ### Write an assembler
 
-So I can stop writing binary instructions.
+So I can stop writing binary instructions. Current assembler is a Perl script and doesn't write to binary.
 
 ### Write a compiler
 
-So I can stop writing binary instructions.
+So I can stop writing assembler.
 
 ### Move input into modules
 
-Current inputs are clients but that is a bit clunky. 
+Current inputs are clients but that is a bit clunky because they need to send data at low latency over the socket. I want to implement inputs as DSOs that are loaded dynamically as modules. Each module runs in it's own thread and registers hooks into the server. Should each module have an event loop with a sleep? Or the event loop runs in the server and calls into the module? Perhaps the module registers a min and max latency? Configuration should be made available to the server so that clients can be written to change module params. For example tuning the latency of reading from the HUD module, reading IOD values from the HUD device to modify the renderer IOD, etc.
 
 ### Support commandline params
 
