@@ -11,9 +11,9 @@
 #include <xf86drmMode.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include "vrms_server_socket.h"
+#include "vrms_runtime.h"
 
-vrms_server_t* vrms_server;
+vrms_runtime_t* vrms_runtime;
 
 #define NANO_SECOND_MULTIPLIER 1000000
 const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
@@ -62,11 +62,11 @@ void render_loop(eglkms_context_t* context) {
     ts.tv_nsec = INNER_LOOP_INTERVAL_MS;
 
     double physical_width = 0.7;
-    vrms_server = vrms_server_socket_init(context->width, context->height, physical_width);
+    vrms_runtime = vrms_runtime_init(context->width, context->height, physical_width);
 
     quit = 0;
     do {
-        vrms_server_socket_display(vrms_server);
+        vrms_runtime_display(vrms_runtime);
         eglSwapBuffers(context->egl_display, context->egl_surface);
         bo = gbm_surface_lock_front_buffer(context->gbm_surface);
         handle = gbm_bo_get_handle(bo).u32;
@@ -81,7 +81,7 @@ void render_loop(eglkms_context_t* context) {
         }
         previous_bo = bo;
         previous_fb = fb;
-        vrms_server_socket_process(vrms_server);
+        vrms_runtime_process(vrms_runtime);
         nanosleep(&ts, NULL);
     } while (!quit);
 }
