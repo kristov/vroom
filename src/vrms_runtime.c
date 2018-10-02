@@ -28,8 +28,6 @@
 #define MAX_MSG_SIZE 1024
 
 opengl_stereo* ostereo;
-pthread_t socket_thread;
-pthread_t module_thread;
 
 struct sock_ev_serv {
     ev_io io;
@@ -805,13 +803,13 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_runtime_system_matrix_update;
 
-    thread_ret = pthread_create(&socket_thread, NULL, start_socket_thread, vrms_server);
+    thread_ret = pthread_create(&vrms_runtime->module_threads[0], NULL, start_socket_thread, vrms_server);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start socket thread\n");
         exit(1);
     }
 
-    thread_ret = pthread_create(&module_thread, NULL, start_module_thread, vrms_server);
+    thread_ret = pthread_create(&vrms_runtime->module_threads[1], NULL, start_module_thread, vrms_server);
     if (thread_ret != 0) {
         fprintf(stderr, "unable to start module thread\n");
         exit(1);
@@ -833,6 +831,6 @@ void vrms_runtime_process(vrms_runtime_t* vrms_runtime) {
 }
 
 void vrms_runtime_end(vrms_runtime_t* vrms_runtime) {
-    pthread_join(socket_thread, NULL);
-    pthread_join(module_thread, NULL);
+    pthread_join(vrms_runtime->module_threads[0], NULL);
+    pthread_join(vrms_runtime->module_threads[1], NULL);
 }
