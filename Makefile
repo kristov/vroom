@@ -4,14 +4,18 @@ CFLAGS := -Wall -Werror -ggdb
 SRCDIR := src
 OBJDIR := lib
 BINDIR := bin
+MODULEDIR := module
 TESTDIR := test
 INCDIR := include
 EXTDIR := external
 
-SERVEROBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_runtime.o array_heap.o vrms_render_vm.o)
-SERVERLINKS := -lrt -lev -lprotobuf-c -lm -lpthread
+SERVEROBJS := $(addprefix $(OBJDIR)/, vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_runtime.o vrms_render_vm.o)
+SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
+
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so)
+
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
 
@@ -45,21 +49,33 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 x11-server: src/main_glut.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
 
 eglbcm-server: src/main_eglbcm.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
 
 eglkms-server: src/main_eglkms.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
+
+modules: $(MODULES)
 
 $(BINDIR)/input_openhmd : EXTRALINKS := -lopenhmd
 $(BINDIR)/input_usb     : EXTRALINKS := -ludev -lsqlite3 
 
 $(BINDIR)/%: $(SRCDIR)/client/%.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(CLIENTLINKS) $(EXTRALINKS) -o $@ $(CLIENTOBJS) $<
+
+$(OBJDIR)/vroom_pb.o: $(SRCDIR)/vroom_pb.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+
+$(OBJDIR)/array_heap.o: $(SRCDIR)/array_heap.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+
+$(MODULEDIR)/vroom_protocol.so: $(SRCDIR)/module/vroom_protocol.c $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/vroom_protocol.o $(SRCDIR)/module/vroom_protocol.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/vroom_protocol.o $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o -lrt -lev -lprotobuf-c
 
 #### BEGIN TESTS ####
 tests: $(TESTS)
@@ -91,3 +107,4 @@ clean:
 	rm -f vroom-server
 	rm -f $(BINDIR)/*
 	rm -f $(TESTDIR)/test_*
+	rm -f $(MODULEDIR)/*.so
