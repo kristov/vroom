@@ -1,5 +1,6 @@
 bin/*
 lib/*
+module/*
 test/test_*
 vroom-server
 temp/
