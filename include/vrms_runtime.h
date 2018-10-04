@@ -1,4 +1,5 @@
 #include "vrms.h"
+#include <pthread.h>
 typedef struct vrms_server vrms_server_t;
 typedef struct vrms_runtime {
     pthread_t module_threads[10];

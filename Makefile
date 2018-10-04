@@ -14,7 +14,7 @@ SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
 
-MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so test_rotate.so)
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so test_rotate.so input_hid.so)
 
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
@@ -73,6 +73,9 @@ $(OBJDIR)/vroom_pb.o: $(SRCDIR)/vroom_pb.c
 $(OBJDIR)/array_heap.o: $(SRCDIR)/array_heap.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
 
+$(OBJDIR)/hid_monitor.o: $(SRCDIR)/linux/hid_monitor.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+
 $(MODULEDIR)/vroom_protocol.so: $(SRCDIR)/module/vroom_protocol.c $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/vroom_protocol.o $(SRCDIR)/module/vroom_protocol.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/vroom_protocol.o $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o -lrt -lev -lprotobuf-c
@@ -80,6 +83,10 @@ $(MODULEDIR)/vroom_protocol.so: $(SRCDIR)/module/vroom_protocol.c $(OBJDIR)/vroo
 $(MODULEDIR)/test_rotate.so: $(SRCDIR)/module/test_rotate.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/test_rotate.o $(SRCDIR)/module/test_rotate.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/test_rotate.o
+
+$(MODULEDIR)/input_hid.so: $(SRCDIR)/module/input_hid.c $(OBJDIR)/hid_monitor.o
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_hid.o $(SRCDIR)/module/input_hid.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_hid.o $(OBJDIR)/hid_monitor.o -ludev
 
 #### BEGIN TESTS ####
 tests: $(TESTS)
@@ -93,9 +100,6 @@ test/test_hid_monitor: lib/hid_monitor.o src/test_hid_monitor.c
 test/test_render_vm: lib/vrms_render_vm.o lib/test_harness.o lib/esm.o src/test_render_vm.c
 	$(CC) $(CFLAGS) -lm $(INCDIRS) -o $@ lib/vrms_render_vm.o lib/test_harness.o lib/esm.o src/test_render_vm.c
 #### END TESTS ####
-
-lib/hid_monitor.o: src/linux/hid_monitor.c include/hid_monitor.h
-	$(CC) $(CFLAGS) $(PREPROC) $(INCDIRS) -c -o $@ $<
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) $(CFLAGS) $(PREPROC) $(INCDIRS) -c -o $@ $<
