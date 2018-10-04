@@ -14,7 +14,7 @@ SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
 
-MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so)
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so test_rotate.so)
 
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
@@ -76,6 +76,10 @@ $(OBJDIR)/array_heap.o: $(SRCDIR)/array_heap.c
 $(MODULEDIR)/vroom_protocol.so: $(SRCDIR)/module/vroom_protocol.c $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/vroom_protocol.o $(SRCDIR)/module/vroom_protocol.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/vroom_protocol.o $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o -lrt -lev -lprotobuf-c
+
+$(MODULEDIR)/test_rotate.so: $(SRCDIR)/module/test_rotate.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/test_rotate.o $(SRCDIR)/module/test_rotate.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/test_rotate.o
 
 #### BEGIN TESTS ####
 tests: $(TESTS)

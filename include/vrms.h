@@ -57,7 +57,7 @@ typedef enum vrms_matrix_type {
     VRMS_MATRIX_BODY
 } vrms_matrix_type_t;
 
-typedef enum vrms_udate_type {
+typedef enum vrms_update_type {
     VRMS_UPDATE_MULTIPLY,
     VRMS_UPDATE_SET
 } vrms_update_type_t;

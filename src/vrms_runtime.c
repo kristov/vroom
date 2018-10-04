@@ -134,6 +134,11 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
     return vrms_scene_run_program(vrms_scene, program_id, register_id);
 }
 
+
+void vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+    vrms_server_queue_update_system_matrix(vrms_runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
+}
+
 uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
     if (!assert_vrms_server(vrms_runtime)) {
         return 0;
@@ -165,15 +170,31 @@ void vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id)
     vrms_server_destroy_scene(vrms_runtime->vrms_server, scene_id);
 }
 
-void* start_socket_thread(void* data) {
+void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
     void* (*run_module)(void*);
     void* handle = NULL;
+    char* full_module_path;
+    uint32_t full_module_path_len;
+    uint32_t module_name_len;
+    uint32_t module_load_path_len;
     const char* error_message = NULL;
 
-    handle = dlopen("/home/ceade/src/personal/github/vroom/module/vroom_protocol.so", RTLD_NOW);
+    module_name_len = strlen(module_name);
+    module_load_path_len = strlen(vrms_runtime->module_load_path);
+    full_module_path_len = (module_name_len + module_load_path_len + 2) * sizeof(char);
+
+    full_module_path = SAFEMALLOC(full_module_path_len);
+    memset(full_module_path, 0, full_module_path_len);
+
+    memcpy(full_module_path, vrms_runtime->module_load_path, module_load_path_len);
+    memcpy(full_module_path + module_load_path_len, "/", 1);
+    memcpy(full_module_path + module_load_path_len + 1, module_name, module_name_len);
+    fprintf(stderr, "loading '%s'\n", full_module_path);
+
+    handle = dlopen(full_module_path, RTLD_NOW);
     if (!handle) {
         fprintf(stderr, "unable to load module %s\n", dlerror());
-        return NULL;
+        return;
     }
     dlerror();
 
@@ -184,14 +205,20 @@ void* start_socket_thread(void* data) {
         dlclose(handle);
     }
 
-    (*run_module)(data);
+    (*run_module)((void*)vrms_runtime);
 
     dlclose(handle);
 
+    return;
+}
+
+void* start_socket_thread(void* data) {
+    run_module((vrms_runtime_t*)data, "vroom_protocol.so");
     return NULL;
 }
 
 void* start_module_thread(void* data) {
+    run_module((vrms_runtime_t*)data, "test_rotate.so");
     return NULL;
 }
 
@@ -213,6 +240,7 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_runtime = malloc(sizeof(vrms_runtime_t));
     memset(vrms_runtime, 0, sizeof(vrms_runtime_t));
 
+    vrms_runtime->module_load_path = "/home/ceade/src/personal/github/vroom/module";
     vrms_server = vrms_server_create();
     vrms_runtime->vrms_server = vrms_server;
 

@@ -23,3 +23,4 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
 uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
 uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id);
 void vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id);
+void vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);

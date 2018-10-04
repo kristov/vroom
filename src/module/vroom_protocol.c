@@ -9,7 +9,6 @@
 #include <errno.h>
 #include "array_heap.h"
 #include "vroom_pb.h"
-#include "vrms.h"
 #include "vrms_runtime.h"
 #include "safemalloc.h"
 

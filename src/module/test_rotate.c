@@ -1,12 +1,34 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <unistd.h>
+#include <time.h>
+#include "vrms_runtime.h"
+#include "esm.h"
 
+#define NANO_SECOND_MULTIPLIER 1000000
+const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
-module AP_MODULE_DECLARE_DATA   example_module =
-{ 
-    STANDARD20_MODULE_STUFF,
-    create_dir_conf, /* Per-directory configuration handler */
-    merge_dir_conf,  /* Merge handler for per-directory configurations */
-    create_svr_conf, /* Per-server configuration handler */
-    merge_svr_conf,  /* Merge handler for per-server configurations */
-    directives,      /* Any directives we may have for httpd */
-    register_hooks   /* Our hook registering function */
-};
+void* run_module(void* data) {
+    float matrix[16];
+    struct timespec ts;
+    float angle;
+
+    ts.tv_sec = 0;
+    ts.tv_nsec = INTERVAL_MS;
+
+    angle = 0;
+    while (1) {
+        esmLoadIdentity(matrix);
+        esmRotatef(matrix, angle, 0, 1, 0);
+        vrms_runtime_update_system_matrix_module((vrms_runtime_t*)data, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
+        angle += 0.01;
+        if (angle > 6.2) {
+            angle = 0;
+        }
+        nanosleep(&ts, NULL);
+    }
+
+    return NULL;
+}
