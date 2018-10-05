@@ -14,7 +14,7 @@ SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
 
-MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so test_rotate.so input_hid.so)
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so test_rotate.so input_hid.so input_libinput.so)
 
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
@@ -87,6 +87,10 @@ $(MODULEDIR)/test_rotate.so: $(SRCDIR)/module/test_rotate.c
 $(MODULEDIR)/input_hid.so: $(SRCDIR)/module/input_hid.c $(OBJDIR)/hid_monitor.o
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_hid.o $(SRCDIR)/module/input_hid.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_hid.o $(OBJDIR)/hid_monitor.o -ludev
+
+$(MODULEDIR)/input_libinput.so: $(SRCDIR)/module/input_libinput.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_libinput.o $(SRCDIR)/module/input_libinput.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_libinput.o -linput
 
 #### BEGIN TESTS ####
 tests: $(TESTS)

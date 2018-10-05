@@ -218,7 +218,7 @@ void* start_socket_thread(void* data) {
 }
 
 void* start_module_thread(void* data) {
-    run_module((vrms_runtime_t*)data, "input_hid.so");
+    run_module((vrms_runtime_t*)data, "input_libinput.so");
     return NULL;
 }
 
