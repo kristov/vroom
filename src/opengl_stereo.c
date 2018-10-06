@@ -432,7 +432,7 @@ void initGL(opengl_stereo* ostereo) {
 }
 
 void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
-    ostereo->IOD = 0.5;
+    ostereo->IOD = 0.6;
     ostereo->depthZ = 0.0;
     ostereo->fovy = 45;
     ostereo->nearZ = 0.1;
@@ -444,12 +444,10 @@ void opengl_stereo_init_system(opengl_stereo* ostereo) {
     initGL(ostereo);
 
     ostereo->aspect = ( ostereo->width / 2 ) / ostereo->height;
-    //double half_screen_width = ostereo->physical_width / 2;
-    //double half_iod = ostereo->IOD / 2;
-    //double correction_ratio = 2 / ostereo->physical_width;
+    double quart_screen_width = ostereo->physical_width / 4;
+    double half_iod = ostereo->IOD / 2;
 
-    ostereo->texture_shift = 0.095f;
-    //ostereo->texture_shift = (half_screen_width - half_iod) * correction_ratio;
+    ostereo->texture_shift = quart_screen_width - half_iod;
 
     //fprintf(stderr, "           Physical width (dm): %0.2f\n", ostereo->physical_width);
     //fprintf(stderr, "              Correction ratio: %0.2f\n", correction_ratio);

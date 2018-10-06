@@ -61,7 +61,7 @@ void render_loop(eglkms_context_t* context) {
     ts.tv_sec = 0;
     ts.tv_nsec = INNER_LOOP_INTERVAL_MS;
 
-    double physical_width = 0.7;
+    double physical_width = 1.7;
     vrms_runtime = vrms_runtime_init(context->width, context->height, physical_width);
 
     quit = 0;
@@ -162,10 +162,10 @@ void kms_drm(eglkms_context_t* context) {
             continue;
         }
 
-        if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
-            drmModeFreeConnector(connector);
-            continue;
-        }
+        //if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
+        //    drmModeFreeConnector(connector);
+        //    continue;
+        //}
 
         fprintf(stderr, "connector: %d\n", i);
         fprintf(stderr, "     connector_type: %d\n", connector->connector_type);
