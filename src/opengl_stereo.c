@@ -405,7 +405,7 @@ void opengl_stereo_render_scene(opengl_stereo* ostereo) {
             opengl_stereo_render_buffer_to_window()
 */
 void opengl_stereo_display(opengl_stereo* ostereo) {
-    if (ostereo->draw_scene_callback == NULL) {
+    if (!ostereo->draw_scene_callback) {
         fprintf(stderr, "opengl_stereo_ERROR: draw_scene_callback not attached\n");
         return;
     }
@@ -413,7 +413,7 @@ void opengl_stereo_display(opengl_stereo* ostereo) {
 }
 
 void opengl_stereo_draw_scene_callback(opengl_stereo* ostereo, ostereo_draw_scene_callback_t callback, void* callback_data) {
-    if (NULL == callback) {
+    if (!callback) {
         fprintf(stderr, "opengl_stereo_ERROR: draw_scene_callback is NULL\n");
         return;
     }

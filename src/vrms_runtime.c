@@ -20,11 +20,11 @@
 opengl_stereo* ostereo;
 
 uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         fprintf(stderr, "invalid runtime object\n");
         return 0;
     }
-    if (NULL == vrms_runtime->vrms_server) {
+    if (!vrms_runtime->vrms_server) {
         fprintf(stderr, "invalid server object\n");
         return 0;
     }
@@ -44,7 +44,7 @@ uint32_t vrms_runtime_create_memory(vrms_runtime_t* vrms_runtime, uint32_t scene
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_memory(vrms_scene, fd, size);
@@ -56,9 +56,8 @@ uint32_t vrms_runtime_create_object_data(vrms_runtime_t* vrms_runtime, uint32_t 
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene)
         return 0;
-    }
     return vrms_scene_create_object_data(vrms_scene, memory_id, memory_offset, memory_length, item_length, data_length, type);
 }
 
@@ -68,7 +67,7 @@ uint32_t vrms_runtime_create_object_texture(vrms_runtime_t* vrms_runtime, uint32
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_texture(vrms_scene, data_id, width, height, format, type);
@@ -80,7 +79,7 @@ uint32_t vrms_runtime_create_object_geometry(vrms_runtime_t* vrms_runtime, uint3
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_geometry(vrms_scene, vertex_id, normal_id, index_id);
@@ -92,7 +91,7 @@ uint32_t vrms_runtime_create_object_mesh_color(vrms_runtime_t* vrms_runtime, uin
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_mesh_color(vrms_scene, geometry_id, r, g, b, a);
@@ -104,7 +103,7 @@ uint32_t vrms_runtime_create_object_mesh_texture(vrms_runtime_t* vrms_runtime, u
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_mesh_texture(vrms_scene, geometry_id, texture_id, uv_id);
@@ -116,7 +115,7 @@ uint32_t vrms_runtime_create_program(vrms_runtime_t* vrms_runtime, uint32_t scen
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_program(vrms_scene, data_id);
@@ -128,7 +127,7 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_run_program(vrms_scene, program_id, register_id);
@@ -145,7 +144,7 @@ uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_update_system_matrix(vrms_scene, data_id, data_index, matrix_type, update_type);
@@ -157,7 +156,7 @@ uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_
     }
 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (NULL == vrms_scene) {
+    if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_skybox(vrms_scene, texture_id);
@@ -218,7 +217,7 @@ void* start_socket_thread(void* data) {
 }
 
 void* start_module_thread(void* data) {
-    run_module((vrms_runtime_t*)data, "input_libinput.so");
+    run_module((vrms_runtime_t*)data, "test_rotate.so");
     return NULL;
 }
 

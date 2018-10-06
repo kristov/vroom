@@ -27,7 +27,7 @@ void esm_set_identity(float* M) {
 }
 
 void esmDump(float* M, const char* name) {
-    if (M == NULL) {
+    if (!M) {
         fprintf(stderr, "ESM: undefined matrix\n");
         return;
     }

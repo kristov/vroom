@@ -36,7 +36,7 @@ vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
         return NULL;
     }
     vrms_object = scene->objects[id];
-    if (NULL == vrms_object) {
+    if (!vrms_object) {
         return NULL;
     }
     return vrms_object;
@@ -51,7 +51,7 @@ vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, ui
     }
 
     object = vrms_scene_get_object_by_id(scene, memory_id);
-    if (NULL == object) {
+    if (!object) {
         return NULL;
     }
 
@@ -72,7 +72,7 @@ vrms_object_data_t* vrms_scene_get_data_object_by_id(vrms_scene_t* scene, uint32
     }
 
     object = vrms_scene_get_object_by_id(scene, data_id);
-    if (NULL == object) {
+    if (!object) {
         return NULL;
     }
 
@@ -93,7 +93,7 @@ vrms_object_program_t* vrms_scene_get_program_object_by_id(vrms_scene_t* scene, 
     }
 
     object = vrms_scene_get_object_by_id(scene, program_id);
-    if (NULL == object) {
+    if (!object) {
         return NULL;
     }
 
@@ -260,7 +260,7 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
     vrms_object_memory_t* memory;
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
-    if (NULL == memory) {
+    if (!memory) {
         return 0;
     }
 
@@ -295,13 +295,13 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
     vrms_object_memory_t* memory;
 
     data = vrms_scene_get_data_object_by_id(scene, data_id);
-    if (NULL == data) {
+    if (!data) {
         debug_print("unable to find data object\n");
         return 0;
     }
 
     memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
-    if (NULL == memory) {
+    if (!memory) {
         debug_print("unable to find memory object\n");
         return 0;
     }
@@ -373,13 +373,13 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, 
     vrms_object_memory_t* memory;
 
     data = vrms_scene_get_data_object_by_id(scene, data_id);
-    if (NULL == data) {
+    if (!data) {
         debug_print("unable to find data object\n");
         return 0;
     }
 
     memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
-    if (NULL == memory) {
+    if (!memory) {
         return 0;
     }
 
@@ -443,13 +443,13 @@ uint32_t vrms_scene_create_program(vrms_scene_t* scene, uint32_t data_id) {
     vrms_object_program_t* program;
 
     data = vrms_scene_get_data_object_by_id(scene, data_id);
-    if (NULL == data) {
+    if (!data) {
         debug_print("unable to find data object\n");
         return 0;
     }
 
     memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
-    if (NULL == memory) {
+    if (!memory) {
         debug_print("unable to find memory object\n");
         return 0;
     }
@@ -474,19 +474,19 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     uint32_t program_memory_length;
 
     data = vrms_scene_get_data_object_by_id(scene, register_id);
-    if (NULL == data) {
+    if (!data) {
         debug_print("unable to find register data object\n");
         return 0;
     }
 
     memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
-    if (NULL == memory) {
+    if (!memory) {
         debug_print("unable to find memory object\n");
         return 0;
     }
 
     program = vrms_scene_get_program_object_by_id(scene, program_id);
-    if (NULL == program) {
+    if (!program) {
         debug_print("no program found for id %d\n", program_id);
         return 0;
     }
@@ -533,13 +533,13 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     }
 
     object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     geometry = object->object.object_geometry;
 
     object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     vertex = object->object.object_data;
@@ -548,7 +548,7 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     }
 
     object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     normal = object->object.object_data;
@@ -557,7 +557,7 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     }
 
     object = vrms_scene_get_object_by_id(scene, geometry->index_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     index = object->object.object_data;
@@ -587,14 +587,14 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     }
 
     object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
-    if (NULL == object) {
+    if (!object) {
         debug_print("no geometry object\n");
         return 0;
     }
     geometry = object->object.object_geometry;
 
     object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
-    if (NULL == object) {
+    if (!object) {
         debug_print("no vertex object\n");
         return 0;
     }
@@ -604,7 +604,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     }
 
     object = vrms_scene_get_object_by_id(scene, geometry->normal_id);
-    if (NULL == object) {
+    if (!object) {
         debug_print("no normal object\n");
         return 0;
     }
@@ -614,7 +614,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     }
 
     object = vrms_scene_get_object_by_id(scene, mesh->texture_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     texture = object->object.object_texture;
@@ -623,7 +623,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     }
 
     object = vrms_scene_get_object_by_id(scene, geometry->index_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     index = object->object.object_data;
@@ -633,7 +633,7 @@ uint8_t vrms_scene_mesh_texture_realize(vrms_scene_t* scene, vrms_object_mesh_te
     }
 
     object = vrms_scene_get_object_by_id(scene, mesh->uv_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     uv = object->object.object_data;
@@ -657,7 +657,7 @@ uint8_t vrms_scene_skybox_realize(vrms_scene_t* scene, vrms_object_skybox_t* sky
     }
 
     object = vrms_scene_get_object_by_id(scene, skybox->texture_id);
-    if (NULL == object) {
+    if (!object) {
         return 0;
     }
     texture = object->object.object_texture;
@@ -685,7 +685,7 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, floa
     }
 
     object = vrms_scene_get_object_by_id(scene, object_id);
-    if (NULL == object) {
+    if (!object) {
         debug_render_print("vrms_server_draw_scene_object(): object: %d NULL\n", object_id);
         return;
     }
@@ -732,7 +732,7 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
     uint64_t nsec_elapsed;
     vrms_render_vm_t* vm;
 
-    if ((NULL == scene->render_buffer) || (0 == scene->render_buffer_size)) {
+    if ((!scene->render_buffer) || (0 == scene->render_buffer_size)) {
         debug_render_print("vrms_scene_draw(): no render_buffer\n");
         return 0;
     }
@@ -794,7 +794,7 @@ float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint3
     vrms_object_memory_t* memory;
     float* matrix;
 
-    if (NULL == user_data) {
+    if (!user_data) {
         debug_render_print("vrms_scene_vm_load_matrix(): user_data NULL\n");
         return NULL;
     }
@@ -802,13 +802,13 @@ float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint3
     scene = (vrms_scene_t*)user_data;
 
     memory_object = vrms_scene_get_object_by_id(scene, memory_id);
-    if (NULL == memory_object) {
+    if (!memory_object) {
         debug_render_print("vrms_scene_vm_load_matrix(): memory_object NULL\n");
         return NULL;
     }
 
     memory = memory_object->object.object_memory;
-    if (NULL == memory->address) {
+    if (!memory->address) {
         debug_render_print("vrms_scene_vm_load_matrix(): memory->address NULL\n");
         return NULL;
     }
@@ -822,7 +822,7 @@ void vrms_scene_vm_draw(vrms_render_vm_t* vm, float* model_matrix, uint32_t obje
     float* projection_matrix;
     float* view_matrix;
 
-    if (NULL == user_data) {
+    if (!user_data) {
         debug_render_print("vrms_scene_vm_draw(): user_data NULL\n");
         return;
     }

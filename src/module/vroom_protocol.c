@@ -38,14 +38,14 @@ uint32_t receive_create_scene(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int
     uint32_t id;
     CreateScene* cs_msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_scene__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -68,14 +68,14 @@ uint32_t receive_create_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, in
     uint32_t id;
     CreateMemory* cs_msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_memory__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -98,14 +98,14 @@ uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_bu
     uint32_t id;
     CreateDataObject* msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = create_data_object__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -170,14 +170,14 @@ uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in
     uint32_t id;
     CreateTextureObject* msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = create_texture_object__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         fprintf(stderr, "unpacking incoming message\n");
         *error = VRMS_INVALIDREQUEST;
         return 0;
@@ -203,14 +203,14 @@ uint32_t receive_create_geometry_object(vrms_runtime_t* vrms_runtime, uint8_t* i
     uint32_t id;
     CreateGeometryObject* cs_msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_geometry_object__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -233,14 +233,14 @@ uint32_t receive_create_mesh_color(vrms_runtime_t* vrms_runtime, uint8_t* in_buf
     uint32_t id;
     CreateMeshColor* cs_msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_mesh_color__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -263,14 +263,14 @@ uint32_t receive_create_mesh_texture(vrms_runtime_t* vrms_runtime, uint8_t* in_b
     uint32_t id;
     CreateMeshTexture* cs_msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     cs_msg = create_mesh_texture__unpack(NULL, length, in_buf);
-    if (cs_msg == NULL) {
+    if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -293,14 +293,14 @@ uint32_t receive_create_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, u
     uint32_t id;
     CreateProgram* msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = create_program__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -323,14 +323,14 @@ uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint
     uint32_t id;
     RunProgram* msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = run_program__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -355,14 +355,14 @@ uint32_t receive_update_system_matrix(vrms_runtime_t* vrms_runtime, uint8_t* in_
     vrms_matrix_type_t matrix_type;
     vrms_update_type_t update_type;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = update_system_matrix__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -407,14 +407,14 @@ uint32_t receive_create_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
     uint32_t id;
     CreateSkybox* msg;
 
-    if (NULL == vrms_runtime) {
+    if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
 
     msg = create_skybox__unpack(NULL, length, in_buf);
-    if (msg == NULL) {
+    if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
@@ -471,12 +471,12 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     char type_c;
     vrms_runtime_t* vrms_runtime;
 
-    if (NULL == client->server) {
+    if (!client->server) {
         fprintf(stderr, "no server initialized\n");
         send_reply(client->fd, id, &error);
         return;
     }
-    if (NULL == client->server->vrms_runtime) {
+    if (!client->server->vrms_runtime) {
         fprintf(stderr, "no VRMS server initialized\n");
         send_reply(client->fd, id, &error);
     }

@@ -142,7 +142,7 @@ vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_i
         return NULL;
     }
     scene = vrms_server->scenes[scene_id];
-    if (NULL == scene) {
+    if (!scene) {
         debug_print("invalid scene_id [%d] requested: scene does not exist\n", scene_id);
         return NULL;
     }
@@ -168,7 +168,7 @@ uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
 
 void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     vrms_scene_t* scene = vrms_server_get_scene(server, scene_id);
-    if (NULL == scene) {
+    if (!scene) {
         debug_print("request to destroy already destroyed scene\n");
         return;
     }
@@ -459,7 +459,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
 }
 
 void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* load) {
-    if (NULL == load->buffer) {
+    if (!load->buffer) {
         return;
     }
 
@@ -485,7 +485,7 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
     uint8_t* buffer;
     uint8_t* tmp;
 
-    if (NULL == load->buffer) {
+    if (!load->buffer) {
         return;
     }
     buffer = load->buffer;
@@ -559,7 +559,7 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
 }
 
 void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* load) {
-    if (NULL == load->buffer) {
+    if (!load->buffer) {
         return;
     }
 

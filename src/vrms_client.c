@@ -77,7 +77,7 @@ uint32_t vrms_client_receive_reply(vrms_client_t* client) {
     }
 
     re_msg = reply__unpack(NULL, count_recv, in_buf);   
-    if (NULL == re_msg) {
+    if (!re_msg) {
         fprintf(stderr, "error unpacking incoming message from length: %zu\n", count_recv);
         return 0;
     }

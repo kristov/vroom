@@ -91,7 +91,7 @@ void drm_crtc(eglkms_context_t* context) {
     int ret;
 
     saved_crtc = drmModeGetCrtc(context->fd, context->kms_encoder->crtc_id);
-    if (saved_crtc == NULL) {
+    if (!saved_crtc) {
         fprintf(stderr, "failed to save crtc\n");
         return;
     }
@@ -120,7 +120,7 @@ void egl_context(eglkms_context_t* context) {
 
     eglChooseConfig(context->egl_display, attributes, &config, 1, &num_config);
     context->egl_context = eglCreateContext(context->egl_display, config, EGL_NO_CONTEXT, NULL);
-    if (context->egl_context == NULL) {
+    if (!context->egl_context) {
         fprintf(stderr, "failed to create context\n");
         return;
     }
@@ -153,7 +153,7 @@ void kms_drm(eglkms_context_t* context) {
     for (i = 0; i < resources->count_connectors; i++) {
         connector = drmModeGetConnector(context->fd, resources->connectors[i]);
 
-        if (NULL == connector) {
+        if (!connector) {
             continue;
         }
 
@@ -173,14 +173,14 @@ void kms_drm(eglkms_context_t* context) {
         fprintf(stderr, "        count_modes: %d\n", connector->count_modes);
         fprintf(stderr, "            mmWidth: %d\n", connector->mmWidth);
         fprintf(stderr, "           mmHeight: %d\n", connector->mmHeight);
-        if (NULL == context->kms_connector) {
+        if (!context->kms_connector) {
             context->kms_connector = connector;
         }
         else {
             drmModeFreeConnector(connector);
         }
     }
-    if (NULL == context->kms_connector) {
+    if (!context->kms_connector) {
         fprintf(stderr, "No currently active connector found.\n");
         return;
     }
@@ -189,7 +189,7 @@ void kms_drm(eglkms_context_t* context) {
 
     for (i = 0; i < resources->count_encoders; i++) {
         encoder = drmModeGetEncoder(context->fd, resources->encoders[i]);
-        if (encoder == NULL)
+        if (!encoder)
             continue;
         if (encoder->encoder_id == context->kms_connector->encoder_id)
             break;
@@ -244,7 +244,7 @@ void egl_root(eglkms_context_t* context) {
 
 void gbm_device(eglkms_context_t* context) {
     context->gbm = gbm_create_device(context->fd);
-    if (context->gbm == NULL) {
+    if (!context->gbm) {
         fprintf(stderr, "couldn't create gbm device\n");
         return;
     }
@@ -269,7 +269,7 @@ int32_t main(int argc, char **argv) {
     eglkms_context_t* context;
 
     context = malloc(sizeof(eglkms_context_t));
-    if (context == NULL) {
+    if (!context) {
         return 1;
     }
 

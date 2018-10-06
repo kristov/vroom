@@ -181,7 +181,7 @@ void hid_context_new_report_item_usage(hid_report_context_t* context) {
     report_item_usage->usage = context->usage;
 
     array_item = hid_context_array_new((void*)report_item_usage);
-    if (NULL == context->usages) {
+    if (!context->usages) {
         context->usages = array_item;
     }
     else {
@@ -252,7 +252,7 @@ void hid_context_new_report_item(hid_report_context_t* context, uint8_t input_fl
     hid_context_copy_report_item_usages(context, report_item);
 
     array_item = hid_context_array_new((void*)report_item);
-    if (NULL == context->report_items) {
+    if (!context->report_items) {
         context->report_items = array_item;
     }
     else {
@@ -288,7 +288,7 @@ void hid_context_new_report(hid_report_context_t* context, uint32_t report_id) {
     hid_input_report_t* report = NULL;
     hid_context_array_t* array_item;
 
-    if (NULL == context->report_items) {
+    if (!context->report_items) {
         // Do not add an empty report with no report items
         return;
     }
@@ -297,7 +297,7 @@ void hid_context_new_report(hid_report_context_t* context, uint32_t report_id) {
     hid_context_copy_report_items(context, report);
 
     array_item = hid_context_array_new((void*)report);
-    if (NULL == context->reports) {
+    if (!context->reports) {
         context->reports = array_item;
     }
     else {
@@ -552,7 +552,7 @@ hid_input_report_t* hid_device_get_report_by_id(hid_device_t* device, uint32_t r
 }
 
 uint32_t hid_device_nr_reports(hid_device_t* device) {
-    if (NULL == device) {
+    if (!device) {
         return 0;
     }
     return device->nr_reports;

@@ -152,12 +152,12 @@ void vrms_render_vm_load_matrix(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t r
     memory_id = vm->iregister[reg_mem];
     offset = vm->iregister[reg_off];
 
-    if (NULL == vm->load_matrix) {
+    if (!vm->load_matrix) {
         return;
     }
 
     matrix = vm->load_matrix(vm, memory_id, offset, vm->user_data);
-    if (NULL == matrix) {
+    if (!matrix) {
         return;
     }
 
@@ -175,7 +175,7 @@ void vrms_render_vm_draw(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t obj_reg)
     matrix = &vm->mregister[reg_mat * 16];
     object_id = vm->iregister[obj_reg];
 
-    if (NULL == vm->draw) {
+    if (!vm->draw) {
         return;
     }
 

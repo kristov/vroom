@@ -499,7 +499,7 @@ uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
     height = 0;
     bytes_pp = 0;
     data = stbi_load(filename, &width, &height, &bytes_pp, 3);
-    if (NULL == data) {
+    if (!data) {
         return 0;
     }
 
@@ -566,7 +566,7 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename, vrms_tex
     height = 0;
     bytes_pp = 0;
     data = stbi_load(filename, &width, &height, &bytes_pp, 3);
-    if (NULL == data) {
+    if (!data) {
         stbi_image_free(data);
         return 0;
     }
@@ -925,7 +925,7 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     total_size = matrix_size + prog_size + reg_size;
     memory_id = vrms_client_create_memory(client, &shared_mem, total_size);
 
-    if (NULL == shared_mem) {
+    if (!shared_mem) {
         fprintf(stderr, "Unable to initialize shared memory\n");
         return 0;
     }
