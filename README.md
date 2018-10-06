@@ -22,7 +22,7 @@ Follow the instructions for building OpenHMD. They boil down to:
   git clone https://github.com/OpenHMD/OpenHMD.git
   cd OpenHMD/
   sudo apt-get install autoconf libtool
-  sudo apt-get install libhidapi-dev
+  sudo apt-get install libhidapi-dev pkg-config
   ./autogen.sh
   ./configure
   make
