@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <dlfcn.h>
 #include <pthread.h>
-#include "vrms_gl.h"
 #include <string.h>
+#include <dirent.h>
+#include "vrms_gl.h"
 #include "safe_malloc.h"
 #include "vrms_render_vm.h"
 #include "vrms_object.h"
@@ -211,14 +212,67 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
     return;
 }
 
-void* start_socket_thread(void* data) {
-    run_module((vrms_runtime_t*)data, "vroom_protocol.so");
+void* start_module_thread(void* data) {
+    vrms_runtime_module_thread_t* module_thread;
+
+    module_thread = (vrms_runtime_module_thread_t*)data;
+    run_module(module_thread->vrms_runtime, module_thread->module_name);
+
     return NULL;
 }
 
-void* start_module_thread(void* data) {
-    run_module((vrms_runtime_t*)data, "test_rotate.so");
-    return NULL;
+vrms_runtime_module_thread_t* vrms_runtime_module_thread_create(char* module_name) {
+    vrms_runtime_module_thread_t* module_thread;
+
+   module_thread = SAFEMALLOC(sizeof(vrms_runtime_module_thread_t));
+   module_thread->module_name = SAFEMALLOC(strlen(module_name) + 1);
+   strcpy(module_thread->module_name, module_name);
+
+   return module_thread;
+}
+
+void vrms_runtime_module_thread_destroy(vrms_runtime_module_thread_t* module_thread) {
+    if (!module_thread) {
+        return;
+    }
+    if (module_thread->module_name) {
+        free(module_thread->module_name);
+    }
+    free(module_thread);
+}
+
+void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
+    int32_t thread_ret;
+    DIR *dir;
+    struct dirent *entry;
+    uint8_t index;
+    vrms_runtime_module_thread_t* module_thread;
+
+    dir = opendir(vrms_runtime->module_load_path);
+    if (!dir) {
+        fprintf(stderr, "could not open module dir: %s\n", vrms_runtime->module_load_path);
+        return;
+    }
+
+    index = 0;
+    while ((entry = readdir(dir))) {
+        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
+            continue;
+        }
+        module_thread = vrms_runtime_module_thread_create(entry->d_name);
+        module_thread->vrms_runtime = vrms_runtime;
+        thread_ret = pthread_create(&module_thread->pthread, NULL, start_module_thread, module_thread);
+        if (thread_ret != 0) {
+            vrms_runtime_module_thread_destroy(module_thread);
+            free(module_thread);
+            fprintf(stderr, "unable to start thread for module\n");
+            exit(1);
+        }
+        vrms_runtime->module_threads[index] = module_thread;
+        index++;
+    }
+    vrms_runtime->nr_module_threads = index;
+    closedir(dir);
 }
 
 void draw_scene(opengl_stereo* ostereo, void* data) {
@@ -232,7 +286,6 @@ void vrms_runtime_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_upda
 }
 
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) {
-    int32_t thread_ret;
     vrms_server_t* vrms_server;
     vrms_runtime_t* vrms_runtime;
 
@@ -251,17 +304,7 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_runtime_system_matrix_update;
 
-    thread_ret = pthread_create(&vrms_runtime->module_threads[0], NULL, start_socket_thread, vrms_runtime);
-    if (thread_ret != 0) {
-        fprintf(stderr, "unable to start socket thread\n");
-        exit(1);
-    }
-
-    thread_ret = pthread_create(&vrms_runtime->module_threads[1], NULL, start_module_thread, vrms_runtime);
-    if (thread_ret != 0) {
-        fprintf(stderr, "unable to start module thread\n");
-        exit(1);
-    }
+    vrms_runtime_load_modules(vrms_runtime);
 
     return vrms_runtime;
 }
@@ -279,6 +322,15 @@ void vrms_runtime_process(vrms_runtime_t* vrms_runtime) {
 }
 
 void vrms_runtime_end(vrms_runtime_t* vrms_runtime) {
-    pthread_join(vrms_runtime->module_threads[0], NULL);
-    pthread_join(vrms_runtime->module_threads[1], NULL);
+    uint8_t index;
+    vrms_runtime_module_thread_t* module_thread;
+
+    index = 0;
+    for (index = 0; index < vrms_runtime->nr_module_threads; index++) {
+        module_thread = vrms_runtime->module_threads[index];
+        if (!module_thread) {
+            continue;
+        }
+        // pthread_join(module_thread->pthread);
+    }
 }

@@ -1,11 +1,21 @@
 #include "vrms.h"
 #include <pthread.h>
 typedef struct vrms_server vrms_server_t;
+typedef struct vrms_runtime vrms_runtime_t;
+
+typedef struct vrms_runtime_module_thread {
+    char* module_name;
+    vrms_runtime_t* vrms_runtime;
+    pthread_t pthread;
+} vrms_runtime_module_thread_t;
+
 typedef struct vrms_runtime {
-    pthread_t module_threads[10];
+    vrms_runtime_module_thread_t* module_threads[10];
+    uint8_t nr_module_threads;
     vrms_server_t* vrms_server;
     char* module_load_path;
 } vrms_runtime_t;
+
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width);
 void vrms_runtime_display(vrms_runtime_t* vrms_runtime);
 void vrms_runtime_reshape(vrms_runtime_t* vrms_runtime, int w, int h);
