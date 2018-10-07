@@ -162,10 +162,10 @@ void kms_drm(eglkms_context_t* context) {
             continue;
         }
 
-        //if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
-        //    drmModeFreeConnector(connector);
-        //    continue;
-        //}
+        if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
+            drmModeFreeConnector(connector);
+            continue;
+        }
 
         fprintf(stderr, "connector: %d\n", i);
         fprintf(stderr, "     connector_type: %d\n", connector->connector_type);

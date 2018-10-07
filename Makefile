@@ -14,7 +14,7 @@ SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
 
-MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so input_hid.so input_libinput.so)
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so input_hid.so input_libinput.so input_openhmd.so)
 
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
@@ -61,9 +61,6 @@ clients: $(CLIENTS)
 
 modules: $(MODULES)
 
-$(BINDIR)/input_openhmd : EXTRALINKS := -lopenhmd
-$(BINDIR)/input_usb     : EXTRALINKS := -ludev -lsqlite3 
-
 $(BINDIR)/%: $(SRCDIR)/client/%.c $(CLIENTOBJS)
 	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(CLIENTLINKS) $(EXTRALINKS) -o $@ $(CLIENTOBJS) $<
 
@@ -91,6 +88,12 @@ $(MODULEDIR)/input_hid.so: $(SRCDIR)/module/input_hid.c $(OBJDIR)/hid_monitor.o
 $(MODULEDIR)/input_libinput.so: $(SRCDIR)/module/input_libinput.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_libinput.o $(SRCDIR)/module/input_libinput.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_libinput.o -linput
+
+$(MODULEDIR)/input_openhmd.so : EXTRALINKS := -lopenhmd
+
+$(MODULEDIR)/input_openhmd.so: $(SRCDIR)/module/input_openhmd.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_openhmd.o $(SRCDIR)/module/input_openhmd.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_openhmd.o $(EXTRALINKS)
 
 #### BEGIN TESTS ####
 tests: $(TESTS)

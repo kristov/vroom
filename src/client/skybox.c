@@ -33,7 +33,9 @@ int main(void) {
 
     vrms_geometry_render_buffer_basic(client, skybox_id, 0.0f, 0.0f, 0.0f);
 
-    sleep(60);
+    while (1) {
+        sleep(60);
+    }
 
     vrms_destroy_scene(client);
     return 0;
