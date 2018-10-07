@@ -292,6 +292,9 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_runtime = malloc(sizeof(vrms_runtime_t));
     memset(vrms_runtime, 0, sizeof(vrms_runtime_t));
 
+    vrms_runtime->w = width;
+    vrms_runtime->h = height;
+
     vrms_runtime->module_load_path = "/home/ceade/src/personal/github/vroom/module";
     vrms_server = vrms_server_create();
     vrms_runtime->vrms_server = vrms_server;
@@ -314,6 +317,8 @@ void vrms_runtime_display(vrms_runtime_t* vrms_runtime) {
 }
 
 void vrms_runtime_reshape(vrms_runtime_t* vrms_runtime, int w, int h) {
+    vrms_runtime->w = w;
+    vrms_runtime->h = h;
     opengl_stereo_reshape(ostereo, w, h);
 }
 

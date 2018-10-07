@@ -2,12 +2,35 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <GL/glut.h>
+#include <esm.h>
 #include "vrms_runtime.h"
 
+#define PI    3.141593f
+#define TWOPI 6.283185f
+
 vrms_runtime_t* vrms_runtime;
+float view_matrix[16];
 
 GLvoid reshape(int w, int h) {
     vrms_runtime_reshape(vrms_runtime, w, h);
+}
+
+void motion(int x, int y) {
+    float xpct;
+    float ypct;
+    float xangle;
+    float yangle;
+
+    xpct = (float)x / (float)vrms_runtime->w;
+    ypct = (float)y / (float)vrms_runtime->h;
+
+    xangle = TWOPI * xpct;
+    yangle = (PI * ypct) - (PI / 2);
+
+    esmLoadIdentity(view_matrix);
+    esmRotatef(view_matrix, yangle, 1, 0, 0);
+    esmRotatef(view_matrix, xangle, 0, 1, 0);
+    vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, view_matrix);
 }
 
 GLvoid display(GLvoid) {
@@ -28,6 +51,7 @@ void initWindowingSystem(int *argc, char **argv, int width, int height) {
     glutCreateWindow("Stereo Test");
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
+    glutPassiveMotionFunc(motion);
     glutTimerFunc(10, do_timer, 1);
 
     //const GLubyte* extensions = glGetString(GL_EXTENSIONS);

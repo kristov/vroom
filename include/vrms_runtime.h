@@ -14,6 +14,8 @@ typedef struct vrms_runtime {
     uint8_t nr_module_threads;
     vrms_server_t* vrms_server;
     char* module_load_path;
+    uint32_t w;
+    uint32_t h;
 } vrms_runtime_t;
 
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width);
