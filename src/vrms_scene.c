@@ -207,6 +207,8 @@ void vrms_scene_empty_outbound_queue(vrms_scene_t* scene) {
 }
 
 void vrms_scene_add_object(vrms_scene_t* scene, vrms_object_t* object) {
+    // TODO: Need locking here. The server might choose to destroy a scene
+    // while an object is being added.
     scene->objects[scene->next_object_id] = object;
     object->id = scene->next_object_id;
     scene->next_object_id++;
