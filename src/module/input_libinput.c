@@ -71,7 +71,7 @@ static int handle_and_print_events(struct libinput *li) {
     return rc;
 }
 
-void* run_module(void* data) {
+void* run_module(vrms_runtime_t* vrms_runtime) {
     struct libinput *li;
     struct pollfd fds;
 

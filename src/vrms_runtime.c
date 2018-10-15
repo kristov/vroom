@@ -205,7 +205,7 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
         dlclose(handle);
     }
 
-    (*run_module)((void*)vrms_runtime);
+    (*run_module)(vrms_runtime);
 
     dlclose(handle);
 

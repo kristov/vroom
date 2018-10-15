@@ -10,7 +10,7 @@
 #define NANO_SECOND_MULTIPLIER 1000000
 const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 
-void* run_module(void* data) {
+void* run_module(vrms_runtime_t* vrms_runtime) {
     float matrix[16];
     struct timespec ts;
     float angle;
@@ -22,7 +22,7 @@ void* run_module(void* data) {
     while (1) {
         esmLoadIdentity(matrix);
         esmRotatef(matrix, angle, 0, 1, 0);
-        vrms_runtime_update_system_matrix_module((vrms_runtime_t*)data, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
+        vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
         angle += 0.01;
         if (angle > 6.2) {
             angle = 0;

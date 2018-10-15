@@ -697,18 +697,13 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
     return 0;
 }
 
-void* run_module(void* data) {
+void* run_module(vrms_runtime_t* vrms_runtime) {
     int max_queue = 128;
     struct sock_ev_serv server;
     EV_P = ev_default_loop(0);
 
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
-
-    if (NULL == data) {
-        fprintf(stderr, "error creating server\n");
-        return NULL;
-    }
-    server.vrms_runtime = (vrms_runtime_t*)data;
+    server.vrms_runtime = vrms_runtime;
 
     ev_io_init(&server.io, server_cb, server.fd, EV_READ);
     ev_io_start(EV_A_ &server.io);

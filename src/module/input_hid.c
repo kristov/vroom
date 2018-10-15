@@ -118,7 +118,7 @@ device:
 */
 }
 
-void* run_module(void* data) {
+void* run_module(vrms_runtime_t* vrms_runtime) {
     hid_monitor_t* monitor;
 
     monitor = hid_monitor_create();
