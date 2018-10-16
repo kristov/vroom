@@ -112,5 +112,16 @@ Like a window manager in X but most likely using 100% server side code via dedic
 
 This should probably be some raw interface provided by the server, but inspectable and modifiable by client runtime code. So scene managers and also potentially regular application clients can know about the physical display devices and adapt or modify accordingly.
 
+### Hide function pointers for runtime behind vrms_runtime_t object
+
+Rather than make every function in the server visible to module (see -rdynamic flag in Makefile) define a specific interface by function pointers in the vrms_runtime_t object (or sub-struct). That way modules can't call just any random function, but only those "exposed" via the interface.
+
+So rather than a module calling:
+
+  vrms_runtime_create_object_mesh_texture(vrms_runtime,...);
+
+Would call:
+
+  vrms_runtime->create_object_mesh_texture(vrms_runtime,...);
 
 
