@@ -12,7 +12,7 @@ EXTDIR := external
 SERVEROBJS := $(addprefix $(OBJDIR)/, vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_runtime.o vrms_render_vm.o)
 SERVERLINKS := -ldl -lm -lpthread
 
-CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square input_openhmd skybox input_test_rotate)
+CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square skybox)
 
 MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so input_hid.so input_libinput.so input_openhmd.so)
 

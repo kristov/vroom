@@ -15,7 +15,12 @@ The general idea is that clients set up data buffers of geometry, transformation
 * libconfig8-dev - HMD configuration file (~/.vroomrc)
 * libev-dev - Event handling
 
-  sudo apt-get install protobuf-c-compiler freeglut3-dev libconfig8-dev libev-dev
+  sudo apt-get install protobuf-c-compiler freeglut3-dev libconfig8-dev libev-dev libprotobuf-c-dev
+
+### For modules
+
+  sudo apt-get install libudev-dev
+  sudo apt-get install libinput-dev
 
 Follow the instructions for building OpenHMD. They boil down to:
 
