@@ -51,7 +51,7 @@ uint32_t receive_create_scene(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int
         return 0;
     }
 
-    id = vrms_runtime_create_scene(vrms_runtime, cs_msg->name);
+    id = vrms_runtime->interface->create_scene(vrms_runtime, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create scene: out of memory\n");
@@ -81,7 +81,7 @@ uint32_t receive_create_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, in
         return 0;
     }
 
-    id = vrms_runtime_create_memory(vrms_runtime, cs_msg->scene_id, shm_fd, cs_msg->size);
+    id = vrms_runtime->interface->create_memory(vrms_runtime, cs_msg->scene_id, shm_fd, cs_msg->size);
     if (0 == id) {
         fprintf(stderr, "create memory: out of memory\n");
         *error = VRMS_OUTOFMEMORY;
@@ -153,7 +153,7 @@ uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_bu
             break;
     }
 
-    id = vrms_runtime_create_object_data(vrms_runtime, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, msg->item_length, msg->data_length, vrms_type);
+    id = vrms_runtime->interface->create_object_data(vrms_runtime, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, msg->item_length, msg->data_length, vrms_type);
     if (0 == id) {
         fprintf(stderr, "create object data: out of memory\n");
         *error = VRMS_OUTOFMEMORY;
@@ -186,7 +186,7 @@ uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in
     vrms_texture_format_t format = msg->format;
     vrms_texture_type_t type = msg->type;
 
-    id = vrms_runtime_create_object_texture(vrms_runtime, msg->scene_id, msg->data_id, msg->width, msg->height, format, type);
+    id = vrms_runtime->interface->create_object_texture(vrms_runtime, msg->scene_id, msg->data_id, msg->width, msg->height, format, type);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create object texture: out of memory\n");
@@ -216,7 +216,7 @@ uint32_t receive_create_geometry_object(vrms_runtime_t* vrms_runtime, uint8_t* i
         return 0;
     }
 
-    id = vrms_runtime_create_object_geometry(vrms_runtime, cs_msg->scene_id, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
+    id = vrms_runtime->interface->create_object_geometry(vrms_runtime, cs_msg->scene_id, cs_msg->vertex_id, cs_msg->normal_id, cs_msg->index_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create object geometry: out of memory\n");
@@ -246,7 +246,7 @@ uint32_t receive_create_mesh_color(vrms_runtime_t* vrms_runtime, uint8_t* in_buf
         return 0;
     }
 
-    id = vrms_runtime_create_object_mesh_color(vrms_runtime, cs_msg->scene_id, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
+    id = vrms_runtime->interface->create_object_mesh_color(vrms_runtime, cs_msg->scene_id, cs_msg->geometry_id, cs_msg->r, cs_msg->g, cs_msg->b, cs_msg->a);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create object mesh color: out of memory\n");
@@ -276,7 +276,7 @@ uint32_t receive_create_mesh_texture(vrms_runtime_t* vrms_runtime, uint8_t* in_b
         return 0;
     }
 
-    id = vrms_runtime_create_object_mesh_texture(vrms_runtime, cs_msg->scene_id, cs_msg->geometry_id, cs_msg->texture_id, cs_msg->uv_id);
+    id = vrms_runtime->interface->create_object_mesh_texture(vrms_runtime, cs_msg->scene_id, cs_msg->geometry_id, cs_msg->texture_id, cs_msg->uv_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create object mesh texture: out of memory\n");
@@ -306,7 +306,7 @@ uint32_t receive_create_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, u
         return 0;
     }
 
-    id = vrms_runtime_create_program(vrms_runtime, msg->scene_id, msg->data_id);
+    id = vrms_runtime->interface->create_program(vrms_runtime, msg->scene_id, msg->data_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create program: out of memory\n");
@@ -336,7 +336,7 @@ uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint
         return 0;
     }
 
-    id = vrms_runtime_run_program(vrms_runtime, msg->scene_id, msg->program_id, msg->register_id);
+    id = vrms_runtime->interface->run_program(vrms_runtime, msg->scene_id, msg->program_id, msg->register_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "run program: out of memory\n");
@@ -390,7 +390,7 @@ uint32_t receive_update_system_matrix(vrms_runtime_t* vrms_runtime, uint8_t* in_
             break;
     }
 
-    ok = vrms_runtime_update_system_matrix(vrms_runtime, msg->scene_id, msg->data_id, msg->data_index, matrix_type, update_type);
+    ok = vrms_runtime->interface->update_system_matrix(vrms_runtime, msg->scene_id, msg->data_id, msg->data_index, matrix_type, update_type);
     if (0 == ok) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "set system matrix error\n");
@@ -420,7 +420,7 @@ uint32_t receive_create_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
         return 0;
     }
 
-    id = vrms_runtime_create_object_skybox(vrms_runtime, msg->scene_id, msg->texture_id);
+    id = vrms_runtime->interface->create_object_skybox(vrms_runtime, msg->scene_id, msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create skybox: out of memory\n");
@@ -488,7 +488,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             printf("orderly disconnect\n");
             if (client->vrms_scene_id > 0) {
                 printf("destroying scene: %d\n", client->vrms_scene_id);
-                vrms_runtime_destroy_scene(vrms_runtime, client->vrms_scene_id);
+                vrms_runtime->interface->destroy_scene(vrms_runtime, client->vrms_scene_id);
             }
             ev_io_stop(EV_A_ &client->io);
             close(client->fd);

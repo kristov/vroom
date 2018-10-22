@@ -22,7 +22,7 @@ void* run_module(vrms_runtime_t* vrms_runtime) {
     while (1) {
         esmLoadIdentity(matrix);
         esmRotatef(matrix, angle, 0, 1, 0);
-        vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
+        vrms_runtime->interface->update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
         angle += 0.01;
         if (angle > 6.2) {
             angle = 0;

@@ -75,7 +75,7 @@ void* run_module(vrms_runtime_t* vrms_runtime) {
         esmQuaternionToMatrix(matrix, rotation_values[0], rotation_values[1], rotation_values[2], rotation_values[3]);
         //esmDump(matrix, "input_openhmd matrix");
 
-        vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
+        vrms_runtime->interface->update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
         nanosleep(&ts, NULL);
     }
 

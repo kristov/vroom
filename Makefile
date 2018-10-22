@@ -49,13 +49,13 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 x11-server: src/main_glut.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 eglbcm-server: src/main_eglbcm.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 eglkms-server: src/main_eglkms.c $(SERVEROBJS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -rdynamic -o vroom-server $(SERVEROBJS) $<
+	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(SERVERLINKS) $(EXTGL) -o vroom-server $(SERVEROBJS) $<
 
 clients: $(CLIENTS)
 
@@ -71,6 +71,9 @@ $(OBJDIR)/array_heap.o: $(SRCDIR)/array_heap.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
 
 $(OBJDIR)/hid_monitor.o: $(SRCDIR)/linux/hid_monitor.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+
+$(OBJDIR)/esm.o: $(SRCDIR)/esm.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
 
 $(MODULEDIR)/vroom_protocol.so: $(SRCDIR)/module/vroom_protocol.c $(OBJDIR)/vroom_pb.o $(OBJDIR)/array_heap.o
@@ -91,9 +94,9 @@ $(MODULEDIR)/input_libinput.so: $(SRCDIR)/module/input_libinput.c
 
 $(MODULEDIR)/input_openhmd.so : EXTRALINKS := -lopenhmd
 
-$(MODULEDIR)/input_openhmd.so: $(SRCDIR)/module/input_openhmd.c
+$(MODULEDIR)/input_openhmd.so: $(SRCDIR)/module/input_openhmd.c $(OBJDIR)/esm.o
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $(OBJDIR)/input_openhmd.o $(SRCDIR)/module/input_openhmd.c
-	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_openhmd.o $(EXTRALINKS)
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC $(OBJDIR)/input_openhmd.o $(OBJDIR)/esm.o $(EXTRALINKS)
 
 #### BEGIN TESTS ####
 tests: $(TESTS)

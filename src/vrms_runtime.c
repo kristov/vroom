@@ -20,6 +20,24 @@
 
 opengl_stereo* ostereo;
 
+vrms_runtime_interface_t runtime_interface;
+
+void fill_interface() {
+    runtime_interface.create_scene = vrms_runtime_create_scene;
+    runtime_interface.create_memory = vrms_runtime_create_memory;
+    runtime_interface.create_object_data = vrms_runtime_create_object_data;
+    runtime_interface.create_object_texture = vrms_runtime_create_object_texture;
+    runtime_interface.create_object_geometry = vrms_runtime_create_object_geometry;
+    runtime_interface.create_object_mesh_color = vrms_runtime_create_object_mesh_color;
+    runtime_interface.create_object_mesh_texture = vrms_runtime_create_object_mesh_texture;
+    runtime_interface.create_program = vrms_runtime_create_program;
+    runtime_interface.run_program = vrms_runtime_run_program;
+    runtime_interface.create_object_skybox = vrms_runtime_create_object_skybox;
+    runtime_interface.destroy_scene = vrms_runtime_destroy_scene;
+    runtime_interface.update_system_matrix = vrms_runtime_update_system_matrix;
+    runtime_interface.update_system_matrix_module = vrms_runtime_update_system_matrix_module;
+}
+
 uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
     if (!vrms_runtime) {
         fprintf(stderr, "invalid runtime object\n");
@@ -135,8 +153,9 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
 }
 
 
-void vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+uint8_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
     vrms_server_queue_update_system_matrix(vrms_runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
+    return 1;
 }
 
 uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
@@ -291,6 +310,9 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
 
     vrms_runtime = malloc(sizeof(vrms_runtime_t));
     memset(vrms_runtime, 0, sizeof(vrms_runtime_t));
+
+    fill_interface();
+    vrms_runtime->interface = &runtime_interface;
 
     vrms_runtime->w = width;
     vrms_runtime->h = height;
