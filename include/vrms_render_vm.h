@@ -1,3 +1,6 @@
+#ifndef VRMS_RENDER_VM_H
+#define VRMS_RENDER_VM_H
+
 #include <stdint.h>
 
 #define NUM_REGS 8
@@ -140,3 +143,5 @@ void vrms_render_vm_reset(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t length);
 void vrms_render_vm_alloc_ex_interrupt(vrms_render_vm_t* vm);
 uint8_t vrms_render_vm_has_exception(vrms_render_vm_t* vm);
+
+#endif
