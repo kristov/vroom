@@ -494,7 +494,7 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     }
 
     vrms_render_vm_reset(scene->vm);
-    nr_regs = data->memory_length / sizeof(uint32_t);
+    nr_regs = data->memory_length / data->data_length;
     registers = &((uint32_t*)memory->address)[data->memory_offset];
 
     for (i = 0; i < nr_regs; i++) {
@@ -790,9 +790,11 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
     return usec_elapsed;
 }
 
-float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint32_t matrix_idx, void* user_data) {
+float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t data_id, uint32_t matrix_idx, void* user_data) {
     vrms_scene_t* scene;
+    vrms_object_t* data_object;
     vrms_object_t* memory_object;
+    vrms_object_data_t* data;
     vrms_object_memory_t* memory;
     float* matrix;
 
@@ -803,7 +805,15 @@ float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint3
 
     scene = (vrms_scene_t*)user_data;
 
-    memory_object = vrms_scene_get_object_by_id(scene, memory_id);
+    data_object = vrms_scene_get_object_by_id(scene, data_id);
+    if (!data_object) {
+        debug_render_print("vrms_scene_vm_load_matrix(): data_object[%d] NULL\n", data_id);
+        return NULL;
+    }
+
+    data = data_object->object.object_data;
+
+    memory_object = vrms_scene_get_object_by_id(scene, data->memory_id);
     if (!memory_object) {
         debug_render_print("vrms_scene_vm_load_matrix(): memory_object NULL\n");
         return NULL;
@@ -814,7 +824,7 @@ float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t memory_id, uint3
         debug_render_print("vrms_scene_vm_load_matrix(): memory->address NULL\n");
         return NULL;
     }
-    matrix = &((float*)memory->address)[matrix_idx];
+    matrix = &((float*)memory->address)[data->memory_offset];
 
     return matrix;
 }

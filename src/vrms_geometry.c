@@ -906,6 +906,7 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     uint32_t memory_id;
     uint32_t program_data_id;
     uint32_t register_data_id;
+    uint32_t matrix_data_id;
     uint32_t program_id;
     uint32_t render_ret;
     uint32_t matrix_size;
@@ -940,8 +941,14 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     esmLoadIdentity(model_matrix);
     esmTranslatef(model_matrix, x, y, z);
 
+    matrix_data_id = vrms_client_create_data_object(client, memory_id, 0, matrix_size, matrix_size, sizeof(float), VRMS_MATRIX);
+    if (0 == matrix_data_id) {
+        fprintf(stderr, "Unable to create matrix data\n");
+        return 0;
+    }
+
     registers[0] = object_id;
-    registers[1] = memory_id;
+    registers[1] = matrix_data_id;
     registers[2] = 0; // index to matrix in memory
     registers[3] = 0;
     registers[4] = 0;

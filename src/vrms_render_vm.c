@@ -145,19 +145,20 @@ uint8_t vrms_render_vm_resume(vrms_render_vm_t* vm) {
 }
 
 void vrms_render_vm_load_matrix(vrms_render_vm_t* vm, uint8_t reg_mat, uint8_t reg_mem, uint8_t reg_off) {
-    uint32_t memory_id;
+    uint32_t data_id;
     uint32_t offset;
     float* matrix;
 
-    memory_id = vm->iregister[reg_mem];
+    data_id = vm->iregister[reg_mem];
     offset = vm->iregister[reg_off];
 
     if (!vm->load_matrix) {
         return;
     }
 
-    matrix = vm->load_matrix(vm, memory_id, offset, vm->user_data);
+    matrix = vm->load_matrix(vm, data_id, offset, vm->user_data);
     if (!matrix) {
+        // TODO: Throw some VM exception
         return;
     }
 
