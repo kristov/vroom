@@ -29,6 +29,18 @@
 #define ALLOCATION_US_30FPS 33000
 #define ALLOCATION_US_60FPS 16666
 
+const char *VRMS_DATA_TYPE_NAMES[] = {
+    "VRMS_VERTEX",
+    "VRMS_NORMAL",
+    "VRMS_INDEX",
+    "VRMS_COLOR",
+    "VRMS_UV",
+    "VRMS_TEXTURE",
+    "VRMS_MATRIX",
+    "VRMS_PROGRAM",
+    "VRMS_REGISTER"
+};
+
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     vrms_object_t* vrms_object;
     if (scene->next_object_id <= id) {
@@ -279,7 +291,7 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
     debug_print("    memory_length[%d]\n", memory_length);
     debug_print("    item_length[%d]\n", item_length);
     debug_print("    data_length[%d]\n", data_length);
-    debug_print("    type[%d]\n", type);
+    debug_print("    type[%s]\n", VRMS_DATA_TYPE_NAMES[type]);
     debug_print("\n");
 
     if (!object->realized) {
@@ -722,6 +734,7 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, floa
             vrms_server_draw_skybox(scene->server, skybox, projection_matrix, view_matrix, model_matrix);
             break;
         default:
+            debug_render_print("vrms_server_draw_scene_object(): object: %d NOT DRAWABLE\n", object_id);
             break;
     }
 }
@@ -735,7 +748,6 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
     vrms_render_vm_t* vm;
 
     if ((!scene->render_buffer) || (0 == scene->render_buffer_size)) {
-        debug_render_print("vrms_scene_draw(): no render_buffer\n");
         return 0;
     }
 
