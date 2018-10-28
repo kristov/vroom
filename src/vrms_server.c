@@ -292,6 +292,7 @@ void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t
 
     shader_id = server->color_shader_id;
     glUseProgram(shader_id);
+printOpenGLError();
 
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
@@ -304,30 +305,37 @@ void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
+printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
+printOpenGLError();
 
     u_color = glGetUniformLocation(shader_id, "u_color");
     glUniform4f(u_color, mesh->r, mesh->g, mesh->b, mesh->a);
     glEnableVertexAttribArray(u_color);
+printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
+printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
+printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
     glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
+printOpenGLError();
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+printOpenGLError();
 }
 
 void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
@@ -343,6 +351,7 @@ void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_textu
 
     shader_id = server->texture_shader_id;
     glUseProgram(shader_id);
+printOpenGLError();
 
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
@@ -355,30 +364,37 @@ void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_textu
     b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
+printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
     b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
+printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
     b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
+printOpenGLError();
 
     s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
+printOpenGLError();
 
     m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
+printOpenGLError();
 
     m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
+printOpenGLError();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
     glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
+printOpenGLError();
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
@@ -386,6 +402,7 @@ void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_textu
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+printOpenGLError();
 }
 
 void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float* projection_matrix, float* view_matrix, float* model_matrix) {
@@ -467,7 +484,7 @@ void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* load) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *load->destination);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, load->size, load->buffer, GL_STATIC_DRAW);
     if (0 == *load->destination) {
-        debug_print("unable to load gl element buffer");
+        debug_print("unable to load gl element buffer\n");
         printOpenGLError();
     }
     else {
@@ -553,7 +570,7 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
             break;
     }
     if (0 == *load->destination) {
-        debug_print("unable to load gl texture buffer");
+        debug_print("unable to load gl texture buffer\n");
         printOpenGLError();
     }
 }
@@ -567,7 +584,7 @@ void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* load) {
     glBindBuffer(GL_ARRAY_BUFFER, *load->destination);
     glBufferData(GL_ARRAY_BUFFER, load->size, load->buffer, GL_STATIC_DRAW);
     if (0 == *load->destination) {
-        debug_print("unable to load gl buffer");
+        debug_print("unable to load gl buffer\n");
         printOpenGLError();
     }
     else {
