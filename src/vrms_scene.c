@@ -507,7 +507,8 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
 
     vrms_render_vm_reset(scene->vm);
     nr_regs = data->memory_length / data->data_length;
-    registers = &((uint32_t*)memory->address)[data->memory_offset];
+    uint8_t* reg_buffer = (uint8_t*)memory->address;
+    registers = (uint32_t*)&reg_buffer[data->memory_offset];
 
     for (i = 0; i < nr_regs; i++) {
         debug_print("setting register %d to %d\n", i, registers[i]);

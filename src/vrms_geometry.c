@@ -935,8 +935,8 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     reg_off = matrix_size + prog_size;
 
     model_matrix = (float*)shared_mem;
-    program = &((uint8_t*)shared_mem)[prog_off];
-    registers = &((uint32_t*)shared_mem)[reg_off];
+    program = ((uint8_t*)&shared_mem[prog_off]);
+    registers = ((uint32_t*)&shared_mem[reg_off]);
 
     esmLoadIdentity(model_matrix);
     esmTranslatef(model_matrix, x, y, z);
