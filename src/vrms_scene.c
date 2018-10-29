@@ -383,24 +383,20 @@ uint32_t vrms_scene_create_object_mesh_texture(vrms_scene_t* scene, uint32_t geo
 }
 
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
-    float* matrix_array;
-    float* matrix;
-    vrms_object_data_t* data;
-    vrms_object_memory_t* memory;
-
-    data = vrms_scene_get_data_object_by_id(scene, data_id);
+    vrms_object_data_t* data = vrms_scene_get_data_object_by_id(scene, data_id);
     if (!data) {
         debug_print("unable to find data object\n");
         return 0;
     }
 
-    memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
+    vrms_object_memory_t* memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
     if (!memory) {
         return 0;
     }
 
-    matrix_array = &((float*)memory->address)[data->memory_offset];
-    matrix = &matrix_array[data_index * data->item_length];
+    uint8_t* buffer_ref = (uint8_t*)memory->address;
+    float* matrix_array = (float*)&buffer_ref[data->memory_offset];
+    float* matrix = &matrix_array[data_index * data->item_length];
 
     vrms_server_queue_update_system_matrix(scene->server, matrix_type, update_type, (uint8_t*)matrix);
 
@@ -442,13 +438,13 @@ uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_i
     skybox->vertex_data = SAFEMALLOC(vertex_length);
     memcpy(skybox->vertex_data, (uint8_t*)vertex_data, vertex_length);
 
-    vrms_server_queue_add_data_load(scene->server, vertex_length, &skybox->vertex_gl_id, VRMS_VERTEX, skybox->vertex_data);
+    vrms_server_queue_add_data_load(scene->server, vertex_length, &skybox->vertex_gl_id, VRMS_VERTEX, (uint8_t*)skybox->vertex_data);
 
     uint32_t index_length = 36 * sizeof(uint16_t);
     skybox->index_data = SAFEMALLOC(index_length);
     memcpy(skybox->index_data, (uint8_t*)index_data, index_length);
 
-    vrms_server_queue_add_data_load(scene->server, index_length, &skybox->index_gl_id, VRMS_INDEX, skybox->index_data);
+    vrms_server_queue_add_data_load(scene->server, index_length, &skybox->index_gl_id, VRMS_INDEX, (uint8_t*)skybox->index_data);
 
     return object->id;
 }
@@ -805,40 +801,35 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
 }
 
 float* vrms_scene_vm_load_matrix(vrms_render_vm_t* vm, uint32_t data_id, uint32_t matrix_idx, void* user_data) {
-    vrms_scene_t* scene;
-    vrms_object_t* data_object;
-    vrms_object_t* memory_object;
-    vrms_object_data_t* data;
-    vrms_object_memory_t* memory;
-    float* matrix;
-
     if (!user_data) {
         debug_render_print("vrms_scene_vm_load_matrix(): user_data NULL\n");
         return NULL;
     }
 
-    scene = (vrms_scene_t*)user_data;
+    vrms_scene_t* scene = (vrms_scene_t*)user_data;
 
-    data_object = vrms_scene_get_object_by_id(scene, data_id);
+    vrms_object_t* data_object = vrms_scene_get_object_by_id(scene, data_id);
     if (!data_object) {
         debug_render_print("vrms_scene_vm_load_matrix(): data_object[%d] NULL\n", data_id);
         return NULL;
     }
 
-    data = data_object->object.object_data;
+    vrms_object_data_t* data = data_object->object.object_data;
 
-    memory_object = vrms_scene_get_object_by_id(scene, data->memory_id);
+    vrms_object_t* memory_object = vrms_scene_get_object_by_id(scene, data->memory_id);
     if (!memory_object) {
         debug_render_print("vrms_scene_vm_load_matrix(): memory_object NULL\n");
         return NULL;
     }
 
-    memory = memory_object->object.object_memory;
+    vrms_object_memory_t* memory = memory_object->object.object_memory;
     if (!memory->address) {
         debug_render_print("vrms_scene_vm_load_matrix(): memory->address NULL\n");
         return NULL;
     }
-    matrix = &((float*)memory->address)[data->memory_offset];
+    uint8_t* buffer_ref = (uint8_t*)memory->address;
+    float* matrix_array = (float*)&buffer_ref[data->memory_offset];
+    float* matrix = &matrix_array[matrix_idx * data->item_length];
 
     return matrix;
 }
