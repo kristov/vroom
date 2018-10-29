@@ -539,27 +539,22 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
 }
 
 uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_color_t* mesh) {
-    vrms_object_t* object;
-    vrms_object_geometry_t* geometry;
-    vrms_object_data_t* vertex;
-    vrms_object_data_t* normal;
-    vrms_object_data_t* index;
-
     if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id)) {
         return 1;
     }
 
-    object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
+    debug_render_print("vrms_scene_mesh_color_realize(): realizing\n");
+    vrms_object_t* object = vrms_scene_get_object_by_id(scene, mesh->geometry_id);
     if (!object) {
         return 0;
     }
-    geometry = object->object.object_geometry;
+    vrms_object_geometry_t* geometry = object->object.object_geometry;
 
     object = vrms_scene_get_object_by_id(scene, geometry->vertex_id);
     if (!object) {
         return 0;
     }
-    vertex = object->object.object_data;
+    vrms_object_data_t* vertex = object->object.object_data;
     if (0 != vertex->gl_id) {
         mesh->vertex_gl_id = vertex->gl_id;
     }
@@ -568,7 +563,7 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     if (!object) {
         return 0;
     }
-    normal = object->object.object_data;
+    vrms_object_data_t* normal = object->object.object_data;
     if (0 != normal->gl_id) {
         mesh->normal_gl_id = normal->gl_id;
     }
@@ -577,13 +572,17 @@ uint8_t vrms_scene_mesh_color_realize(vrms_scene_t* scene, vrms_object_mesh_colo
     if (!object) {
         return 0;
     }
-    index = object->object.object_data;
+    vrms_object_data_t* index = object->object.object_data;
     if (0 != index->gl_id) {
         mesh->index_gl_id = index->gl_id;
         mesh->nr_indicies = index->memory_length / index->data_length;
     }
 
     if ((0 != mesh->vertex_gl_id) && (0 != mesh->normal_gl_id) && (0 != mesh->index_gl_id)) {
+        debug_render_print("vrms_scene_mesh_color_realize(): realized:\n");
+        debug_render_print("    vertex_gl_id: %d\n", mesh->vertex_gl_id);
+        debug_render_print("    normal_gl_id: %d\n", mesh->normal_gl_id);
+        debug_render_print("     index_gl_id: %d\n", mesh->index_gl_id);
         return 1;
     }
 
