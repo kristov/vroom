@@ -194,7 +194,7 @@ void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
+uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
     vrms_queue_item_data_load_t* data_load = SAFEMALLOC(sizeof(vrms_queue_item_data_load_t));
     memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
 
@@ -210,12 +210,15 @@ void vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuin
     queue_item->item.data_load = data_load;
 
     pthread_mutex_lock(server->inbound_queue_lock);
+    uint32_t idx = server->inbound_queue_index;
     server->inbound_queue[server->inbound_queue_index] = queue_item;
     server->inbound_queue_index++;
     pthread_mutex_unlock(server->inbound_queue_lock);
+
+    return idx;
 }
 
-void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, void* buffer) {
+uint32_t vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, void* buffer) {
     vrms_queue_item_texture_load_t* texture_load = SAFEMALLOC(sizeof(vrms_queue_item_texture_load_t));
     memset(texture_load, 0, sizeof(vrms_queue_item_texture_load_t));
 
@@ -234,9 +237,12 @@ void vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GL
     queue_item->item.texture_load = texture_load;
 
     pthread_mutex_lock(server->inbound_queue_lock);
+    uint32_t idx = server->inbound_queue_index;
     server->inbound_queue[server->inbound_queue_index] = queue_item;
     server->inbound_queue_index++;
     pthread_mutex_unlock(server->inbound_queue_lock);
+
+    return idx;
 }
 
 void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
@@ -643,9 +649,8 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
 
 void vrms_scene_queue_item_flush(vrms_server_t* server) {
     uint32_t idx;
-    vrms_queue_item_t* queue_item;
     for (idx = 0; idx < server->inbound_queue_index; idx++) {
-        queue_item = server->inbound_queue[idx];
+        vrms_queue_item_t* queue_item = server->inbound_queue[idx];
         if (NULL != queue_item) {
             vrms_server_queue_item_process(server, queue_item);
         }

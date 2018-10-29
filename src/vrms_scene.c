@@ -270,7 +270,6 @@ uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t siz
 }
 
 uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type) {
-    void* buffer;
     vrms_object_memory_t* memory;
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
@@ -291,30 +290,30 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
     debug_print("    memory_length[%d]\n", memory_length);
     debug_print("    item_length[%d]\n", item_length);
     debug_print("    data_length[%d]\n", data_length);
+    debug_print("    realized[%d]\n", object->realized);
     debug_print("    type[%s]\n", VRMS_DATA_TYPE_NAMES[type]);
-    debug_print("\n");
 
     if (!object->realized) {
-        debug_print("not realized, copying to GPU\n");
-        buffer = &((uint8_t*)memory->address)[memory_offset];
-        vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_data->gl_id, type, buffer);
+        uint8_t* buffer_ref = (uint8_t*)memory->address;
+        void* buffer = &buffer_ref[memory_offset];
+        uint32_t idx = vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_data->gl_id, type, buffer);
+        debug_print("    queue_idx[%d]\n", idx);
     }
+
+    debug_print("\n");
 
     return object->id;
 }
 
 uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
-    void* buffer;
-    vrms_object_data_t* data;
-    vrms_object_memory_t* memory;
 
-    data = vrms_scene_get_data_object_by_id(scene, data_id);
+    vrms_object_data_t* data = vrms_scene_get_data_object_by_id(scene, data_id);
     if (!data) {
         debug_print("unable to find data object\n");
         return 0;
     }
 
-    memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
+    vrms_object_memory_t* memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
     if (!memory) {
         debug_print("unable to find memory object\n");
         return 0;
@@ -328,13 +327,16 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
     debug_print("    width[%d]\n", width);
     debug_print("    height[%d]\n", height);
     debug_print("    format[%d]\n", format);
+    debug_print("    realized[%d]\n", object->realized);
     debug_print("    type[%d]\n", type);
-    debug_print("\n");
 
     if (!object->realized) {
-        buffer = &((uint8_t*)memory->address)[data->memory_offset];
-        vrms_server_queue_add_texture_load(scene->server, data->memory_length, &object->object.object_texture->gl_id, width, height, format, type, buffer);
+        uint8_t* buffer_ref = (uint8_t*)memory->address;
+        void* buffer = &buffer_ref[data->memory_offset];
+        uint32_t idx = vrms_server_queue_add_texture_load(scene->server, data->memory_length, &object->object.object_texture->gl_id, width, height, format, type, buffer);
+        debug_print("    queue_idx[%d]\n", idx);
     }
+    debug_print("\n");
 
     return object->id;
 }
