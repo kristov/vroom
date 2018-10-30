@@ -24,7 +24,7 @@ typedef struct _CreateTextureObject CreateTextureObject;
 typedef struct _CreateProgram CreateProgram;
 typedef struct _RunProgram RunProgram;
 typedef struct _UpdateSystemMatrix UpdateSystemMatrix;
-typedef struct _DestroyDataObject DestroyDataObject;
+typedef struct _DestroyObject DestroyObject;
 typedef struct _CreateGeometryObject CreateGeometryObject;
 typedef struct _CreateMeshColor CreateMeshColor;
 typedef struct _CreateMeshTexture CreateMeshTexture;
@@ -182,14 +182,14 @@ struct  _UpdateSystemMatrix
     , 0, 0, 0, 0, 0 }
 
 
-struct  _DestroyDataObject
+struct  _DestroyObject
 {
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t id;
 };
-#define DESTROY_DATA_OBJECT__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&destroy_data_object__descriptor) \
+#define DESTROY_OBJECT__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&destroy_object__descriptor) \
     , 0, 0 }
 
 
@@ -417,24 +417,24 @@ UpdateSystemMatrix *
 void   update_system_matrix__free_unpacked
                      (UpdateSystemMatrix *message,
                       ProtobufCAllocator *allocator);
-/* DestroyDataObject methods */
-void   destroy_data_object__init
-                     (DestroyDataObject         *message);
-size_t destroy_data_object__get_packed_size
-                     (const DestroyDataObject   *message);
-size_t destroy_data_object__pack
-                     (const DestroyDataObject   *message,
+/* DestroyObject methods */
+void   destroy_object__init
+                     (DestroyObject         *message);
+size_t destroy_object__get_packed_size
+                     (const DestroyObject   *message);
+size_t destroy_object__pack
+                     (const DestroyObject   *message,
                       uint8_t             *out);
-size_t destroy_data_object__pack_to_buffer
-                     (const DestroyDataObject   *message,
+size_t destroy_object__pack_to_buffer
+                     (const DestroyObject   *message,
                       ProtobufCBuffer     *buffer);
-DestroyDataObject *
-       destroy_data_object__unpack
+DestroyObject *
+       destroy_object__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data);
-void   destroy_data_object__free_unpacked
-                     (DestroyDataObject *message,
+void   destroy_object__free_unpacked
+                     (DestroyObject *message,
                       ProtobufCAllocator *allocator);
 /* CreateGeometryObject methods */
 void   create_geometry_object__init
@@ -541,8 +541,8 @@ typedef void (*RunProgram_Closure)
 typedef void (*UpdateSystemMatrix_Closure)
                  (const UpdateSystemMatrix *message,
                   void *closure_data);
-typedef void (*DestroyDataObject_Closure)
-                 (const DestroyDataObject *message,
+typedef void (*DestroyObject_Closure)
+                 (const DestroyObject *message,
                   void *closure_data);
 typedef void (*CreateGeometryObject_Closure)
                  (const CreateGeometryObject *message,
@@ -576,7 +576,7 @@ extern const ProtobufCMessageDescriptor run_program__descriptor;
 extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__update_type__descriptor;
-extern const ProtobufCMessageDescriptor destroy_data_object__descriptor;
+extern const ProtobufCMessageDescriptor destroy_object__descriptor;
 extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;
 extern const ProtobufCMessageDescriptor create_mesh_texture__descriptor;

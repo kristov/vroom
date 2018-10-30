@@ -394,47 +394,47 @@ void   update_system_matrix__free_unpacked
   assert(message->base.descriptor == &update_system_matrix__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   destroy_data_object__init
-                     (DestroyDataObject         *message)
+void   destroy_object__init
+                     (DestroyObject         *message)
 {
-  static DestroyDataObject init_value = DESTROY_DATA_OBJECT__INIT;
+  static DestroyObject init_value = DESTROY_OBJECT__INIT;
   *message = init_value;
 }
-size_t destroy_data_object__get_packed_size
-                     (const DestroyDataObject *message)
+size_t destroy_object__get_packed_size
+                     (const DestroyObject *message)
 {
-  assert(message->base.descriptor == &destroy_data_object__descriptor);
+  assert(message->base.descriptor == &destroy_object__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
-size_t destroy_data_object__pack
-                     (const DestroyDataObject *message,
+size_t destroy_object__pack
+                     (const DestroyObject *message,
                       uint8_t       *out)
 {
-  assert(message->base.descriptor == &destroy_data_object__descriptor);
+  assert(message->base.descriptor == &destroy_object__descriptor);
   return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
 }
-size_t destroy_data_object__pack_to_buffer
-                     (const DestroyDataObject *message,
+size_t destroy_object__pack_to_buffer
+                     (const DestroyObject *message,
                       ProtobufCBuffer *buffer)
 {
-  assert(message->base.descriptor == &destroy_data_object__descriptor);
+  assert(message->base.descriptor == &destroy_object__descriptor);
   return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
 }
-DestroyDataObject *
-       destroy_data_object__unpack
+DestroyObject *
+       destroy_object__unpack
                      (ProtobufCAllocator  *allocator,
                       size_t               len,
                       const uint8_t       *data)
 {
-  return (DestroyDataObject *)
-     protobuf_c_message_unpack (&destroy_data_object__descriptor,
+  return (DestroyObject *)
+     protobuf_c_message_unpack (&destroy_object__descriptor,
                                 allocator, len, data);
 }
-void   destroy_data_object__free_unpacked
-                     (DestroyDataObject *message,
+void   destroy_object__free_unpacked
+                     (DestroyObject *message,
                       ProtobufCAllocator *allocator)
 {
-  assert(message->base.descriptor == &destroy_data_object__descriptor);
+  assert(message->base.descriptor == &destroy_object__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 void   create_geometry_object__init
@@ -1373,7 +1373,7 @@ const ProtobufCMessageDescriptor update_system_matrix__descriptor =
   (ProtobufCMessageInit) update_system_matrix__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor destroy_data_object__field_descriptors[2] =
+static const ProtobufCFieldDescriptor destroy_object__field_descriptors[2] =
 {
   {
     "scene_id",
@@ -1381,7 +1381,7 @@ static const ProtobufCFieldDescriptor destroy_data_object__field_descriptors[2] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(DestroyDataObject, scene_id),
+    offsetof(DestroyObject, scene_id),
     NULL,
     NULL,
     0,             /* flags */
@@ -1393,35 +1393,35 @@ static const ProtobufCFieldDescriptor destroy_data_object__field_descriptors[2] 
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    offsetof(DestroyDataObject, id),
+    offsetof(DestroyObject, id),
     NULL,
     NULL,
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
 };
-static const unsigned destroy_data_object__field_indices_by_name[] = {
+static const unsigned destroy_object__field_indices_by_name[] = {
   1,   /* field[1] = id */
   0,   /* field[0] = scene_id */
 };
-static const ProtobufCIntRange destroy_data_object__number_ranges[1 + 1] =
+static const ProtobufCIntRange destroy_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
   { 0, 2 }
 };
-const ProtobufCMessageDescriptor destroy_data_object__descriptor =
+const ProtobufCMessageDescriptor destroy_object__descriptor =
 {
   PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "DestroyDataObject",
-  "DestroyDataObject",
-  "DestroyDataObject",
+  "DestroyObject",
+  "DestroyObject",
+  "DestroyObject",
   "",
-  sizeof(DestroyDataObject),
+  sizeof(DestroyObject),
   2,
-  destroy_data_object__field_descriptors,
-  destroy_data_object__field_indices_by_name,
-  1,  destroy_data_object__number_ranges,
-  (ProtobufCMessageInit) destroy_data_object__init,
+  destroy_object__field_descriptors,
+  destroy_object__field_indices_by_name,
+  1,  destroy_object__number_ranges,
+  (ProtobufCMessageInit) destroy_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor create_geometry_object__field_descriptors[4] =

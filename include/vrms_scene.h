@@ -17,12 +17,13 @@ typedef struct vrms_scene {
     uint32_t render_buffer_size;
     uint8_t* render_buffer;
     vrms_render_vm_t* vm;
-    pthread_mutex_t* render_buffer_lock;
+    pthread_mutex_t* scene_lock;
     uint32_t render_allocation_usec;
 } vrms_scene_t;
 
 vrms_scene_t* vrms_scene_create(char* name);
 void vrms_scene_destroy(vrms_scene_t* scene);
+void vrms_scene_destroy_object(vrms_scene_t* scene, uint32_t object_id);
 uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t size);
 uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type);
 uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);

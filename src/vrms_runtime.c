@@ -34,6 +34,7 @@ void fill_interface() {
     runtime_interface.run_program = vrms_runtime_run_program;
     runtime_interface.create_object_skybox = vrms_runtime_create_object_skybox;
     runtime_interface.destroy_scene = vrms_runtime_destroy_scene;
+    runtime_interface.destroy_object = vrms_runtime_destroy_object;
     runtime_interface.update_system_matrix = vrms_runtime_update_system_matrix;
     runtime_interface.update_system_matrix_module = vrms_runtime_update_system_matrix_module;
 }
@@ -153,7 +154,7 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
 }
 
 
-uint8_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+uint32_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
     vrms_server_queue_update_system_matrix(vrms_runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
     return 1;
 }
@@ -182,11 +183,27 @@ uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_
     return vrms_scene_create_object_skybox(vrms_scene, texture_id);
 }
 
-void vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id) {
+uint32_t vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id) {
     if (!assert_vrms_server(vrms_runtime)) {
-        return;
+        return 0;
     }
+
     vrms_server_destroy_scene(vrms_runtime->vrms_server, scene_id);
+    return 1;
+}
+
+uint32_t vrms_runtime_destroy_object(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t object_id) {
+    if (!assert_vrms_server(vrms_runtime)) {
+        return 0;
+    }
+
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    if (!vrms_scene) {
+        return 0;
+    }
+    vrms_scene_destroy_object(vrms_scene, object_id);
+
+    return 1;
 }
 
 void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {

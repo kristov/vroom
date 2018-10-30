@@ -157,7 +157,12 @@ void vrms_scene_destroy_object_skybox(vrms_object_skybox_t* skybox) {
     vrms_object_skybox_destroy(skybox);
 }
 
-void vrms_scene_destroy_object(vrms_object_t* object) {
+void vrms_scene_destroy_object(vrms_scene_t* scene, uint32_t object_id) {
+    vrms_object_t* object = vrms_scene_get_object_by_id(scene, object_id);
+    if (!object) {
+        return;
+    }
+
     switch (object->type) {
         case VRMS_OBJECT_MEMORY:
             vrms_scene_destroy_object_memory(object->object.object_memory);
@@ -193,12 +198,9 @@ void vrms_scene_destroy_object(vrms_object_t* object) {
 }
 
 void vrms_scene_destroy_objects(vrms_scene_t* scene) {
-    uint32_t idx;
-    vrms_object_t* object;
-
-    for (idx = 1; idx < scene->next_object_id; idx++) {
-        object = vrms_scene_get_object_by_id(scene, idx);
-        vrms_scene_destroy_object(object);
+    uint32_t id;
+    for (id = 1; id < scene->next_object_id; id++) {
+        vrms_scene_destroy_object(scene, id);
     }
 
     free(scene->objects);
@@ -227,24 +229,24 @@ void vrms_scene_add_object(vrms_scene_t* scene, vrms_object_t* object) {
 }
 
 void vrms_scene_destroy(vrms_scene_t* scene) {
-
-    if (!pthread_mutex_lock(scene->render_buffer_lock)) {
+    if (!pthread_mutex_lock(scene->scene_lock)) {
+        debug_print("vrms_scene_destroy(): locked scene\n");
+        vrms_scene_destroy_objects(scene);
+        /*
+        vrms_scene_empty_outbound_queue(scene);
+        free(scene->outbound_queue);
+        free(scene->outbound_queue_lock);
+        */
+        vrms_render_vm_destroy(scene->vm);
         free(scene->render_buffer);
-        pthread_mutex_unlock(scene->render_buffer_lock);
-        free(scene->render_buffer_lock);
+
+        pthread_mutex_t* scene_lock = scene->scene_lock;
+        free(scene);
+
+        debug_print("vrms_scene_destroy(): unlocked scene\n");
+        pthread_mutex_unlock(scene_lock);
+        free(scene_lock);
     }
-
-    vrms_scene_destroy_objects(scene);
-
-/*
-    vrms_scene_empty_outbound_queue(scene);
-    free(scene->outbound_queue);
-    free(scene->outbound_queue_lock);
-*/
-
-    vrms_render_vm_destroy(scene->vm);
-
-    free(scene);
 }
 
 uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t size) {
@@ -516,14 +518,14 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     program_memory_length = program->length * sizeof(uint8_t);
     debug_print("copying program of length[%d] to render buffer\n", program_memory_length);
 
-    pthread_mutex_lock(scene->render_buffer_lock);
+    pthread_mutex_lock(scene->scene_lock);
     if (NULL != scene->render_buffer) {
         free(scene->render_buffer);
     }
     scene->render_buffer = SAFEMALLOC(program_memory_length);
     scene->render_buffer_size = program_memory_length;
     memcpy(scene->render_buffer, program->data, program_memory_length);
-    pthread_mutex_unlock(scene->render_buffer_lock);
+    pthread_mutex_unlock(scene->scene_lock);
 
     debug_print("program: ");
     for (i = 0; i < program_memory_length; i++) {
@@ -738,28 +740,27 @@ void vrms_server_draw_scene_object(vrms_scene_t* scene, uint32_t object_id, floa
 }
 
 uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
-    struct timespec start;
-    struct timespec end;
-    uint32_t render_allocation_usec;
     uint32_t usec_elapsed;
-    uint64_t nsec_elapsed;
-    vrms_render_vm_t* vm;
 
-    if ((!scene->render_buffer) || (0 == scene->render_buffer_size)) {
-        return 0;
-    }
+    if (!pthread_mutex_trylock(scene->scene_lock)) {
+        debug_render_print("vrms_scene_draw(): locked scene\n");
+        if ((!scene->render_buffer) || (0 == scene->render_buffer_size)) {
+            pthread_mutex_unlock(scene->scene_lock);
+            return 0;
+        }
 
-    render_allocation_usec = scene->render_allocation_usec;
-    render_allocation_usec = ALLOCATION_US_60FPS;
-    vm = scene->vm;
+        uint32_t render_allocation_usec = scene->render_allocation_usec;
+        render_allocation_usec = ALLOCATION_US_60FPS;
+        vrms_render_vm_t* vm = scene->vm;
 
-    debug_render_print("vrms_scene_draw(): allocation for render is %d usec\n", render_allocation_usec);
-    if (!pthread_mutex_trylock(scene->render_buffer_lock)) {
+        debug_render_print("vrms_scene_draw(): allocation for render is %d usec\n", render_allocation_usec);
 
         vrms_render_vm_sysmregister_set(vm, VM_SYSMREG_PROJECTION, projection_matrix);
         vrms_render_vm_sysmregister_set(vm, VM_SYSMREG_VIEW, view_matrix);
         vrms_render_vm_sysiregister_set(vm, VM_SYSIREG_USEC_ALLOC, render_allocation_usec);
 
+        struct timespec start;
+        struct timespec end;
         start.tv_sec = 0;
         start.tv_nsec = 0;
         end.tv_sec = 0;
@@ -772,7 +773,7 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
         while (vrms_render_vm_exec(vm, scene->render_buffer, scene->render_buffer_size)) {
 
             clock_gettime(CLOCK_MONOTONIC, &end);
-            nsec_elapsed = ((1.0e+9 * end.tv_sec) + end.tv_nsec) - ((1.0e+9 * start.tv_sec) + start.tv_nsec);
+            uint64_t nsec_elapsed = ((1.0e+9 * end.tv_sec) + end.tv_nsec) - ((1.0e+9 * start.tv_sec) + start.tv_nsec);
             usec_elapsed += nsec_elapsed / 1000;
 
             debug_render_print("vrms_scene_draw(): executed 1 VM cycle in %d usec\n", usec_elapsed);
@@ -790,7 +791,8 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
             vrms_render_vm_reset(vm);
         }
 
-        pthread_mutex_unlock(scene->render_buffer_lock);
+        pthread_mutex_unlock(scene->scene_lock);
+        debug_render_print("vrms_scene_draw(): unlocked scene\n");
         vrms_render_vm_resume(scene->vm);
     }
     else {
@@ -861,8 +863,8 @@ vrms_scene_t* vrms_scene_create(char* name) {
     scene->next_object_id = 1;
 
     scene->render_buffer_size = 0;
-    scene->render_buffer_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
-    memset(scene->render_buffer_lock, 0, sizeof(pthread_mutex_t));
+    scene->scene_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
+    memset(scene->scene_lock, 0, sizeof(pthread_mutex_t));
 
     scene->vm = vrms_render_vm_create();
     scene->vm->load_matrix = &vrms_scene_vm_load_matrix;

@@ -35,9 +35,10 @@ typedef struct vrms_runtime_interface {
     uint32_t (*create_program)(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id);
     uint32_t (*run_program)(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t program_id, uint32_t register_id);
     uint32_t (*create_object_skybox)(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id);
-    void (*destroy_scene)(vrms_runtime_t* vrms_runtime, uint32_t scene_id);
+    uint32_t (*destroy_scene)(vrms_runtime_t* vrms_runtime, uint32_t scene_id);
+    uint32_t (*destroy_object)(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t object_id);
     uint32_t (*update_system_matrix)(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
-    uint8_t (*update_system_matrix_module)(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
+    uint32_t (*update_system_matrix_module)(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
 } vrms_runtime_interface_t;
 
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width);
@@ -57,7 +58,8 @@ uint32_t vrms_runtime_create_program(vrms_runtime_t* vrms_runtime, uint32_t scen
 uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t program_id, uint32_t register_id);
 uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
 uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id);
-void vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id);
-uint8_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
+uint32_t vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id);
+uint32_t vrms_runtime_destroy_object(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t object_id);
+uint32_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix);
 
 #endif

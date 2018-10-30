@@ -433,6 +433,33 @@ uint32_t receive_create_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
     return id;
 }
 
+uint32_t receive_destroy_object(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+    if (!vrms_runtime) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "vroom_protocol: server not initialized\n");
+        return 0;
+    }
+
+    DestroyObject* msg = destroy_object__unpack(NULL, length, in_buf);
+    if (!msg) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "vroom_protocol: unpacking incoming message\n");
+        return 0;
+    }
+
+    uint8_t ok = vrms_runtime->interface->destroy_object(vrms_runtime, msg->scene_id, msg->id);
+    if (0 == ok) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "vroom_protocol: destroy object some error\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(msg);
+    return ok;
+}
+
 void send_reply(int32_t fd, int32_t id, uint32_t* error_code) {
     void *out_buf;
     size_t length;
@@ -446,7 +473,7 @@ void send_reply(int32_t fd, int32_t id, uint32_t* error_code) {
 
     reply__pack(&re_msg, out_buf);
     if (send(fd, out_buf, length, 0) < 0) {
-        fprintf(stderr, "error sending reply to client\n");
+        fprintf(stderr, "vroom_protocol: error sending reply to client\n");
     }
 
     free(out_buf);
@@ -472,12 +499,12 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     vrms_runtime_t* vrms_runtime;
 
     if (!client->server) {
-        fprintf(stderr, "no server initialized\n");
+        fprintf(stderr, "vroom_protocol: no server initialized\n");
         send_reply(client->fd, id, &error);
         return;
     }
     if (!client->server->vrms_runtime) {
-        fprintf(stderr, "no VRMS server initialized\n");
+        fprintf(stderr, "vroom_protocol: no VRMS server initialized\n");
         send_reply(client->fd, id, &error);
     }
     vrms_runtime = client->server->vrms_runtime;
@@ -487,14 +514,15 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         if (0 == length_r) {
             printf("orderly disconnect\n");
             if (client->vrms_scene_id > 0) {
-                printf("destroying scene: %d\n", client->vrms_scene_id);
+                fprintf(stderr, "vroom_protocol: destroying scene: %d\n", client->vrms_scene_id);
                 vrms_runtime->interface->destroy_scene(vrms_runtime, client->vrms_scene_id);
             }
             ev_io_stop(EV_A_ &client->io);
             close(client->fd);
+            return;
         }
         else if (EAGAIN == errno) {
-            printf("should never get in this state with libev\n");
+            fprintf(stderr, "vroom_protocol: should never get in this state with libev\n");
         }
         else {
             perror("recv\n");
@@ -574,12 +602,8 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_CREATEDATAOBJECT:
             id = receive_create_data_object(vrms_runtime, in_buf, length_r, &error);
             break;
-        case VRMS_DESTROYDATAOBJECT:
-            break;
         case VRMS_CREATETEXTUREOBJECT:
             id = receive_create_texture_object(vrms_runtime, in_buf, length_r, &error);
-            break;
-        case VRMS_DESTROYTEXTUREOBJECT:
             break;
         case VRMS_CREATEGEOMETRYOBJECT:
             id = receive_create_geometry_object(vrms_runtime, in_buf, length_r, &error);
@@ -593,14 +617,16 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_CREATEPROGRAM:
             id = receive_create_program(vrms_runtime, in_buf, length_r, &error);
             break;
+        case VRMS_CREATESKYBOX:
+            id = receive_create_skybox(vrms_runtime, in_buf, length_r, &error);
+            break;
+        case VRMS_DESTROYOBJECT:
+            break;
         case VRMS_RUNPROGRAM:
             id = receive_run_program(vrms_runtime, in_buf, length_r, &error);
             break;
         case VRMS_UPDATESYSTEMMATRIX:
             id = receive_update_system_matrix(vrms_runtime, in_buf, length_r, &error);
-            break;
-        case VRMS_CREATESKYBOX:
-            id = receive_create_skybox(vrms_runtime, in_buf, length_r, &error);
             break;
         default:
             id = 0;

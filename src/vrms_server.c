@@ -29,14 +29,9 @@
 typedef enum vrms_queue_item_type {
     VRMS_QUEUE_DATA_LOAD,
     VRMS_QUEUE_TEXTURE_LOAD,
-    VRMS_QUEUE_SCENE_DESTROY,
     VRMS_QUEUE_UPDATE_SYSTEM_MATRIX,
     VRMS_QUEUE_EVENT
 } vrms_queue_item_type_t;
-
-typedef struct vrms_queue_item_scene_destroy {
-    uint32_t scene_id;
-} vrms_queue_item_scene_destroy_t;
 
 typedef struct vrms_queue_item_data_load {
     vrms_data_type_t type;
@@ -70,7 +65,6 @@ typedef struct vrms_queue_item {
     union {
         vrms_queue_item_data_load_t* data_load;
         vrms_queue_item_texture_load_t* texture_load;
-        vrms_queue_item_scene_destroy_t* scene_destroy;
         vrms_queue_item_update_system_matrix_t* update_system_matrix;
         vrms_queue_item_event_t* event;
     } item;
@@ -151,12 +145,6 @@ vrms_scene_t* vrms_server_get_scene(vrms_server_t* vrms_server, uint32_t scene_i
 
 uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
     vrms_scene_t* scene = vrms_scene_create(name);
-
-    // TODO: Redo all this stuff somehow... Shaders are created in opengl_stereo
-    // then passed to vrms_server_t object in socket, then passed to vrms_secne_t
-    // somewhere. Scene shaders should be created in vrms_server.c except the
-    // screen plane shader in opengl_stereo which should be put in some standard
-    // place.
     scene->server = server;
 
     server->scenes[server->next_scene_id] = scene;
@@ -166,32 +154,16 @@ uint32_t vrms_server_create_scene(vrms_server_t* server, char* name) {
     return scene->id;
 }
 
-void vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
+uint32_t vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     vrms_scene_t* scene = vrms_server_get_scene(server, scene_id);
     if (!scene) {
-        debug_print("request to destroy already destroyed scene\n");
-        return;
+        debug_print("no scene found\n");
+        return 0;
     }
 
     server->scenes[scene_id] = NULL;
-
     vrms_scene_destroy(scene);
-}
-
-void vrms_server_queue_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
-    vrms_queue_item_scene_destroy_t* scene_destroy = SAFEMALLOC(sizeof(vrms_queue_item_scene_destroy_t));
-    memset(scene_destroy, 0, sizeof(vrms_queue_item_scene_destroy_t));
-
-    vrms_queue_item_t* queue_item = SAFEMALLOC(sizeof(vrms_queue_item_t));
-    memset(queue_item, 0, sizeof(vrms_queue_item_t));
-    queue_item->type = VRMS_QUEUE_SCENE_DESTROY;
-
-    queue_item->item.scene_destroy = scene_destroy;
-
-    pthread_mutex_lock(server->inbound_queue_lock);
-    server->inbound_queue[server->inbound_queue_index] = queue_item;
-    server->inbound_queue_index++;
-    pthread_mutex_unlock(server->inbound_queue_lock);
+    return 1;
 }
 
 uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, uint8_t* buffer) {
@@ -633,12 +605,10 @@ void vrms_queue_update_system_matrix(vrms_server_t* server, vrms_queue_item_upda
 }
 
 void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* queue_item) {
-    vrms_queue_item_data_load_t* data_load;
-    vrms_queue_item_texture_load_t* texture_load;
-    vrms_queue_item_scene_destroy_t* scene_destroy;
-    vrms_queue_item_update_system_matrix_t* update_system_matrix;
-
     switch (queue_item->type) {
+        vrms_queue_item_data_load_t* data_load;
+        vrms_queue_item_texture_load_t* texture_load;
+        vrms_queue_item_update_system_matrix_t* update_system_matrix;
         case VRMS_QUEUE_DATA_LOAD:
             data_load = queue_item->item.data_load;
             if (VRMS_INDEX == data_load->type) {
@@ -652,11 +622,6 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
         case VRMS_QUEUE_TEXTURE_LOAD:
             texture_load = queue_item->item.texture_load;
             vrms_queue_load_gl_texture_buffer(texture_load);
-            break;
-        case VRMS_QUEUE_SCENE_DESTROY:
-            scene_destroy = queue_item->item.scene_destroy;
-            vrms_server_destroy_scene(server, scene_destroy->scene_id);
-            free(scene_destroy);
             break;
         case VRMS_QUEUE_UPDATE_SYSTEM_MATRIX:
             update_system_matrix = queue_item->item.update_system_matrix;

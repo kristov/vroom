@@ -87,7 +87,7 @@ message UpdateSystemMatrix {
     required UpdateType update_type = 5;
 }
 
-message DestroyDataObject {
+message DestroyObject {
     required int32 scene_id = 1;
     required int32 id = 2;
 }
