@@ -14,7 +14,7 @@ SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square skybox)
 
-MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so input_hid.so input_libinput.so input_openhmd.so)
+MODULES := $(addprefix $(MODULEDIR)/, vroom_protocol.so input_libinput.so input_openhmd.so)
 
 CLIENTOBJS := $(addprefix $(OBJDIR)/, vroom_pb.o vrms_client.o vrms_geometry.o esm.o)
 CLIENTLINKS := -lprotobuf-c -lm
