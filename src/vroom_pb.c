@@ -945,16 +945,26 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   (ProtobufCMessageInit) create_data_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[1] =
+static const ProtobufCEnumValue create_texture_object__format__enum_values_by_number[6] =
 {
-  { "RGB8", "CREATE_TEXTURE_OBJECT__FORMAT__RGB8", 0 },
+  { "BGR888", "CREATE_TEXTURE_OBJECT__FORMAT__BGR888", 0 },
+  { "XBGR8888", "CREATE_TEXTURE_OBJECT__FORMAT__XBGR8888", 1 },
+  { "ABGR8888", "CREATE_TEXTURE_OBJECT__FORMAT__ABGR8888", 2 },
+  { "RGB888", "CREATE_TEXTURE_OBJECT__FORMAT__RGB888", 3 },
+  { "XRGB8888", "CREATE_TEXTURE_OBJECT__FORMAT__XRGB8888", 4 },
+  { "ARGB8888", "CREATE_TEXTURE_OBJECT__FORMAT__ARGB8888", 5 },
 };
 static const ProtobufCIntRange create_texture_object__format__value_ranges[] = {
-{0, 0},{0, 1}
+{0, 0},{0, 6}
 };
-static const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[1] =
+static const ProtobufCEnumValueIndex create_texture_object__format__enum_values_by_name[6] =
 {
-  { "RGB8", 0 },
+  { "ABGR8888", 2 },
+  { "ARGB8888", 5 },
+  { "BGR888", 0 },
+  { "RGB888", 3 },
+  { "XBGR8888", 1 },
+  { "XRGB8888", 4 },
 };
 const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
 {
@@ -963,9 +973,9 @@ const ProtobufCEnumDescriptor create_texture_object__format__descriptor =
   "Format",
   "CreateTextureObject__Format",
   "",
-  1,
+  6,
   create_texture_object__format__enum_values_by_number,
-  1,
+  6,
   create_texture_object__format__enum_values_by_name,
   1,
   create_texture_object__format__value_ranges,

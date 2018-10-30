@@ -548,7 +548,7 @@ uint32_t vrms_load_skybox_texture(vrms_client_t* client, const char* filename) {
 
     data_id = vrms_client_create_data_object(client, memory_id, 0, total_byte_size, bytes_pp, 1, VRMS_TEXTURE);
 
-    texture_id = vrms_client_create_texture_object(client, data_id, square_px, square_px, VRMS_RGB8, VRMS_TEXTURE_CUBE_MAP);
+    texture_id = vrms_client_create_texture_object(client, data_id, square_px, square_px, VRMS_FORMAT_BGR888, VRMS_TEXTURE_CUBE_MAP);
 
     return texture_id;
 }
@@ -582,7 +582,7 @@ uint32_t vrms_load_texture(vrms_client_t* client, const char* filename, vrms_tex
 
     data_id = vrms_client_create_data_object(client, memory_id, 0, total_byte_size, bytes_pp, 1, VRMS_TEXTURE);
 
-    texture_id = vrms_client_create_texture_object(client, data_id, width, height, VRMS_RGB8, type);
+    texture_id = vrms_client_create_texture_object(client, data_id, width, height, VRMS_FORMAT_BGR888, type);
 
     return texture_id;
 }

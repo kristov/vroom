@@ -46,7 +46,12 @@ uint32_t update_type_map[] = {
 };
 
 uint32_t format_map[] = {
-    CREATE_TEXTURE_OBJECT__FORMAT__RGB8  // VRMS_RGB8
+    CREATE_TEXTURE_OBJECT__FORMAT__BGR888,
+    CREATE_TEXTURE_OBJECT__FORMAT__XBGR8888,
+    CREATE_TEXTURE_OBJECT__FORMAT__ABGR8888,
+    CREATE_TEXTURE_OBJECT__FORMAT__RGB888,
+    CREATE_TEXTURE_OBJECT__FORMAT__XRGB8888,
+    CREATE_TEXTURE_OBJECT__FORMAT__ARGB8888
 };
 
 uint32_t texture_type_map[] = {
@@ -241,7 +246,7 @@ uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t data_i
     uint32_t length;
 
     uint32_t format_map_index = (uint32_t)format;
-    if (format_map_index < 0 || format_map_index > 0) {
+    if (format_map_index < 0 || format_map_index > 5) {
         return 0;
     }
     uint32_t pb_format = format_map[format_map_index];

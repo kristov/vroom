@@ -517,9 +517,34 @@ void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
     h = load->height;
 
     switch (load->format) {
-        case VRMS_RGB8:
-            dfmt = GL_RGB;
+        case VRMS_FORMAT_BGR888:
             ifmt = GL_RGB8;
+            dfmt = GL_RGB;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        case VRMS_FORMAT_XBGR8888:
+            ifmt = GL_RGBA8;
+            dfmt = GL_RGBA;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        case VRMS_FORMAT_ABGR8888:
+            ifmt = GL_RGBA8;
+            dfmt = GL_RGBA;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        case VRMS_FORMAT_RGB888:
+            ifmt = GL_RGB8;
+            dfmt = GL_BGR;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        case VRMS_FORMAT_XRGB8888:
+            ifmt = GL_RGBA8;
+            dfmt = GL_BGRA;
+            bfmt = GL_UNSIGNED_BYTE;
+            break;
+        case VRMS_FORMAT_ARGB8888:
+            ifmt = GL_RGBA8;
+            dfmt = GL_BGRA;
             bfmt = GL_UNSIGNED_BYTE;
             break;
         default:
