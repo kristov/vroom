@@ -18,8 +18,8 @@ typedef struct hmd {
 
 hmd_t* hmd_create() {
     hmd_t* hmd = malloc(sizeof(hmd_t));
-    if (NULL == hmd) {
-        fprintf(stderr, "Out of memory!\n");
+    if (!hmd) {
+        fprintf(stderr, "openhmd: out of memory!\n");
         exit(1);
     }
     memset(hmd, 0, sizeof(hmd_t));
@@ -31,14 +31,19 @@ int8_t hmd_init(hmd_t* hmd) {
 
 	int num_devices = ohmd_ctx_probe(hmd->ohmd_ctx);
 	if(num_devices < 0){
-		fprintf(stderr, "failed to probe devices: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
+		fprintf(stderr, "openhmd: failed to probe devices: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
 		return 0;
 	}
+
+    if (num_devices == 0) {
+        fprintf(stderr, "openhmd: no devices found\n");
+        return 0;
+    }
 
 	hmd->ohmd_active_hmd = ohmd_list_open_device(hmd->ohmd_ctx, 0);
 
 	if(!hmd->ohmd_active_hmd){
-		fprintf(stderr, "failed to open device: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
+		fprintf(stderr, "openhmd: failed to open device: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
 		return 0;
 	}
 
