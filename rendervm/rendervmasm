@@ -1,0 +1,305 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Data::Dumper;
+my $opts = {};
+GetOptions(
+    $opts,
+    'input=s',
+    'output=s',
+    'carray',
+);
+
+my %INS_ARG_LENGTH = (
+    HALT                => [0x00, []],
+    YIELD               => [0x01, []],
+    RESET               => [0x02, []],
+    CALL                => [0x03, [2]],
+    RETURN              => [0x04, []],
+    UINT16_PUSH         => [0x05, [2]],
+    UINT16_POP          => [0x06, []],
+    UINT16_ADD          => [0x07, []],
+    UINT16_MULTIPLY     => [0x08, []],
+    UINT16_MOVE_UINT8   => [0x09, []],
+    UINT8_PUSH          => [0x0a, [1]],
+    UINT8_POP           => [0x0b, []],
+    UINT8_STORE         => [0x0c, [2]],
+    UINT8_LOAD          => [0x0d, [2]],
+    UINT8_ADD           => [0x0e, []],
+    UINT8_LOAD_UINT16   => [0x0f, []],
+    UINT8_JUMP_ZERO     => [0x10, [2]],
+    UINT8_SUBTRACT      => [0x11, []],
+    UINT8_EQ            => [0x12, []],
+    UINT8_JUMP_NZERO    => [0x13, [2]],
+    UINT8_SWAP          => [0x14, []],
+    UINT16_COPY_UINT8   => [0x15, [2]],
+    UINT8_JUMP_EMPTY    => [0x16, [2]],
+    UINT16_DUP          => [0x17, [2]],
+    UINT8_STORE_UINT16  => [0x18, []],
+    UINT8_DUP           => [0x19, [2]],
+    JUMP                => [0x1a, [2]],
+);
+
+my $state = {
+    addr => 0,
+    prg => [],
+};
+
+compile_file($state, $opts->{input});
+generate_addresses($state);
+my @binary = generate_binary($state);
+
+if ($opts->{carray}) {
+    my $len = scalar(@binary);
+    print "    uint8_t program[$len] = {\n";
+    print "        ";
+    my $c = 1;
+    while (scalar(@binary)) {
+        my $int = shift @binary;
+        printf("0x%02x", $int);
+        if ($c != $len) {
+            print ",";
+        }
+        else {
+            print "\n";
+        }
+        if (!($c % 8)) {
+            print "\n        ";
+        }
+        else {
+            print " ";
+        }
+        $c++;
+    }
+    print "   };\n";
+}
+elsif ($opts->{output}) {
+    my $bin = pack("C*", @binary);
+    open(my $ofh, '>:raw', $opts->{output}) || die "$!";
+    print $ofh $bin;
+    close($ofh);
+}
+else {
+    die "No --output=<bin> or --carray options\n";
+}
+exit;
+
+sub _expand_constant {
+    my ($val, $len) = @_;
+
+    my @codes;
+    for (my $i = 0; $i < $len; $i++) {
+        push @codes, $val & 255;
+        $val = $val >> 8;
+    }
+
+    return @codes;
+}
+
+sub _convert_to_dec {
+    my ($state, $something) = @_;
+    if ($something =~ /^0x[0-9a-f]+$/) {
+        return hex($something);
+    }
+    if ($something =~ /^[0-9]+$/) {
+        return $something;
+    }
+    die sprintf(
+        "Invalid hex or decimal value: '%s' at '%s' line %d",
+        $something,
+        $state->{current_file},
+        $state->{files}->{$state->{current_file}}->{line_count}
+    );
+}
+
+sub generate_addresses {
+    my ($state) = @_;
+    my $addr = 0;
+
+    # Generate addr from all the code items
+    for my $code (@{$state->{prg}}) {
+        $code->{addr} = $addr;
+        $addr++;
+        for my $arg (@{$code->{args}}) {
+            $addr += $arg->{len};
+        }
+    }
+
+    # Convert all the label array indexes into absolute addresses
+    for my $label (keys %{$state->{markers}}) {
+        my $idx = $state->{markers}->{$label};
+        my $code = $state->{prg}->[$idx];
+        my $label_addr = $code->{addr};
+        $state->{markers}->{$label} = $label_addr;
+    }
+
+    # Resolve markers to addresses
+    for my $code (@{$state->{prg}}) {
+        for my $arg (@{$code->{args}}) {
+            my $val = $arg->{val};
+            my $len = $arg->{len};
+            if (ref($val)) {
+                if (exists $state->{markers}->{$val->{label}}) {
+                    $arg->{val} = $state->{markers}->{$val->{label}};
+                }
+                else {
+                    die sprintf(
+                        "Unable to resolve label: '%s' at '%s' line %d",
+                        $val->{label},
+                        $val->{current_file},
+                        $val->{line_count},
+                    );
+                }
+            }
+        }
+    }
+}
+
+sub generate_binary {
+    my @binary;
+
+    for my $code (@{$state->{prg}}) {
+        my $addr = $code->{addr};
+        $binary[$addr] = $code->{opcode};
+        for my $arg (@{$code->{args}}) {
+            my @codes = _expand_constant($arg->{val}, $arg->{len});
+            if (scalar(@codes) != $arg->{len}) {
+                die "Assembler internal error";
+            }
+            for (my $i = 0; $i < $arg->{len}; $i++) {
+                $addr++;
+                $binary[$addr] = $codes[$i];
+            }
+        }
+    }
+
+    return @binary;
+}
+
+sub decode_instruction {
+    my ($state, $ins, @args) = @_;
+    my $ucins = uc($ins);
+    if (!exists $INS_ARG_LENGTH{$ucins}) {
+        die sprintf(
+            "Invalid instruction: '%s' at '%s' line %d",
+            $ins,
+            $state->{current_file},
+            $state->{files}->{$state->{current_file}}->{line_count}
+        );
+    }
+
+    my ($opcode, $arglens) = @{$INS_ARG_LENGTH{$ucins}};
+    my $nr_args = scalar(@{$arglens});
+
+    my $code = {
+        opcode => $opcode,
+        ucins  => $ucins,
+        args   => [],
+    };
+
+    for (my $i = 0; $i < $nr_args; $i++) {
+        my $arglen = $arglens->[$i];
+        my $arg = $args[$i];
+        my $val;
+        if (exists $state->{defs}->{$arg}) {
+            push @{$code->{args}}, {
+                val => $state->{defs}->{$arg},
+                len => $arglen,
+            };
+        }
+        elsif (exists $state->{markers}->{$arg}) {
+            push @{$code->{args}}, {
+                val => {
+                    label        => $arg,
+                    current_file => $state->{current_file},
+                    line_count   => $state->{files}->{$state->{current_file}}->{line_count},
+                },
+                len => $arglen,
+            };
+        }
+        elsif ($arg =~ /^0x[0-9a-f]+$/) {
+            push @{$code->{args}}, {
+                val => _convert_to_dec($arg),
+                len => $arglen,
+            };
+        }
+        elsif ($arg =~ /^[0-9]+$/) {
+            push @{$code->{args}}, {
+                val => $arg,
+                len => $arglen,
+            };
+        }
+        else {
+            push @{$code->{args}}, {
+                val => {
+                    label        => $arg,
+                    current_file => $state->{current_file},
+                    line_count   => $state->{files}->{$state->{current_file}}->{line_count},
+                },
+                len => $arglen,
+            };
+        }
+    }
+
+    return $code;
+}
+
+sub compile_instruction {
+    my ($state, $ins, @args) = @_;
+    my $code = decode_instruction($state, $ins, @args);
+    push @{$state->{prg}}, $code;
+}
+
+sub compile_line {
+    my ($state, $line) = @_;
+
+    if ($line =~ /^var\s+([A-Za-z0-9\_]+)\s+([0-9a-z]+)/) {
+        $state->{defs}->{$1} = _convert_to_dec($state, $2);
+        return;
+    }
+
+    if ($line =~ /^([a-zA-Z\_]+):/) {
+        $state->{markers}->{$1} = scalar(@{$state->{prg}}); # then next index
+        return;
+    }
+
+    if ($line =~ /^\s+([^;]+)/) {
+        my $command = $1;
+        $command =~ s/\s+$//;
+        if ($command =~ /^([a-z0-9_]+)\s*(.*)$/) {
+            my ($ins, $rest) = ($1, $2);
+            my @args = split(/\s+/, $rest);
+            compile_instruction($state, $ins, @args);
+        }
+    }
+}
+
+sub compile_file {
+    my ($state, $filename) = @_;
+    my $program = load_file($filename);
+    my @lines = split(/\n/, $program);
+    $state->{current_file} = $filename;
+    $state->{files}->{$state->{current_file}}->{line_count} = 1;
+    LINE: for my $line (@lines) {
+        chomp $line;
+        unless ($line) {
+            $state->{files}->{$state->{current_file}}->{line_count}++;
+            next LINE;
+        }
+        compile_line($state, $line);
+        $state->{files}->{$state->{current_file}}->{line_count}++;
+    }
+}
+
+sub load_file {
+    my ($filename) = @_;
+    my $program = "";
+    open(my $fh, '<', $filename) || die "unable to open file $filename: $!\n";
+    while (my $line = <$fh>) {
+        $program .= $line;
+    }
+    close($fh);
+    return $program;
+}
