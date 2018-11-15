@@ -10,6 +10,9 @@ GetOptions(
     'input=s',
     'output=s',
     'carray',
+    'cenum',
+    'cswitch',
+    'copcode2str',
 );
 
 my %INS_ARG_LENGTH = (
@@ -18,40 +21,137 @@ my %INS_ARG_LENGTH = (
     RESET               => [0x02, []],
     CALL                => [0x03, [2]],
     RETURN              => [0x04, []],
-    UINT16_PUSH         => [0x05, [2]],
-    UINT16_POP          => [0x06, []],
-    UINT16_ADD          => [0x07, []],
-    UINT16_MULTIPLY     => [0x08, []],
-    UINT16_MOVE_UINT8   => [0x09, []],
-    UINT8_PUSH          => [0x0a, [1]],
-    UINT8_POP           => [0x0b, []],
-    UINT8_STORE         => [0x0c, [2]],
-    UINT8_LOAD          => [0x0d, [2]],
-    UINT8_ADD           => [0x0e, []],
-    UINT8_LOAD_UINT16   => [0x0f, []],
-    UINT8_JUMP_ZERO     => [0x10, [2]],
-    UINT8_SUBTRACT      => [0x11, []],
-    UINT8_EQ            => [0x12, []],
-    UINT8_JUMP_NZERO    => [0x13, [2]],
-    UINT8_SWAP          => [0x14, []],
-    UINT16_COPY_UINT8   => [0x15, [2]],
-    UINT8_JUMP_EMPTY    => [0x16, [2]],
-    UINT16_DUP          => [0x17, [2]],
-    UINT8_STORE_UINT16  => [0x18, []],
-    UINT8_DUP           => [0x19, [2]],
-    JUMP                => [0x1a, [2]],
+    JUMP                => [0x05, [2]],
+
+    UINT8_PUSH          => [0x10, [1]],
+    UINT8_POP           => [0x11, []],
+    UINT8_DUP           => [0x12, [2]],
+    UINT8_SWAP          => [0x13, []],
+    UINT8_STORE         => [0x14, [2]],
+    UINT8_STORE_UINT16  => [0x15, []],
+    UINT8_LOAD          => [0x16, [2]],
+    UINT8_LOAD_UINT16   => [0x17, []],
+    UINT8_MOVE_UINT8    => [0x18, []],
+    UINT8_COPY_UINT8    => [0x19, [2]],
+    UINT8_JUMP_EMPTY    => [0x1a, [2]],
+    UINT8_JUMP_ZERO     => [0x1b, [2]],
+    UINT8_JUMP_NZERO    => [0x1c, [2]],
+    UINT8_ADD           => [0x1d, []],
+    UINT8_SUBTRACT      => [0x1e, []],
+    UINT8_MULTIPLY      => [0x1f, []],
+    UINT8_DIVIDE_FLOAT  => [0x20, []],
+    UINT8_EQ            => [0x21, []],
+
+    UINT16_PUSH         => [0x30, [2]],
+    UINT16_POP          => [0x31, []],
+    UINT16_DUP          => [0x32, [2]],
+    UINT16_SWAP         => [0x33, []],
+    UINT16_STORE        => [0x34, [2]],
+    UINT16_STORE_UINT16 => [0x35, []],
+    UINT16_LOAD         => [0x36, [2]],
+    UINT16_LOAD_UINT16  => [0x37, []],
+    UINT16_MOVE_UINT8   => [0x38, []],
+    UINT16_COPY_UINT8   => [0x39, [2]],
+    UINT16_JUMP_EMPTY   => [0x3a, [2]],
+    UINT16_JUMP_ZERO    => [0x3b, [2]],
+    UINT16_JUMP_NZERO   => [0x3c, [2]],
+    UINT16_ADD          => [0x3d, []],
+    UINT16_SUBTRACT     => [0x3e, []],
+    UINT16_MULTIPLY     => [0x3f, []],
+    UINT16_DIVIDE_FLOAT => [0x40, []],
+    UINT16_EQ           => [0x41, []],
+
+    UINT32_PUSH         => [0x50, [4]],
+    UINT32_POP          => [0x51, []],
+    UINT32_DUP          => [0x52, [2]],
+    UINT32_SWAP         => [0x53, []],
+    UINT32_STORE        => [0x54, [2]],
+    UINT32_STORE_UINT16 => [0x55, []],
+    UINT32_LOAD         => [0x56, [2]],
+    UINT32_LOAD_UINT16  => [0x57, []],
+    UINT32_MOVE_UINT8   => [0x58, []],
+    UINT32_COPY_UINT8   => [0x59, [2]],
+    UINT32_JUMP_EMPTY   => [0x5a, [2]],
+    UINT32_JUMP_ZERO    => [0x5b, [2]],
+    UINT32_JUMP_NZERO   => [0x5c, [2]],
+    UINT32_ADD          => [0x5d, []],
+    UINT32_SUBTRACT     => [0x5e, []],
+    UINT32_MULTIPLY     => [0x5f, []],
+    UINT32_DIVIDE_FLOAT => [0x60, []],
+    UINT32_EQ           => [0x61, []],
+
+    FLOAT_PUSH          => [0x70, [4]],
+    FLOAT_POP           => [0x71, []],
+    FLOAT_DUP           => [0x72, [2]],
+    FLOAT_SWAP          => [0x73, []],
+    FLOAT_STORE         => [0x74, [2]],
+    FLOAT_STORE_UINT16  => [0x75, []],
+    FLOAT_LOAD          => [0x76, [2]],
+    FLOAT_LOAD_UINT16   => [0x77, []],
+    FLOAT_MOVE_UINT8    => [0x78, []],
+    FLOAT_COPY_UINT8    => [0x79, [2]],
+    FLOAT_JUMP_EMPTY    => [0x7a, [2]],
+    FLOAT_JUMP_ZERO     => [0x7b, [2]],
+    FLOAT_JUMP_NZERO    => [0x7c, [2]],
+    FLOAT_ADD           => [0x7d, []],
+    FLOAT_SUBTRACT      => [0x7e, []],
+    FLOAT_MULTIPLY      => [0x7f, []],
+    FLOAT_DIVIDE_FLOAT  => [0x80, []],
+    FLOAT_EQ            => [0x81, []],
 );
 
-my $state = {
-    addr => 0,
-    prg => [],
-};
+exit main($opts);
 
-compile_file($state, $opts->{input});
-generate_addresses($state);
-my @binary = generate_binary($state);
+sub sorted_keys {
+    return sort {$INS_ARG_LENGTH{$a}->[0] <=> $INS_ARG_LENGTH{$b}->[0]} keys %INS_ARG_LENGTH;
+}
 
-if ($opts->{carray}) {
+sub print_copcode2str {
+    my @array;
+    for my $ins (sorted_keys()) {
+        my $idx = $INS_ARG_LENGTH{$ins}->[0];
+        $array[$idx] = $ins;
+    }
+
+    print "const char *opcode2str[] = {\n";
+    for my $ins (@array) {
+        if (defined $ins) {
+            print "    \"$ins\",\n";
+        }
+        else {
+            print "    \"[unused]\",\n";
+        }
+    }
+    print "    \"[unused]\"\n";
+    print "};\n";
+}
+
+sub print_cenum {
+    print "typedef enum rendervm_opcode {\n";
+    for my $ins (sorted_keys()) {
+        my $opcode = $INS_ARG_LENGTH{$ins}->[0];
+        printf("    VM_$ins = 0x%02x,\n", $opcode);
+    }
+    print "    VM__INSEND = 0xff\n";
+    print "} rendervm_opcode_t;\n";
+}
+
+sub print_cswitch {
+    print "    switch (opcode) {\n";
+    for my $ins (sorted_keys()) {
+        print "        case $ins:\n";
+        print "            printf(\"$ins: UNIMPLEMENTED\");\n";
+        print "            vm->running = 0;\n";
+        print "            break;\n";
+    }
+    print "        default:\n";
+    print "            break;\n";
+    print "    }\n";
+}
+
+sub print_carray {
+    my (@binary) = @_;
+
     my $len = scalar(@binary);
     print "    uint8_t program[$len] = {\n";
     print "        ";
@@ -75,16 +175,14 @@ if ($opts->{carray}) {
     }
     print "   };\n";
 }
-elsif ($opts->{output}) {
+
+sub write_binary {
+    my ($file, @binary) = @_;
     my $bin = pack("C*", @binary);
-    open(my $ofh, '>:raw', $opts->{output}) || die "$!";
+    open(my $ofh, '>:raw', $file) || die "$!";
     print $ofh $bin;
     close($ofh);
 }
-else {
-    die "No --output=<bin> or --carray options\n";
-}
-exit;
 
 sub _expand_constant {
     my ($val, $len) = @_;
@@ -158,6 +256,8 @@ sub generate_addresses {
 }
 
 sub generate_binary {
+    my ($state) = @_;
+
     my @binary;
 
     for my $code (@{$state->{prg}}) {
@@ -276,6 +376,17 @@ sub compile_line {
     }
 }
 
+sub load_file {
+    my ($filename) = @_;
+    my $program = "";
+    open(my $fh, '<', $filename) || die "unable to open file $filename: $!\n";
+    while (my $line = <$fh>) {
+        $program .= $line;
+    }
+    close($fh);
+    return $program;
+}
+
 sub compile_file {
     my ($state, $filename) = @_;
     my $program = load_file($filename);
@@ -293,13 +404,43 @@ sub compile_file {
     }
 }
 
-sub load_file {
-    my ($filename) = @_;
-    my $program = "";
-    open(my $fh, '<', $filename) || die "unable to open file $filename: $!\n";
-    while (my $line = <$fh>) {
-        $program .= $line;
+sub compile {
+    my ($opts) = @_;
+
+    my $state = {
+        addr => 0,
+        prg => [],
+    };
+
+    compile_file($state, $opts->{input});
+    generate_addresses($state);
+
+    my @binary = generate_binary($state);
+
+    return @binary;
+}
+
+sub main {
+    my ($opts) = @_;
+
+    if ($opts->{carray}) {
+        my @binary = compile($opts);
+        print_carray(@binary);
     }
-    close($fh);
-    return $program;
+    elsif ($opts->{output}) {
+        my @binary = compile($opts);
+        write_binary($opts->{output}, @binary);
+    }
+    elsif ($opts->{cenum}) {
+        print_cenum();
+    }
+    elsif ($opts->{cswitch}) {
+        print_cswitch();
+    }
+    elsif ($opts->{copcode2str}) {
+        print_copcode2str();
+    }
+    else {
+        die "No --output=<bin> or --carray options\n";
+    }
 }
