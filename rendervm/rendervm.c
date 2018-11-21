@@ -14,11 +14,14 @@
 #define UINT16_PUSH(vm, v)  vm->uint16_stack[++vm->uint16_sp] = v
 #define UINT16_POP(vm)      vm->uint16_stack[vm->uint16_sp--]
 #define UINT16_PEEK(vm, v)  vm->uint16_stack[v]
+#define UINT32_MAKE(vm)     (vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0
 #define UINT32_PUSH(vm, v)  vm->uint32_stack[++vm->uint32_sp] = v
 #define UINT32_POP(vm)      vm->uint32_stack[vm->uint32_sp--]
 #define UINT32_PEEK(vm, v)  vm->uint32_stack[v]
+#define FLOAT_MAKE(vm)      (vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0
 #define FLOAT_PUSH(vm, v)   vm->float_stack[++vm->float_sp] = v
 #define FLOAT_POP(vm)       vm->float_stack[vm->float_sp--]
+#define FLOAT_PEEK(vm, v)   vm->float_stack[v]
 
 const char *opcode2str[] = {
     "HALT",
@@ -158,6 +161,8 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
     uint16_t opcode;
     uint8_t u80, u81;
     uint16_t u160, u161, u162, u163;
+    uint32_t u320, u321;
+    float fl0, fl1;
 
     if (!vm->running) {
         return vm->running;
@@ -197,15 +202,8 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u160 = UINT16_MAKE(vm);
             vm->pc = u160;
             break;
-
-        // UINT8 INSTRUCTIONS
-        case VM_UINT8_PUSH:
-            u80 = NCODE(vm);
-            UINT8_PUSH(vm, u80);
-            break;
         case VM_UINT8_POP:
             u80 = UINT8_POP(vm);
-            vm->running = 0;
             break;
         case VM_UINT8_DUP:
             vm->b0 = NCODE(vm);
@@ -223,39 +221,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT8_PUSH(vm, u80);
             UINT8_PUSH(vm, u81);
             break;
-        case VM_UINT8_STORE:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u80 = UINT8_POP(vm);
-            vm->uint8_memory[u160] = u80;
-            break;
-        case VM_UINT8_STORE_UINT16:
-            u80 = UINT8_POP(vm);
-            u160 = UINT16_POP(vm);
-            vm->uint8_memory[u160] = u80;
-            break;
-        case VM_UINT8_LOAD:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u80 = vm->uint8_memory[u160];
-            UINT8_PUSH(vm, u80);
-            break;
-        case VM_UINT8_LOAD_UINT16:
-            u160 = UINT16_POP(vm);
-            u80 = vm->uint8_memory[u160];
-            UINT8_PUSH(vm, u80);
-            break;
-        case VM_UINT8_MOVE_UINT8:
-            printf("UINT8_MOVE_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT8_COPY_UINT8:
-            printf("UINT8_COPY_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT8_JUMP_EMPTY:
+        case VM_UINT8_JUMPEM:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
             if (vm->uint8_sp == VM_MAX_ADDR) {
@@ -263,15 +229,37 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
                 vm->pc = u160;
             }
             break;
-        case VM_UINT8_JUMP_ZERO:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            if (UINT8_POP(vm) == 0) {
-                u160 = UINT16_MAKE(vm);
-                vm->pc = u160;
-            }
+        case VM_UINT8_STORE:
+            u80 = UINT8_POP(vm);
+            u160 = UINT16_POP(vm);
+            vm->uint8_memory[u160] = u80;
             break;
-        case VM_UINT8_JUMP_NZERO:
+        case VM_UINT8_LOAD:
+            u160 = UINT16_POP(vm);
+            u80 = vm->uint8_memory[u160];
+            UINT8_PUSH(vm, u80);
+            break;
+        case VM_UINT8_ADD:
+            u80 = UINT8_POP(vm);
+            u81 = UINT8_POP(vm);
+            UINT8_PUSH(vm, (u81 + u80));
+            break;
+        case VM_UINT8_SUB:
+            u80 = UINT8_POP(vm);
+            u81 = UINT8_POP(vm);
+            UINT8_PUSH(vm, (u81 - u80));
+            break;
+        case VM_UINT8_MUL:
+            u80 = UINT8_POP(vm);
+            u81 = UINT8_POP(vm);
+            UINT8_PUSH(vm, (u81 * u80));
+            break;
+        case VM_UINT8_EQ:
+            u80 = UINT8_POP(vm);
+            u81 = UINT8_POP(vm);
+            UINT8_PUSH(vm, (u81 == u80 ? 1 : 0));
+            break;
+        case VM_UINT8_JUMPNZ:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
             if (UINT8_POP(vm)) {
@@ -279,36 +267,17 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
                 vm->pc = u160;
             }
             break;
-        case VM_UINT8_ADD:
-            u80 = UINT8_POP(vm);
-            u81 = UINT8_POP(vm);
-            UINT8_PUSH(vm, (u81 + u80));
-            break;
-        case VM_UINT8_SUBTRACT:
-            u80 = UINT8_POP(vm);
-            u81 = UINT8_POP(vm);
-            UINT8_PUSH(vm, (u81 - u80));
-            break;
-        case VM_UINT8_MULTIPLY:
-            printf("UINT8_MULTIPLY: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT8_DIVIDE_FLOAT:
-            printf("UINT8_DIVIDE_FLOAT: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT8_EQ:
-            u80 = UINT8_POP(vm);
-            u81 = UINT8_POP(vm);
-            UINT8_PUSH(vm, (u81 == u80 ? 1 : 0));
-            break;
-
-        // UINT16 INSTRUCTIONS
-        case VM_UINT16_PUSH:
+        case VM_UINT8_JUMPZ:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            UINT16_PUSH(vm, u160);
+            if (UINT8_POP(vm) == 0) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_UINT8_PUSH:
+            u80 = NCODE(vm);
+            UINT8_PUSH(vm, u80);
             break;
         case VM_UINT16_POP:
             u160 = UINT16_POP(vm);
@@ -324,218 +293,607 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             break;
         case VM_UINT16_SWAP:
-            printf("UINT16_SWAP: UNIMPLEMENTED");
-            vm->running = 0;
+            u160 = UINT16_POP(vm);
+            u161 = UINT16_POP(vm);
+            UINT16_PUSH(vm, u160);
+            UINT16_PUSH(vm, u161);
             break;
-        case VM_UINT16_STORE:
-            printf("UINT16_STORE: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_STORE_UINT16:
-            printf("UINT16_STORE_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_LOAD:
-            printf("UINT16_LOAD: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_LOAD_UINT16:
-            printf("UINT16_LOAD_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_MOVE_UINT8:
-            UINT16_PUSH(vm, UINT8_POP(vm));
-            break;
-        case VM_UINT16_COPY_UINT8:
+        case VM_UINT16_JUMPEM:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u161 = vm->uint8_sp;
-            for (u162 = u160; u162 > 0; u162--) {
-                u163 = UINT8_PEEK(vm, (u161 - (u162 - 1)));
-                UINT16_PUSH(vm, u163);
+            if (vm->uint16_sp == VM_MAX_ADDR) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
             }
             break;
-        case VM_UINT16_JUMP_EMPTY:
-            printf("UINT16_JUMP_EMPTY: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT16_STORE:
+            u160 = UINT16_POP(vm);
+            u161 = UINT16_POP(vm);
+            vm->uint16_memory[u161] = u160;
             break;
-        case VM_UINT16_JUMP_ZERO:
-            printf("UINT16_JUMP_ZERO: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_JUMP_NZERO:
-            printf("UINT16_JUMP_NZERO: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT16_LOAD:
+            u160 = UINT16_POP(vm);
+            u161 = vm->uint16_memory[u160];
+            UINT16_PUSH(vm, u161);
             break;
         case VM_UINT16_ADD:
             u160 = UINT16_POP(vm);
             u161 = UINT16_POP(vm);
-            UINT16_PUSH(vm, (u160 + u161));
+            UINT16_PUSH(vm, (u161 + u160));
             break;
-        case VM_UINT16_SUBTRACT:
-            printf("UINT16_SUBTRACT: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT16_MULTIPLY:
+        case VM_UINT16_SUB:
             u160 = UINT16_POP(vm);
             u161 = UINT16_POP(vm);
-            UINT16_PUSH(vm, (u160 * u161));
+            UINT16_PUSH(vm, (u161 - u160));
             break;
-        case VM_UINT16_DIVIDE_FLOAT:
-            printf("UINT16_DIVIDE_FLOAT: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT16_MUL:
+            u160 = UINT16_POP(vm);
+            u161 = UINT16_POP(vm);
+            UINT16_PUSH(vm, (u161 * u160));
             break;
         case VM_UINT16_EQ:
-            printf("UINT16_EQ: UNIMPLEMENTED");
-            vm->running = 0;
+            u160 = UINT16_POP(vm);
+            u161 = UINT16_POP(vm);
+            UINT16_PUSH(vm, (u161 == u160 ? 1 : 0));
             break;
-
-        // UINT32 INSTRUCTIONS
-        case VM_UINT32_PUSH:
-            printf("UINT32_PUSH: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT16_JUMPNZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (UINT16_POP(vm)) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_UINT16_JUMPZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (UINT16_POP(vm) == 0) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_UINT16_PUSH:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            u160 = UINT16_MAKE(vm);
+            UINT16_PUSH(vm, u160);
             break;
         case VM_UINT32_POP:
-            printf("UINT32_POP: UNIMPLEMENTED");
-            vm->running = 0;
+            u320 = UINT32_POP(vm);
             break;
         case VM_UINT32_DUP:
-            printf("UINT32_DUP: UNIMPLEMENTED");
-            vm->running = 0;
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            u160 = UINT16_MAKE(vm);
+            u161 = vm->uint32_sp;
+            for (u162 = u160; u162 > 0; u162--) {
+                u320 = UINT32_PEEK(vm, (u161 - (u162 - 1)));
+                UINT32_PUSH(vm, u320);
+            }
             break;
         case VM_UINT32_SWAP:
-            printf("UINT32_SWAP: UNIMPLEMENTED");
-            vm->running = 0;
+            u320 = UINT32_POP(vm);
+            u321 = UINT32_POP(vm);
+            UINT32_PUSH(vm, u320);
+            UINT32_PUSH(vm, u321);
+            break;
+        case VM_UINT32_JUMPEM:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (vm->uint32_sp == VM_MAX_ADDR) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
             break;
         case VM_UINT32_STORE:
-            printf("UINT32_STORE: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_STORE_UINT16:
-            printf("UINT32_STORE_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
+            u320 = UINT32_POP(vm);
+            u161 = UINT16_POP(vm);
+            vm->uint32_memory[u161] = u320;
             break;
         case VM_UINT32_LOAD:
-            printf("UINT32_LOAD: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_LOAD_UINT16:
-            printf("UINT32_LOAD_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_MOVE_UINT8:
-            printf("UINT32_MOVE_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_COPY_UINT8:
-            printf("UINT32_COPY_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_JUMP_EMPTY:
-            printf("UINT32_JUMP_EMPTY: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_JUMP_ZERO:
-            printf("UINT32_JUMP_ZERO: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_JUMP_NZERO:
-            printf("UINT32_JUMP_NZERO: UNIMPLEMENTED");
-            vm->running = 0;
+            u160 = UINT16_POP(vm);
+            u320 = vm->uint32_memory[u160];
+            UINT32_PUSH(vm, u320);
             break;
         case VM_UINT32_ADD:
-            printf("UINT32_ADD: UNIMPLEMENTED");
-            vm->running = 0;
+            u320 = UINT32_POP(vm);
+            u321 = UINT32_POP(vm);
+            UINT32_PUSH(vm, (u321 + u320));
             break;
-        case VM_UINT32_SUBTRACT:
-            printf("UINT32_SUBTRACT: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT32_SUB:
+            u320 = UINT32_POP(vm);
+            u321 = UINT32_POP(vm);
+            UINT32_PUSH(vm, (u321 - u320));
             break;
-        case VM_UINT32_MULTIPLY:
-            printf("UINT32_MULTIPLY: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_UINT32_DIVIDE_FLOAT:
-            printf("UINT32_DIVIDE_FLOAT: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT32_MUL:
+            u320 = UINT32_POP(vm);
+            u321 = UINT32_POP(vm);
+            UINT32_PUSH(vm, (u321 * u320));
             break;
         case VM_UINT32_EQ:
-            printf("UINT32_EQ: UNIMPLEMENTED");
-            vm->running = 0;
+            u320 = UINT32_POP(vm);
+            u321 = UINT32_POP(vm);
+            UINT32_PUSH(vm, (u321 == u320 ? 1 : 0));
             break;
-
-        // FLOAT INSTRUCTIONS
-        case VM_FLOAT_PUSH:
-            printf("FLOAT_PUSH: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_UINT32_JUMPNZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (UINT32_POP(vm)) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_UINT32_JUMPZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (UINT16_POP(vm) == 0) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_UINT32_PUSH:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            vm->b2 = NCODE(vm);
+            vm->b3 = NCODE(vm);
+            u320 = UINT32_MAKE(vm);
+            UINT32_PUSH(vm, u320);
             break;
         case VM_FLOAT_POP:
-            printf("FLOAT_POP: UNIMPLEMENTED");
-            vm->running = 0;
+            fl0 = FLOAT_POP(vm);
             break;
         case VM_FLOAT_DUP:
-            printf("FLOAT_DUP: UNIMPLEMENTED");
-            vm->running = 0;
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            u160 = UINT16_MAKE(vm);
+            u161 = vm->float_sp;
+            for (u162 = u160; u162 > 0; u162--) {
+                fl0 = FLOAT_PEEK(vm, (u161 - (u162 - 1)));
+                FLOAT_PUSH(vm, fl0);
+            }
             break;
         case VM_FLOAT_SWAP:
-            printf("FLOAT_SWAP: UNIMPLEMENTED");
-            vm->running = 0;
+            fl0 = FLOAT_POP(vm);
+            fl1 = FLOAT_POP(vm);
+            FLOAT_PUSH(vm, fl0);
+            FLOAT_PUSH(vm, fl1);
+            break;
+        case VM_FLOAT_JUMPEM:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (vm->float_sp == VM_MAX_ADDR) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
             break;
         case VM_FLOAT_STORE:
-            printf("FLOAT_STORE: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_STORE_UINT16:
-            printf("FLOAT_STORE_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
+            fl0 = FLOAT_POP(vm);
+            u161 = UINT16_POP(vm);
+            vm->float_memory[u161] = fl0;
             break;
         case VM_FLOAT_LOAD:
-            printf("FLOAT_LOAD: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_LOAD_UINT16:
-            printf("FLOAT_LOAD_UINT16: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_MOVE_UINT8:
-            printf("FLOAT_MOVE_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_COPY_UINT8:
-            printf("FLOAT_COPY_UINT8: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_JUMP_EMPTY:
-            printf("FLOAT_JUMP_EMPTY: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_JUMP_ZERO:
-            printf("FLOAT_JUMP_ZERO: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_JUMP_NZERO:
-            printf("FLOAT_JUMP_NZERO: UNIMPLEMENTED");
-            vm->running = 0;
+            u160 = UINT16_POP(vm);
+            fl0 = vm->float_memory[u160];
+            FLOAT_PUSH(vm, fl0);
             break;
         case VM_FLOAT_ADD:
-            printf("FLOAT_ADD: UNIMPLEMENTED");
-            vm->running = 0;
+            fl0 = FLOAT_POP(vm);
+            fl1 = FLOAT_POP(vm);
+            FLOAT_PUSH(vm, (fl1 + fl0));
             break;
-        case VM_FLOAT_SUBTRACT:
-            printf("FLOAT_SUBTRACT: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_FLOAT_SUB:
+            fl0 = FLOAT_POP(vm);
+            fl1 = FLOAT_POP(vm);
+            FLOAT_PUSH(vm, (fl1 - fl0));
             break;
-        case VM_FLOAT_MULTIPLY:
-            printf("FLOAT_MULTIPLY: UNIMPLEMENTED");
-            vm->running = 0;
-            break;
-        case VM_FLOAT_DIVIDE_FLOAT:
-            printf("FLOAT_DIVIDE_FLOAT: UNIMPLEMENTED");
-            vm->running = 0;
+        case VM_FLOAT_MUL:
+            fl0 = FLOAT_POP(vm);
+            fl1 = FLOAT_POP(vm);
+            FLOAT_PUSH(vm, (fl1 * fl0));
             break;
         case VM_FLOAT_EQ:
-            printf("FLOAT_EQ: UNIMPLEMENTED");
+            fl0 = FLOAT_POP(vm);
+            fl1 = FLOAT_POP(vm);
+            FLOAT_PUSH(vm, (fl1 == fl0 ? 1 : 0));
+            break;
+        case VM_FLOAT_JUMPNZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (FLOAT_POP(vm)) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_FLOAT_JUMPZ:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            if (FLOAT_POP(vm) == 0.0f) {
+                u160 = UINT16_MAKE(vm);
+                vm->pc = u160;
+            }
+            break;
+        case VM_FLOAT_PUSH:
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            vm->b2 = NCODE(vm);
+            vm->b3 = NCODE(vm);
+            fl0 = FLOAT_MAKE(vm);
+            FLOAT_PUSH(vm, fl0);
+            break;
+        case VM_VEC2_POP:
+            printf("VEC2_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_DUP:
+            printf("VEC2_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_SWAP:
+            printf("VEC2_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_JUMPEM:
+            printf("VEC2_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_STORE:
+            printf("VEC2_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_LOAD:
+            printf("VEC2_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_ADD:
+            printf("VEC2_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_SUB:
+            printf("VEC2_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_MUL:
+            printf("VEC2_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_EQ:
+            printf("VEC2_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_EXPLODE:
+            printf("VEC2_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_IMPLODE:
+            printf("VEC2_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_MULMAT2:
+            printf("VEC2_MULMAT2: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_MULMAT3:
+            printf("VEC2_MULMAT3: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC2_MULMAT4:
+            printf("VEC2_MULMAT4: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_POP:
+            printf("VEC3_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_DUP:
+            printf("VEC3_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_SWAP:
+            printf("VEC3_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_JUMPEM:
+            printf("VEC3_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_STORE:
+            printf("VEC3_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_LOAD:
+            printf("VEC3_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_ADD:
+            printf("VEC3_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_SUB:
+            printf("VEC3_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_MUL:
+            printf("VEC3_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_EQ:
+            printf("VEC3_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_EXPLODE:
+            printf("VEC3_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_IMPLODE:
+            printf("VEC3_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_MULMAT3:
+            printf("VEC3_MULMAT3: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC3_MULMAT4:
+            printf("VEC3_MULMAT4: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_POP:
+            printf("VEC4_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_DUP:
+            printf("VEC4_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_SWAP:
+            printf("VEC4_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_JUMPEM:
+            printf("VEC4_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_STORE:
+            printf("VEC4_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_LOAD:
+            printf("VEC4_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_ADD:
+            printf("VEC4_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_SUB:
+            printf("VEC4_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_MUL:
+            printf("VEC4_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_EQ:
+            printf("VEC4_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_EXPLODE:
+            printf("VEC4_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_IMPLODE:
+            printf("VEC4_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_VEC4_MULMAT4:
+            printf("VEC4_MULMAT4: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_POP:
+            printf("MAT2_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_DUP:
+            printf("MAT2_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_SWAP:
+            printf("MAT2_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_JUMPEM:
+            printf("MAT2_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_STORE:
+            printf("MAT2_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_LOAD:
+            printf("MAT2_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_ADD:
+            printf("MAT2_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_SUB:
+            printf("MAT2_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_MUL:
+            printf("MAT2_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_EQ:
+            printf("MAT2_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_EXPLODE:
+            printf("MAT2_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_IDENT:
+            printf("MAT2_IDENT: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_IMPLODE:
+            printf("MAT2_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_ROTATE:
+            printf("MAT2_ROTATE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_SCALE:
+            printf("MAT2_SCALE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT2_TRANSP:
+            printf("MAT2_TRANSP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_POP:
+            printf("MAT3_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_DUP:
+            printf("MAT3_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_SWAP:
+            printf("MAT3_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_JUMPEM:
+            printf("MAT3_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_STORE:
+            printf("MAT3_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_LOAD:
+            printf("MAT3_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_ADD:
+            printf("MAT3_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_SUB:
+            printf("MAT3_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_MUL:
+            printf("MAT3_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_EQ:
+            printf("MAT3_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_EXPLODE:
+            printf("MAT3_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_IDENT:
+            printf("MAT3_IDENT: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_IMPLODE:
+            printf("MAT3_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_ROTATE:
+            printf("MAT3_ROTATE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_SCALE:
+            printf("MAT3_SCALE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_TRANSL:
+            printf("MAT3_TRANSL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT3_TRANSP:
+            printf("MAT3_TRANSP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_POP:
+            printf("MAT4_POP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_DUP:
+            printf("MAT4_DUP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_SWAP:
+            printf("MAT4_SWAP: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_JUMPEM:
+            printf("MAT4_JUMPEM: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_STORE:
+            printf("MAT4_STORE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_LOAD:
+            printf("MAT4_LOAD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_ADD:
+            printf("MAT4_ADD: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_SUB:
+            printf("MAT4_SUB: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_MUL:
+            printf("MAT4_MUL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_EQ:
+            printf("MAT4_EQ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_EXPLODE:
+            printf("MAT4_EXPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_IDENT:
+            printf("MAT4_IDENT: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_IMPLODE:
+            printf("MAT4_IMPLODE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_ROTATEX:
+            printf("MAT4_ROTATEX: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_ROTATEY:
+            printf("MAT4_ROTATEY: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_ROTATEZ:
+            printf("MAT4_ROTATEZ: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_SCALE:
+            printf("MAT4_SCALE: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_TRANSL:
+            printf("MAT4_TRANSL: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
+        case VM_MAT4_TRANSP:
+            printf("MAT4_TRANSP: UNIMPLEMENTED");
             vm->running = 0;
             break;
         default:
