@@ -12,6 +12,18 @@ float _R4DP(float v) {
 }
 */
 
+void print_ctrl_stack(rendervm_t* vm) {
+    uint16_t index = 0;
+    if (vm->ctrl_sp == 65535) {
+        return;
+    }
+    printf("    ctrl st: [ ");
+    for (index = 0; index <= vm->ctrl_sp; index++) {
+        printf("0x%02x ", vm->ctrl_stack[index]);
+    }
+    printf("]\n");
+}
+
 void print_uint8_stack(rendervm_t* vm) {
     uint16_t index = 0;
     if (vm->uint8_sp == 65535) {
@@ -36,136 +48,1112 @@ void print_uint16_stack(rendervm_t* vm) {
     printf("]\n");
 }
 
-void print_memory(uint8_t* memory) {
-    uint8_t x, y;
-    uint8_t idx, val;
-    idx = 0;
-    for (y = 0; y < 5; y++) {
-        for (x = 0; x < 5; x++) {
-            idx = (y * 5) + x;
-            val = memory[idx];
-            switch (val) {
-                case 1:
-                    printf("1 ");
-                    break;
-                case 0:
-                    printf(". ");
-                    break;
-                case 10:
-                    printf("x ");
-                    break;
-                default:
-                    break;
-            }
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
-
 void print_vm(rendervm_t* vm) {
     printf("         pc: 0x%02x\n", vm->pc);
     printf("last opcode: %s\n", rendervm_opcode2str(vm->last_opcode));
     printf("   uint8_sp: 0x%02x\n", vm->uint8_sp);
     printf("  uint16_sp: 0x%02x\n", vm->uint16_sp);
+    print_ctrl_stack(vm);
     print_uint8_stack(vm);
     print_uint16_stack(vm);
     printf("\n");
 }
 
-void test_flood_fill(test_harness_t* test, rendervm_t* vm) {
-    // A 5x5 map, plus 5 variables. The first two are the
-    // player location (4,4), the second two tmp coords, and
-    // The final is a tmp variable for the tile value.
-    uint8_t uint8_memory[30] = {
-        1, 1, 1, 1, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 0, 0, 0, 1,
-        1, 1, 1, 1, 1,
-        2, 2, 0, 0, 0
-    };
-
-    uint8_t program[201] = {
-        0x03, 0x19, 0x00, 0x01, 0x12, 0x02, 0x00, 0x38,
-        0x30, 0x05, 0x00, 0x3f, 0x38, 0x3d, 0x32, 0x01,
-        0x00, 0x17, 0x14, 0x1d, 0x00, 0x10, 0x0a, 0x15,
-        0x04, 0x16, 0x19, 0x00, 0x16, 0x1a, 0x00, 0x03,
-        0x04, 0x00, 0x1a, 0xc8, 0x00, 0x14, 0x1b, 0x00,
-        0x14, 0x1c, 0x00, 0x16, 0x1b, 0x00, 0x16, 0x1c,
-        0x00, 0x10, 0x01, 0x1e, 0x03, 0x04, 0x00, 0x16,
-        0x1d, 0x00, 0x10, 0x00, 0x21, 0x1c, 0x51, 0x00,
-        0x16, 0x1d, 0x00, 0x10, 0x0a, 0x21, 0x1c, 0x4f,
-        0x00, 0x30, 0x04, 0x00, 0x39, 0x02, 0x00, 0x11,
-        0x11, 0x16, 0x1b, 0x00, 0x16, 0x1c, 0x00, 0x10,
-        0x01, 0x1d, 0x03, 0x04, 0x00, 0x16, 0x1d, 0x00,
-        0x10, 0x00, 0x21, 0x1c, 0x77, 0x00, 0x16, 0x1d,
-        0x00, 0x10, 0x0a, 0x21, 0x1c, 0x75, 0x00, 0x30,
-        0x01, 0x00, 0x39, 0x02, 0x00, 0x11, 0x11, 0x16,
-        0x1c, 0x00, 0x16, 0x1b, 0x00, 0x10, 0x01, 0x1e,
-        0x13, 0x03, 0x04, 0x00, 0x16, 0x1d, 0x00, 0x10,
-        0x00, 0x21, 0x1c, 0x9e, 0x00, 0x16, 0x1d, 0x00,
-        0x10, 0x0a, 0x21, 0x1c, 0x9c, 0x00, 0x30, 0x02,
-        0x00, 0x39, 0x02, 0x00, 0x11, 0x11, 0x16, 0x1c,
-        0x00, 0x16, 0x1b, 0x00, 0x10, 0x01, 0x1d, 0x13,
-        0x03, 0x04, 0x00, 0x16, 0x1d, 0x00, 0x10, 0x00,
-        0x21, 0x1c, 0x22, 0x00, 0x16, 0x1d, 0x00, 0x10,
-        0x0a, 0x21, 0x1c, 0xc3, 0x00, 0x30, 0x08, 0x00,
-        0x39, 0x02, 0x00, 0x11, 0x11, 0x05, 0x22, 0x00,
-        0x04
-    };
-
-    vm->uint8_memory = &uint8_memory[0];
-
-    uint32_t cycle = 0;
-    for (cycle = 0; cycle < 1018; cycle++) {
-        rendervm_exec(vm, program, 201);
-        //if (cycle > 1000) {
-            printf("CYCLE: %d\n", cycle);
-            print_vm(vm);
-            print_memory(vm->uint8_memory);
-        //}
-    }
-    rendervm_reset(vm);
-}
-
-void test_opcode_VM_HALT(test_harness_t* test, rendervm_t* vm) {
+void test_opcode_HALT(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_HALT};
     rendervm_exec(vm, program, 1);
-    is_equal_uint8(test, vm->running, 0, "OP VM_HALT: stops VM");
-    is_equal_uint16(test, vm->pc, 0, "OP VM_HALT: zeros pc");
+    is_equal_uint8(test, vm->running, 0, "OP HALT: stops VM");
     rendervm_reset(vm);
 }
 
-void test_opcode_VM_YIELD(test_harness_t* test, rendervm_t* vm) {
+void test_opcode_YIELD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_YIELD};
     rendervm_exec(vm, program, 1);
-    is_equal_uint8(test, vm->running, 0, "OP VM_YIELD: stops VM");
-    is_equal_uint16(test, vm->pc, 1, "OP VM_YIELD: leaves pc");
+    is_equal_uint8(test, vm->running, 0, "OP YIELD: stops VM");
+    is_equal_uint16(test, vm->pc, 1, "OP YIELD: leaves pc");
     rendervm_reset(vm);
 }
 
-void test_opcode_VM_RESET(test_harness_t* test, rendervm_t* vm) {
+void test_opcode_RESET(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_RESET};
     rendervm_exec(vm, program, 1);
-    is_equal_uint8(test, vm->running, 1, "OP VM_RESET: leaves VM running");
-    is_equal_uint16(test, vm->pc, 0, "OP VM_RESET: zeros pc");
+    is_equal_uint8(test, vm->running, 1, "OP RESET: leaves VM running");
+    is_equal_uint16(test, vm->pc, 0, "OP RESET: zeros pc");
     rendervm_reset(vm);
 }
 
-void test_opcode_VM_CALL(test_harness_t* test, rendervm_t* vm) {
+void test_opcode_CALL(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_CALL, 0xbb, 0x01};
     rendervm_exec(vm, program, 3);
-    is_equal_uint8(test, vm->running, 1, "OP VM_CALL: leaves VM running");
-    is_equal_uint16(test, vm->pc, 443, "OP VM_CALL: pc correct");
+    is_equal_uint8(test, vm->running, 1, "OP CALL: leaves VM running");
+    is_equal_uint16(test, vm->pc, 443, "OP CALL: pc correct");
+    is_equal_uint16(test, vm->ctrl_stack[0], 3, "OP CALL: return address correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_RETURN(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_CALL, 0x04, 0x00, VM_HALT, VM_RETURN};
+    rendervm_exec(vm, program, 5);
+    is_equal_uint16(test, vm->pc, 4, "OP RETURN: pc correct");
+    rendervm_exec(vm, program, 5);
+    is_equal_uint8(test, vm->last_opcode, VM_RETURN, "OP RETURN: last opcode is RETURN");
+    is_equal_uint16(test, vm->pc, 3, "OP RETURN: pc correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_JUMP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_JUMP, 0xbb, 0x01};
+    rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->pc, 443, "OP JUMP: pc correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_POP};
+    vm->uint8_sp++;
+    vm->uint8_stack[0] = 0x05;
+    rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint8_sp, 0xffff, "OP UINT8_POP: uint8_sp correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_DUP, 0x01, 0x00};
+    vm->uint8_sp++;
+    vm->uint8_stack[0] = 0x06;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->uint8_sp, 0x01, "OP UINT8_DUP: uint8_sp correct");
+    is_equal_uint8(test, vm->uint8_stack[0], 0x06, "OP UINT8_DUP: first stack item correct");
+    is_equal_uint8(test, vm->uint8_stack[1], 0x06, "OP UINT8_DUP: second stack item correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_SWAP};
+    vm->uint8_sp++;
+    vm->uint8_stack[0] = 0x07;
+    vm->uint8_sp++;
+    vm->uint8_stack[1] = 0x08;
+    rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint8_sp, 0x01, "OP UINT8_SWAP: uint8_sp correct");
+    is_equal_uint8(test, vm->uint8_stack[0], 0x08, "OP UINT8_SWAP: first stack item correct");
+    is_equal_uint8(test, vm->uint8_stack[1], 0x07, "OP UINT8_SWAP: second stack item correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_JUMPEM, 0x0a, 0x00};
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->pc, 10, "OP UINT8_JUMPEM: pc correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_JUMPNZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_JUMPZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_JUMPZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT8_PUSH(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_PUSH};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_JUMPNZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_JUMPZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_JUMPZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT16_PUSH(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_PUSH};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_JUMPNZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_JUMPZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_JUMPZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_PUSH(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_PUSH};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_JUMPNZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_JUMPZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_JUMPZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_FLOAT_PUSH(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_PUSH};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_MULMAT2(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_MULMAT2};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_MULMAT3(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_MULMAT3};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC2_MULMAT4(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC2_MULMAT4};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_MULMAT3(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_MULMAT3};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC3_MULMAT4(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC3_MULMAT4};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_VEC4_MULMAT4(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_VEC4_MULMAT4};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_IDENT(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_IDENT};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_ROTATE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_ROTATE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_SCALE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_SCALE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT2_TRANSP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT2_TRANSP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_IDENT(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_IDENT};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_ROTATE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_ROTATE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_SCALE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_SCALE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_TRANSL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_TRANSL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT3_TRANSP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT3_TRANSP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_POP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_POP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_DUP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_DUP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_SWAP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_SWAP};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_JUMPEM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_JUMPEM};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_STORE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_STORE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_LOAD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_LOAD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_ADD(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_ADD};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_SUB(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_SUB};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_MUL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_MUL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_EQ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_EQ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_EXPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_EXPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_IDENT(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_IDENT};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_IMPLODE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_IMPLODE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_ROTATEX(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_ROTATEX};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_ROTATEY(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_ROTATEY};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_ROTATEZ(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_ROTATEZ};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_SCALE(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_SCALE};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_TRANSL(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_TRANSL};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
+void test_opcode_MAT4_TRANSP(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_MAT4_TRANSP};
+    rendervm_exec(vm, program, 1);
     rendervm_reset(vm);
 }
 
 void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
-    test_opcode_VM_HALT(test, vm);
-    test_opcode_VM_YIELD(test, vm);
-    test_opcode_VM_RESET(test, vm);
-    test_opcode_VM_CALL(test, vm);
+    test_opcode_HALT(test, vm);
+    test_opcode_YIELD(test, vm);
+    test_opcode_RESET(test, vm);
+    test_opcode_CALL(test, vm);
+    test_opcode_RETURN(test, vm);
+    test_opcode_JUMP(test, vm);
+    test_opcode_UINT8_POP(test, vm);
+    test_opcode_UINT8_DUP(test, vm);
+    test_opcode_UINT8_SWAP(test, vm);
+    test_opcode_UINT8_JUMPEM(test, vm);
+    return;
+    test_opcode_UINT8_STORE(test, vm);
+    test_opcode_UINT8_LOAD(test, vm);
+    test_opcode_UINT8_ADD(test, vm);
+    test_opcode_UINT8_SUB(test, vm);
+    test_opcode_UINT8_MUL(test, vm);
+    test_opcode_UINT8_EQ(test, vm);
+    test_opcode_UINT8_JUMPNZ(test, vm);
+    test_opcode_UINT8_JUMPZ(test, vm);
+    test_opcode_UINT8_PUSH(test, vm);
+    test_opcode_UINT16_POP(test, vm);
+    test_opcode_UINT16_DUP(test, vm);
+    test_opcode_UINT16_SWAP(test, vm);
+    test_opcode_UINT16_JUMPEM(test, vm);
+    test_opcode_UINT16_STORE(test, vm);
+    test_opcode_UINT16_LOAD(test, vm);
+    test_opcode_UINT16_ADD(test, vm);
+    test_opcode_UINT16_SUB(test, vm);
+    test_opcode_UINT16_MUL(test, vm);
+    test_opcode_UINT16_EQ(test, vm);
+    test_opcode_UINT16_JUMPNZ(test, vm);
+    test_opcode_UINT16_JUMPZ(test, vm);
+    test_opcode_UINT16_PUSH(test, vm);
+    test_opcode_UINT32_POP(test, vm);
+    test_opcode_UINT32_DUP(test, vm);
+    test_opcode_UINT32_SWAP(test, vm);
+    test_opcode_UINT32_JUMPEM(test, vm);
+    test_opcode_UINT32_STORE(test, vm);
+    test_opcode_UINT32_LOAD(test, vm);
+    test_opcode_UINT32_ADD(test, vm);
+    test_opcode_UINT32_SUB(test, vm);
+    test_opcode_UINT32_MUL(test, vm);
+    test_opcode_UINT32_EQ(test, vm);
+    test_opcode_UINT32_JUMPNZ(test, vm);
+    test_opcode_UINT32_JUMPZ(test, vm);
+    test_opcode_UINT32_PUSH(test, vm);
+    test_opcode_FLOAT_POP(test, vm);
+    test_opcode_FLOAT_DUP(test, vm);
+    test_opcode_FLOAT_SWAP(test, vm);
+    test_opcode_FLOAT_JUMPEM(test, vm);
+    test_opcode_FLOAT_STORE(test, vm);
+    test_opcode_FLOAT_LOAD(test, vm);
+    test_opcode_FLOAT_ADD(test, vm);
+    test_opcode_FLOAT_SUB(test, vm);
+    test_opcode_FLOAT_MUL(test, vm);
+    test_opcode_FLOAT_EQ(test, vm);
+    test_opcode_FLOAT_JUMPNZ(test, vm);
+    test_opcode_FLOAT_JUMPZ(test, vm);
+    test_opcode_FLOAT_PUSH(test, vm);
+    test_opcode_VEC2_POP(test, vm);
+    test_opcode_VEC2_DUP(test, vm);
+    test_opcode_VEC2_SWAP(test, vm);
+    test_opcode_VEC2_JUMPEM(test, vm);
+    test_opcode_VEC2_STORE(test, vm);
+    test_opcode_VEC2_LOAD(test, vm);
+    test_opcode_VEC2_ADD(test, vm);
+    test_opcode_VEC2_SUB(test, vm);
+    test_opcode_VEC2_MUL(test, vm);
+    test_opcode_VEC2_EQ(test, vm);
+    test_opcode_VEC2_EXPLODE(test, vm);
+    test_opcode_VEC2_IMPLODE(test, vm);
+    test_opcode_VEC2_MULMAT2(test, vm);
+    test_opcode_VEC2_MULMAT3(test, vm);
+    test_opcode_VEC2_MULMAT4(test, vm);
+    test_opcode_VEC3_POP(test, vm);
+    test_opcode_VEC3_DUP(test, vm);
+    test_opcode_VEC3_SWAP(test, vm);
+    test_opcode_VEC3_JUMPEM(test, vm);
+    test_opcode_VEC3_STORE(test, vm);
+    test_opcode_VEC3_LOAD(test, vm);
+    test_opcode_VEC3_ADD(test, vm);
+    test_opcode_VEC3_SUB(test, vm);
+    test_opcode_VEC3_MUL(test, vm);
+    test_opcode_VEC3_EQ(test, vm);
+    test_opcode_VEC3_EXPLODE(test, vm);
+    test_opcode_VEC3_IMPLODE(test, vm);
+    test_opcode_VEC3_MULMAT3(test, vm);
+    test_opcode_VEC3_MULMAT4(test, vm);
+    test_opcode_VEC4_POP(test, vm);
+    test_opcode_VEC4_DUP(test, vm);
+    test_opcode_VEC4_SWAP(test, vm);
+    test_opcode_VEC4_JUMPEM(test, vm);
+    test_opcode_VEC4_STORE(test, vm);
+    test_opcode_VEC4_LOAD(test, vm);
+    test_opcode_VEC4_ADD(test, vm);
+    test_opcode_VEC4_SUB(test, vm);
+    test_opcode_VEC4_MUL(test, vm);
+    test_opcode_VEC4_EQ(test, vm);
+    test_opcode_VEC4_EXPLODE(test, vm);
+    test_opcode_VEC4_IMPLODE(test, vm);
+    test_opcode_VEC4_MULMAT4(test, vm);
+    test_opcode_MAT2_POP(test, vm);
+    test_opcode_MAT2_DUP(test, vm);
+    test_opcode_MAT2_SWAP(test, vm);
+    test_opcode_MAT2_JUMPEM(test, vm);
+    test_opcode_MAT2_STORE(test, vm);
+    test_opcode_MAT2_LOAD(test, vm);
+    test_opcode_MAT2_ADD(test, vm);
+    test_opcode_MAT2_SUB(test, vm);
+    test_opcode_MAT2_MUL(test, vm);
+    test_opcode_MAT2_EQ(test, vm);
+    test_opcode_MAT2_EXPLODE(test, vm);
+    test_opcode_MAT2_IDENT(test, vm);
+    test_opcode_MAT2_IMPLODE(test, vm);
+    test_opcode_MAT2_ROTATE(test, vm);
+    test_opcode_MAT2_SCALE(test, vm);
+    test_opcode_MAT2_TRANSP(test, vm);
+    test_opcode_MAT3_POP(test, vm);
+    test_opcode_MAT3_DUP(test, vm);
+    test_opcode_MAT3_SWAP(test, vm);
+    test_opcode_MAT3_JUMPEM(test, vm);
+    test_opcode_MAT3_STORE(test, vm);
+    test_opcode_MAT3_LOAD(test, vm);
+    test_opcode_MAT3_ADD(test, vm);
+    test_opcode_MAT3_SUB(test, vm);
+    test_opcode_MAT3_MUL(test, vm);
+    test_opcode_MAT3_EQ(test, vm);
+    test_opcode_MAT3_EXPLODE(test, vm);
+    test_opcode_MAT3_IDENT(test, vm);
+    test_opcode_MAT3_IMPLODE(test, vm);
+    test_opcode_MAT3_ROTATE(test, vm);
+    test_opcode_MAT3_SCALE(test, vm);
+    test_opcode_MAT3_TRANSL(test, vm);
+    test_opcode_MAT3_TRANSP(test, vm);
+    test_opcode_MAT4_POP(test, vm);
+    test_opcode_MAT4_DUP(test, vm);
+    test_opcode_MAT4_SWAP(test, vm);
+    test_opcode_MAT4_JUMPEM(test, vm);
+    test_opcode_MAT4_STORE(test, vm);
+    test_opcode_MAT4_LOAD(test, vm);
+    test_opcode_MAT4_ADD(test, vm);
+    test_opcode_MAT4_SUB(test, vm);
+    test_opcode_MAT4_MUL(test, vm);
+    test_opcode_MAT4_EQ(test, vm);
+    test_opcode_MAT4_EXPLODE(test, vm);
+    test_opcode_MAT4_IDENT(test, vm);
+    test_opcode_MAT4_IMPLODE(test, vm);
+    test_opcode_MAT4_ROTATEX(test, vm);
+    test_opcode_MAT4_ROTATEY(test, vm);
+    test_opcode_MAT4_ROTATEZ(test, vm);
+    test_opcode_MAT4_SCALE(test, vm);
+    test_opcode_MAT4_TRANSL(test, vm);
+    test_opcode_MAT4_TRANSP(test, vm);
 }
 
 int main(void) {
@@ -177,7 +1165,6 @@ int main(void) {
 
     vm = rendervm_create();
     test_all_opcodes(test, vm);
-    test_flood_fill(test, vm);
 
     test_harness_exit_with_status(test);
 }

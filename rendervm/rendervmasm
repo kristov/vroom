@@ -13,6 +13,7 @@ GetOptions(
     'cenum',
     'cswitch',
     'copcode2str',
+    'ctests',
 );
 
 my %INS_ARG_LENGTH = (
@@ -175,6 +176,24 @@ exit main($opts);
 sub sorted_keys {
     return sort {$INS_ARG_LENGTH{$a}->[0] <=> $INS_ARG_LENGTH{$b}->[0]} keys %INS_ARG_LENGTH;
 }
+
+sub print_ctests {
+    for my $ins (sorted_keys()) {
+        printf("void test_opcode_$ins(test_harness_t* test, rendervm_t* vm) {\n");
+        printf("    uint8_t program[] = {VM_$ins};\n");
+        printf("    rendervm_exec(vm, program, 1);\n");
+        printf("    rendervm_reset(vm);\n");
+        printf("}\n\n");
+    }
+    printf("void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {\n");
+    for my $ins (sorted_keys()) {
+        printf("test_opcode_$ins(test, vm);\n");
+    }
+    printf("}\n");
+}
+
+=item
+=cut
 
 sub print_copcode2str {
     my @array;
@@ -509,6 +528,9 @@ sub main {
     }
     elsif ($opts->{copcode2str}) {
         print_copcode2str();
+    }
+    elsif ($opts->{ctests}) {
+        print_ctests();
     }
     else {
         die "No --output=<bin> or --carray options\n";
