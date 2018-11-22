@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use constant SIZEOF_ADDR    => 2;
+use constant SIZEOF_STACK   => 1;
 use constant SIZEOF_UINT8   => 1;
 use constant SIZEOF_UINT16  => 2;
 use constant SIZEOF_UINT32  => 4;
@@ -83,12 +84,12 @@ my %BASE_ARGLEN = (
     },
     POP => {
         desc   => "Removes N items from the top of the [STACK] stack, disgarding the values.",
-        arglen => SIZEOF_ADDR,
+        arglen => SIZEOF_STACK,
         stacks => [qw(STACK.-)],
     },
     DUP => {
         desc   => "Copies N items from the top of the [STACK] stack and pushes them again.",
-        arglen => SIZEOF_ADDR,
+        arglen => SIZEOF_STACK,
         stacks => [qw(STACK.+)],
     },
     SWAP => {
