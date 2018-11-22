@@ -373,7 +373,10 @@ void test_opcode_UINT16_JUMPZ(test_harness_t* test, rendervm_t* vm) {
 
 void test_opcode_UINT16_MOVE_UINT8(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_MOVE_UINT8};
+    vm->uint8_stack[++vm->uint8_sp] = 0x45;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT16_MOVE_UINT8: uint8 stack empty");
+    is_equal_uint16(test, vm->uint16_stack[0], 0x45, "OP UINT16_MOVE_UINT8: has the value");
     rendervm_reset(vm);
 }
 
@@ -515,7 +518,10 @@ void test_opcode_UINT32_JUMPZ(test_harness_t* test, rendervm_t* vm) {
 
 void test_opcode_UINT32_MOVE_UINT8(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_MOVE_UINT8};
+    vm->uint8_stack[++vm->uint8_sp] = 0x46;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT32_MOVE_UINT8: uint8 stack empty");
+    is_equal_uint32(test, vm->uint32_stack[0], 0x46, "OP UINT32_MOVE_UINT8: has the value");
     rendervm_reset(vm);
 }
 

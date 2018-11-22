@@ -383,8 +383,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             break;
         case VM_UINT16_MOVE_UINT8:
-            printf("UINT16_MOVE_UINT8: UNIMPLEMENTED\n");
-            vm->running = 0;
+            UINT16_PUSH(vm, UINT8_POP(vm));
             break;
         case VM_UINT16_PUSH:
             vm->b0 = NCODE(vm);
@@ -464,7 +463,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             break;
         case VM_UINT32_MOVE_UINT8:
-            printf("UINT32_MOVE_UINT8: UNIMPLEMENTED\n");
+            UINT32_PUSH(vm, UINT8_POP(vm));
             vm->running = 0;
             break;
         case VM_UINT32_PUSH:
