@@ -3,6 +3,31 @@
 use strict;
 use warnings;
 
+=for explanation
+
+This file is to make my like a bit easier when adding new opcodes to the VM.
+When you run this script it will output a Perl hash that starts: "my
+%INS_ARG_LENGTH = (" - this should be copy-pasted into the top of the
+"rendervmasm" Perl script. Once that is done:
+
+To generate the enum definition for rendervm.h:
+
+  ./rendervmasm --cenum
+
+To generate an empty switch statement for rendervm.c:
+
+  ./rendervmasm --cswitch
+
+To generate the string array for debugging for rendervm.c:
+
+  ./rendervmasm --copcode2str
+
+To generate a list of test functions and the main calling function for test.c:
+
+  ./rendervmasm --ctests
+
+=cut
+
 use constant TYPE_ADDR  => 'uint16';
 use constant TYPE_STACK => 'uint8';
 
