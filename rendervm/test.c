@@ -371,6 +371,12 @@ void test_opcode_UINT16_JUMPZ(test_harness_t* test, rendervm_t* vm) {
     rendervm_reset(vm);
 }
 
+void test_opcode_UINT16_MOVE_UINT8(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_MOVE_UINT8};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
 void test_opcode_UINT16_PUSH(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_PUSH, 0x0f, 0x00};
     rendervm_exec(vm, program, 3);
@@ -504,6 +510,12 @@ void test_opcode_UINT32_JUMPZ(test_harness_t* test, rendervm_t* vm) {
     rendervm_exec(vm, program, 3);
     is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_JUMPZ: stack empty");
     is_equal_uint16(test, vm->pc, 0x03, "OP UINT32_JUMPZ: program counter correct (no jump)");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_MOVE_UINT8(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_MOVE_UINT8};
+    rendervm_exec(vm, program, 1);
     rendervm_reset(vm);
 }
 
@@ -1243,6 +1255,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT16_EQ(test, vm);
     test_opcode_UINT16_JUMPNZ(test, vm);
     test_opcode_UINT16_JUMPZ(test, vm);
+    test_opcode_UINT16_MOVE_UINT8(test, vm);
     test_opcode_UINT16_PUSH(test, vm);
     test_opcode_UINT32_POP(test, vm);
     test_opcode_UINT32_DUP(test, vm);
@@ -1256,6 +1269,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT32_EQ(test, vm);
     test_opcode_UINT32_JUMPNZ(test, vm);
     test_opcode_UINT32_JUMPZ(test, vm);
+    test_opcode_UINT32_MOVE_UINT8(test, vm);
     test_opcode_UINT32_PUSH(test, vm);
     test_opcode_FLOAT_POP(test, vm);
     test_opcode_FLOAT_DUP(test, vm);

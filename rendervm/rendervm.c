@@ -65,6 +65,7 @@ const char *opcode2str[] = {
     "UINT16_EQ",
     "UINT16_JUMPNZ",
     "UINT16_JUMPZ",
+    "UINT16_MOVE_UINT8",
     "UINT16_PUSH",
     "UINT32_POP",
     "UINT32_DUP",
@@ -78,6 +79,7 @@ const char *opcode2str[] = {
     "UINT32_EQ",
     "UINT32_JUMPNZ",
     "UINT32_JUMPZ",
+    "UINT32_MOVE_UINT8",
     "UINT32_PUSH",
     "FLOAT_POP",
     "FLOAT_DUP",
@@ -380,6 +382,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
                 vm->pc = u160;
             }
             break;
+        case VM_UINT16_MOVE_UINT8:
+            printf("UINT16_MOVE_UINT8: UNIMPLEMENTED");
+            vm->running = 0;
+            break;
         case VM_UINT16_PUSH:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
@@ -456,6 +462,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
                 u160 = UINT16_MAKE(vm);
                 vm->pc = u160;
             }
+            break;
+        case VM_UINT32_MOVE_UINT8:
+            printf("UINT32_MOVE_UINT8: UNIMPLEMENTED");
+            vm->running = 0;
             break;
         case VM_UINT32_PUSH:
             vm->b0 = NCODE(vm);
