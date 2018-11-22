@@ -10,18 +10,28 @@
 #define UINT8_PUSH(vm, v)   vm->uint8_stack[++vm->uint8_sp] = v
 #define UINT8_POP(vm)       vm->uint8_stack[vm->uint8_sp--]
 #define UINT8_PEEK(vm, v)   vm->uint8_stack[v]
-#define UINT16_MAKE(vm)     (vm->b1 << 8) | vm->b0
+#define UINT16_MAKE(vm)     ((vm->b1 << 8) | vm->b0)
 #define UINT16_PUSH(vm, v)  vm->uint16_stack[++vm->uint16_sp] = v
 #define UINT16_POP(vm)      vm->uint16_stack[vm->uint16_sp--]
 #define UINT16_PEEK(vm, v)  vm->uint16_stack[v]
-#define UINT32_MAKE(vm)     (vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0
+#define UINT32_MAKE(vm)     ((vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0)
 #define UINT32_PUSH(vm, v)  vm->uint32_stack[++vm->uint32_sp] = v
 #define UINT32_POP(vm)      vm->uint32_stack[vm->uint32_sp--]
 #define UINT32_PEEK(vm, v)  vm->uint32_stack[v]
-#define FLOAT_MAKE(vm)      (vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0
 #define FLOAT_PUSH(vm, v)   vm->float_stack[++vm->float_sp] = v
 #define FLOAT_POP(vm)       vm->float_stack[vm->float_sp--]
 #define FLOAT_PEEK(vm, v)   vm->float_stack[v]
+
+typedef union {
+    float f;
+    uint32_t u;
+} float_convert_t;
+
+float FLOAT_MAKE(rendervm_t* vm) {
+    float_convert_t tmp;
+    tmp.u = ((vm->b3 << 24) | (vm->b2 << 16) | (vm->b1 << 8) | vm->b0);
+    return tmp.f;
+}
 
 const char *opcode2str[] = {
     "HALT",
