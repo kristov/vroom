@@ -50,6 +50,7 @@ const char *opcode2str[] = {
     "UINT8_SUB",
     "UINT8_MUL",
     "UINT8_EQ",
+    "UINT8_ADDN",
     "UINT8_JUMPNZ",
     "UINT8_JUMPZ",
     "UINT8_PUSH",
@@ -63,6 +64,7 @@ const char *opcode2str[] = {
     "UINT16_SUB",
     "UINT16_MUL",
     "UINT16_EQ",
+    "UINT16_ADDN",
     "UINT16_JUMPNZ",
     "UINT16_JUMPZ",
     "UINT16_MOVE_UINT8",
@@ -77,6 +79,7 @@ const char *opcode2str[] = {
     "UINT32_SUB",
     "UINT32_MUL",
     "UINT32_EQ",
+    "UINT32_ADDN",
     "UINT32_JUMPNZ",
     "UINT32_JUMPZ",
     "UINT32_MOVE_UINT8",
@@ -91,6 +94,7 @@ const char *opcode2str[] = {
     "FLOAT_SUB",
     "FLOAT_MUL",
     "FLOAT_EQ",
+    "FLOAT_ADDN",
     "FLOAT_JUMPNZ",
     "FLOAT_JUMPZ",
     "FLOAT_PUSH",
@@ -291,6 +295,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u81 = UINT8_POP(vm);
             UINT8_PUSH(vm, (u81 == u80 ? 1 : 0));
             break;
+        case VM_UINT8_ADDN:
+            printf("UINT8_ADDN: UNIMPLEMENTED\n");
+            vm->running = 0;
+            break;
         case VM_UINT8_JUMPNZ:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
@@ -365,6 +373,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u160 = UINT16_POP(vm);
             u161 = UINT16_POP(vm);
             UINT16_PUSH(vm, (u161 == u160 ? 1 : 0));
+            break;
+        case VM_UINT16_ADDN:
+            printf("UINT16_ADDN: UNIMPLEMENTED\n");
+            vm->running = 0;
             break;
         case VM_UINT16_JUMPNZ:
             vm->b0 = NCODE(vm);
@@ -445,6 +457,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u320 = UINT32_POP(vm);
             u321 = UINT32_POP(vm);
             UINT32_PUSH(vm, (u321 == u320 ? 1 : 0));
+            break;
+        case VM_UINT32_ADDN:
+            printf("UINT32_ADDN: UNIMPLEMENTED\n");
+            vm->running = 0;
             break;
         case VM_UINT32_JUMPNZ:
             vm->b0 = NCODE(vm);
@@ -528,6 +544,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             fl0 = FLOAT_POP(vm);
             fl1 = FLOAT_POP(vm);
             FLOAT_PUSH(vm, (fl1 == fl0 ? 1 : 0));
+            break;
+        case VM_FLOAT_ADDN:
+            printf("FLOAT_ADDN: UNIMPLEMENTED\n");
+            vm->running = 0;
             break;
         case VM_FLOAT_JUMPNZ:
             vm->b0 = NCODE(vm);

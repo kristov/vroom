@@ -208,6 +208,12 @@ void test_opcode_UINT8_EQ(test_harness_t* test, rendervm_t* vm) {
     rendervm_exec(vm, program, 1);
 }
 
+void test_opcode_UINT8_ADDN(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT8_ADDN};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
 void test_opcode_UINT8_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_JUMPNZ, 0x06, 0x00};
     vm->uint8_stack[++vm->uint8_sp] = 0x0a;
@@ -341,6 +347,12 @@ void test_opcode_UINT16_EQ(test_harness_t* test, rendervm_t* vm) {
     rendervm_exec(vm, program, 1);
     is_equal_uint16(test, vm->uint16_stack[0], 0x00, "OP UINT16_EQ: equals works (false)");
     rendervm_exec(vm, program, 1);
+}
+
+void test_opcode_UINT16_ADDN(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT16_ADDN};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
@@ -488,6 +500,12 @@ void test_opcode_UINT32_EQ(test_harness_t* test, rendervm_t* vm) {
     rendervm_exec(vm, program, 1);
 }
 
+void test_opcode_UINT32_ADDN(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_ADDN};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
 void test_opcode_UINT32_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_JUMPNZ, 0x06, 0x00};
     vm->uint32_stack[++vm->uint32_sp] = 0x0a;
@@ -628,6 +646,12 @@ void test_opcode_FLOAT_EQ(test_harness_t* test, rendervm_t* vm) {
     rendervm_exec(vm, program, 1);
     is_equal_float(test, vm->float_stack[0], 0.0f, "OP FLOAT_EQ: equals works (false)");
     rendervm_exec(vm, program, 1);
+}
+
+void test_opcode_FLOAT_ADDN(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_FLOAT_ADDN};
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
@@ -1246,6 +1270,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT8_SUB(test, vm);
     test_opcode_UINT8_MUL(test, vm);
     test_opcode_UINT8_EQ(test, vm);
+    test_opcode_UINT8_ADDN(test, vm);
     test_opcode_UINT8_JUMPNZ(test, vm);
     test_opcode_UINT8_JUMPZ(test, vm);
     test_opcode_UINT8_PUSH(test, vm);
@@ -1259,6 +1284,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT16_SUB(test, vm);
     test_opcode_UINT16_MUL(test, vm);
     test_opcode_UINT16_EQ(test, vm);
+    test_opcode_UINT16_ADDN(test, vm);
     test_opcode_UINT16_JUMPNZ(test, vm);
     test_opcode_UINT16_JUMPZ(test, vm);
     test_opcode_UINT16_MOVE_UINT8(test, vm);
@@ -1273,6 +1299,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT32_SUB(test, vm);
     test_opcode_UINT32_MUL(test, vm);
     test_opcode_UINT32_EQ(test, vm);
+    test_opcode_UINT32_ADDN(test, vm);
     test_opcode_UINT32_JUMPNZ(test, vm);
     test_opcode_UINT32_JUMPZ(test, vm);
     test_opcode_UINT32_MOVE_UINT8(test, vm);
@@ -1287,6 +1314,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_FLOAT_SUB(test, vm);
     test_opcode_FLOAT_MUL(test, vm);
     test_opcode_FLOAT_EQ(test, vm);
+    test_opcode_FLOAT_ADDN(test, vm);
     test_opcode_FLOAT_JUMPNZ(test, vm);
     test_opcode_FLOAT_JUMPZ(test, vm);
     test_opcode_FLOAT_PUSH(test, vm);

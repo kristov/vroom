@@ -162,6 +162,11 @@ my %BASE_ARGLEN = (
 
 my %CUSTOM = (
     UINT8 => {
+        ADDN => {
+            desc   => "Adds a constant number to the number on top of the stack.",
+            type   => ['uint8'],
+            stacks => [qw()],
+        },
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
             type   => [TYPE_ADDR],
@@ -179,6 +184,11 @@ my %CUSTOM = (
         },
     },
     UINT16 => {
+        ADDN => {
+            desc   => "Adds a constant number to the number on top of the stack.",
+            type   => ['uint16'],
+            stacks => [qw()],
+        },
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
             type   => [TYPE_ADDR],
@@ -201,6 +211,11 @@ my %CUSTOM = (
         },
     },
     UINT32 => {
+        ADDN => {
+            desc   => "Adds a constant number to the number on top of the stack.",
+            type   => ['uint32'],
+            stacks => [qw()],
+        },
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
             type   => [TYPE_ADDR],
@@ -223,6 +238,11 @@ my %CUSTOM = (
         },
     },
     FLOAT => {
+        ADDN => {
+            desc   => "Adds a constant number to the number on top of the stack.",
+            type   => ['float'],
+            stacks => [qw()],
+        },
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
             type   => [TYPE_ADDR],
