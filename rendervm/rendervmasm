@@ -192,9 +192,6 @@ sub print_ctests {
     printf("}\n");
 }
 
-=item
-=cut
-
 sub print_copcode2str {
     my @array;
     for my $ins (sorted_keys()) {
@@ -228,7 +225,7 @@ sub print_cenum {
 sub print_cswitch {
     print "    switch (opcode) {\n";
     for my $ins (sorted_keys()) {
-        print "        case $ins:\n";
+        print "        case VM_$ins:\n";
         print "            printf(\"$ins: UNIMPLEMENTED\");\n";
         print "            vm->running = 0;\n";
         print "            break;\n";
