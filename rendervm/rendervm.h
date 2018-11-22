@@ -3,30 +3,26 @@
 
 #include <stdint.h>
 
-#define VM_MAX_ADDR      65535
-#define VM_STACK_SIZE    65536
-#define VM_MAX_NR_FLOAT  16384
-#define VM_MAX_NR_INT32  16384
-#define VM_MAX_NR_INT16  32768
-#define VM_MAX_NR_INT8   65536
+#define VM_MAX_ADDR      255
+#define VM_STACK_SIZE    256
 
 typedef struct rendervm {
     uint16_t pc;
 
     uint16_t* ctrl_stack;
-    uint16_t ctrl_sp;
+    uint8_t ctrl_sp;
 
     uint8_t* uint8_stack;
-    uint16_t uint8_sp;
+    uint8_t uint8_sp;
 
     uint16_t* uint16_stack;
-    uint16_t uint16_sp;
+    uint8_t uint16_sp;
 
     uint32_t* uint32_stack;
-    uint16_t uint32_sp;
+    uint8_t uint32_sp;
 
     float* float_stack;
-    uint16_t float_sp;
+    uint8_t float_sp;
 
     uint8_t b0;
     uint8_t b1;

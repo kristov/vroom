@@ -181,8 +181,8 @@ const char *opcode2str[] = {
 
 uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
     uint16_t opcode;
-    uint8_t u80, u81;
-    uint16_t u160, u161, u162, u163;
+    uint8_t u80, u81, u82, u83;
+    uint16_t u160, u161;
     uint32_t u320, u321;
     float fl0, fl1;
 
@@ -228,13 +228,11 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u80 = UINT8_POP(vm);
             break;
         case VM_UINT8_DUP:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u161 = vm->uint8_sp;
-            for (u162 = u160; u162 > 0; u162--) {
-                u80 = UINT8_PEEK(vm, (u161 - (u162 - 1)));
-                UINT8_PUSH(vm, u80);
+            u80 = NCODE(vm);
+            u81 = vm->uint8_sp;
+            for (u82 = u80; u82 > 0; u82--) {
+                u83 = UINT8_PEEK(vm, (u81 - (u82 - 1)));
+                UINT8_PUSH(vm, u83);
             }
             break;
         case VM_UINT8_SWAP:
@@ -305,13 +303,11 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u160 = UINT16_POP(vm);
             break;
         case VM_UINT16_DUP:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u161 = vm->uint16_sp;
-            for (u162 = u160; u162 > 0; u162--) {
-                u163 = UINT16_PEEK(vm, (u161 - (u162 - 1)));
-                UINT16_PUSH(vm, u163);
+            u80 = NCODE(vm);
+            u81 = vm->uint16_sp;
+            for (u82 = u80; u82 > 0; u82--) {
+                u160 = UINT16_PEEK(vm, (u81 - (u82 - 1)));
+                UINT16_PUSH(vm, u160);
             }
             break;
         case VM_UINT16_SWAP:
@@ -384,12 +380,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             u320 = UINT32_POP(vm);
             break;
         case VM_UINT32_DUP:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u161 = vm->uint32_sp;
-            for (u162 = u160; u162 > 0; u162--) {
-                u320 = UINT32_PEEK(vm, (u161 - (u162 - 1)));
+            u80 = NCODE(vm);
+            u81 = vm->uint32_sp;
+            for (u82 = u80; u82 > 0; u82--) {
+                u320 = UINT32_PEEK(vm, (u81 - (u82 - 1)));
                 UINT32_PUSH(vm, u320);
             }
             break;
@@ -465,12 +459,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             fl0 = FLOAT_POP(vm);
             break;
         case VM_FLOAT_DUP:
-            vm->b0 = NCODE(vm);
-            vm->b1 = NCODE(vm);
-            u160 = UINT16_MAKE(vm);
-            u161 = vm->float_sp;
-            for (u162 = u160; u162 > 0; u162--) {
-                fl0 = FLOAT_PEEK(vm, (u161 - (u162 - 1)));
+            u80 = NCODE(vm);
+            u81 = vm->float_sp;
+            for (u82 = u80; u82 > 0; u82--) {
+                fl0 = FLOAT_PEEK(vm, (u81 - (u82 - 1)));
                 FLOAT_PUSH(vm, fl0);
             }
             break;

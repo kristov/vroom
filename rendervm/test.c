@@ -14,7 +14,7 @@ float _R4DP(float v) {
 
 void print_ctrl_stack(rendervm_t* vm) {
     uint16_t index = 0;
-    if (vm->ctrl_sp == 65535) {
+    if (vm->ctrl_sp == VM_MAX_ADDR) {
         return;
     }
     printf("    ctrl st: [ ");
@@ -26,7 +26,7 @@ void print_ctrl_stack(rendervm_t* vm) {
 
 void print_uint8_stack(rendervm_t* vm) {
     uint16_t index = 0;
-    if (vm->uint8_sp == 65535) {
+    if (vm->uint8_sp == VM_MAX_ADDR) {
         return;
     }
     printf("   uint8 st: [ ");
@@ -38,7 +38,7 @@ void print_uint8_stack(rendervm_t* vm) {
 
 void print_uint16_stack(rendervm_t* vm) {
     uint16_t index = 0;
-    if (vm->uint16_sp == 65535) {
+    if (vm->uint16_sp == VM_MAX_ADDR) {
         return;
     }
     printf("  uint16 st: [ ");
@@ -113,7 +113,7 @@ void test_opcode_UINT8_POP(test_harness_t* test, rendervm_t* vm) {
     vm->uint8_sp++;
     vm->uint8_stack[0] = 0x05;
     rendervm_exec(vm, program, 1);
-    is_equal_uint16(test, vm->uint8_sp, 0xffff, "OP UINT8_POP: uint8_sp correct");
+    is_equal_uint16(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_POP: uint8_sp correct");
     rendervm_reset(vm);
 }
 
