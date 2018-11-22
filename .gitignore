@@ -6,3 +6,4 @@ vroom-server
 temp/
 rendervm/*.o
 rendervm/*.t
+gl-matrix/*.o
