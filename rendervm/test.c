@@ -209,8 +209,10 @@ void test_opcode_UINT8_EQ(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT8_ADDN(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_ADDN};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT8_ADDN, 0x02};
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    rendervm_exec(vm, program, 2);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x0c, "OP UINT8_ADDN: adds correctly");
     rendervm_reset(vm);
 }
 
@@ -350,8 +352,10 @@ void test_opcode_UINT16_EQ(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT16_ADDN(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_ADDN};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_ADDN, 0x02, 0x00};
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x0c, "OP UINT16_ADDN: adds correctly");
     rendervm_reset(vm);
 }
 
@@ -501,8 +505,10 @@ void test_opcode_UINT32_EQ(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT32_ADDN(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_ADDN};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT32_ADDN, 0x02, 0x00, 0x00, 0x00};
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    rendervm_exec(vm, program, 5);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x0c, "OP UINT32_ADDN: adds correctly");
     rendervm_reset(vm);
 }
 
@@ -649,8 +655,10 @@ void test_opcode_FLOAT_EQ(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_FLOAT_ADDN(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_ADDN};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_FLOAT_ADDN, 0x00, 0x00, 0x00, 0x40};
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    rendervm_exec(vm, program, 5);
+    is_equal_float(test, vm->float_stack[0], 12.0f, "OP FLOAT_ADDN: adds correctly");
     rendervm_reset(vm);
 }
 

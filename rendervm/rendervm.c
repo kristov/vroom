@@ -296,8 +296,8 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT8_PUSH(vm, (u81 == u80 ? 1 : 0));
             break;
         case VM_UINT8_ADDN:
-            printf("UINT8_ADDN: UNIMPLEMENTED\n");
-            vm->running = 0;
+            u80 = NCODE(vm);
+            vm->uint8_stack[vm->uint8_sp] += u80;
             break;
         case VM_UINT8_JUMPNZ:
             vm->b0 = NCODE(vm);
@@ -375,8 +375,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT16_PUSH(vm, (u161 == u160 ? 1 : 0));
             break;
         case VM_UINT16_ADDN:
-            printf("UINT16_ADDN: UNIMPLEMENTED\n");
-            vm->running = 0;
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            u160 = UINT16_MAKE(vm);
+            vm->uint16_stack[vm->uint16_sp] += u160;
             break;
         case VM_UINT16_JUMPNZ:
             vm->b0 = NCODE(vm);
@@ -459,8 +461,12 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT32_PUSH(vm, (u321 == u320 ? 1 : 0));
             break;
         case VM_UINT32_ADDN:
-            printf("UINT32_ADDN: UNIMPLEMENTED\n");
-            vm->running = 0;
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            vm->b2 = NCODE(vm);
+            vm->b3 = NCODE(vm);
+            u320 = UINT32_MAKE(vm);
+            vm->uint32_stack[vm->uint32_sp] += u320;
             break;
         case VM_UINT32_JUMPNZ:
             vm->b0 = NCODE(vm);
@@ -546,8 +552,12 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             FLOAT_PUSH(vm, (fl1 == fl0 ? 1 : 0));
             break;
         case VM_FLOAT_ADDN:
-            printf("FLOAT_ADDN: UNIMPLEMENTED\n");
-            vm->running = 0;
+            vm->b0 = NCODE(vm);
+            vm->b1 = NCODE(vm);
+            vm->b2 = NCODE(vm);
+            vm->b3 = NCODE(vm);
+            fl0 = FLOAT_MAKE(vm);
+            vm->float_stack[vm->float_sp] += fl0;
             break;
         case VM_FLOAT_JUMPNZ:
             vm->b0 = NCODE(vm);
