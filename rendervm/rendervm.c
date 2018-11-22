@@ -383,7 +383,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             break;
         case VM_UINT16_MOVE_UINT8:
-            printf("UINT16_MOVE_UINT8: UNIMPLEMENTED");
+            printf("UINT16_MOVE_UINT8: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_UINT16_PUSH:
@@ -464,7 +464,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             break;
         case VM_UINT32_MOVE_UINT8:
-            printf("UINT32_MOVE_UINT8: UNIMPLEMENTED");
+            printf("UINT32_MOVE_UINT8: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_UINT32_PUSH:
@@ -555,379 +555,379 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             FLOAT_PUSH(vm, fl0);
             break;
         case VM_VEC2_POP:
-            printf("VEC2_POP: UNIMPLEMENTED");
+            printf("VEC2_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_DUP:
-            printf("VEC2_DUP: UNIMPLEMENTED");
+            printf("VEC2_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_SWAP:
-            printf("VEC2_SWAP: UNIMPLEMENTED");
+            printf("VEC2_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_JUMPEM:
-            printf("VEC2_JUMPEM: UNIMPLEMENTED");
+            printf("VEC2_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_STORE:
-            printf("VEC2_STORE: UNIMPLEMENTED");
+            printf("VEC2_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_LOAD:
-            printf("VEC2_LOAD: UNIMPLEMENTED");
+            printf("VEC2_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_ADD:
-            printf("VEC2_ADD: UNIMPLEMENTED");
+            printf("VEC2_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_SUB:
-            printf("VEC2_SUB: UNIMPLEMENTED");
+            printf("VEC2_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_MUL:
-            printf("VEC2_MUL: UNIMPLEMENTED");
+            printf("VEC2_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_EQ:
-            printf("VEC2_EQ: UNIMPLEMENTED");
+            printf("VEC2_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_EXPLODE:
-            printf("VEC2_EXPLODE: UNIMPLEMENTED");
+            printf("VEC2_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_IMPLODE:
-            printf("VEC2_IMPLODE: UNIMPLEMENTED");
+            printf("VEC2_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_MULMAT2:
-            printf("VEC2_MULMAT2: UNIMPLEMENTED");
+            printf("VEC2_MULMAT2: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_MULMAT3:
-            printf("VEC2_MULMAT3: UNIMPLEMENTED");
+            printf("VEC2_MULMAT3: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC2_MULMAT4:
-            printf("VEC2_MULMAT4: UNIMPLEMENTED");
+            printf("VEC2_MULMAT4: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_POP:
-            printf("VEC3_POP: UNIMPLEMENTED");
+            printf("VEC3_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_DUP:
-            printf("VEC3_DUP: UNIMPLEMENTED");
+            printf("VEC3_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_SWAP:
-            printf("VEC3_SWAP: UNIMPLEMENTED");
+            printf("VEC3_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_JUMPEM:
-            printf("VEC3_JUMPEM: UNIMPLEMENTED");
+            printf("VEC3_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_STORE:
-            printf("VEC3_STORE: UNIMPLEMENTED");
+            printf("VEC3_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_LOAD:
-            printf("VEC3_LOAD: UNIMPLEMENTED");
+            printf("VEC3_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_ADD:
-            printf("VEC3_ADD: UNIMPLEMENTED");
+            printf("VEC3_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_SUB:
-            printf("VEC3_SUB: UNIMPLEMENTED");
+            printf("VEC3_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_MUL:
-            printf("VEC3_MUL: UNIMPLEMENTED");
+            printf("VEC3_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_EQ:
-            printf("VEC3_EQ: UNIMPLEMENTED");
+            printf("VEC3_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_EXPLODE:
-            printf("VEC3_EXPLODE: UNIMPLEMENTED");
+            printf("VEC3_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_IMPLODE:
-            printf("VEC3_IMPLODE: UNIMPLEMENTED");
+            printf("VEC3_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_MULMAT3:
-            printf("VEC3_MULMAT3: UNIMPLEMENTED");
+            printf("VEC3_MULMAT3: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC3_MULMAT4:
-            printf("VEC3_MULMAT4: UNIMPLEMENTED");
+            printf("VEC3_MULMAT4: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_POP:
-            printf("VEC4_POP: UNIMPLEMENTED");
+            printf("VEC4_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_DUP:
-            printf("VEC4_DUP: UNIMPLEMENTED");
+            printf("VEC4_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_SWAP:
-            printf("VEC4_SWAP: UNIMPLEMENTED");
+            printf("VEC4_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_JUMPEM:
-            printf("VEC4_JUMPEM: UNIMPLEMENTED");
+            printf("VEC4_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_STORE:
-            printf("VEC4_STORE: UNIMPLEMENTED");
+            printf("VEC4_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_LOAD:
-            printf("VEC4_LOAD: UNIMPLEMENTED");
+            printf("VEC4_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_ADD:
-            printf("VEC4_ADD: UNIMPLEMENTED");
+            printf("VEC4_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_SUB:
-            printf("VEC4_SUB: UNIMPLEMENTED");
+            printf("VEC4_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_MUL:
-            printf("VEC4_MUL: UNIMPLEMENTED");
+            printf("VEC4_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_EQ:
-            printf("VEC4_EQ: UNIMPLEMENTED");
+            printf("VEC4_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_EXPLODE:
-            printf("VEC4_EXPLODE: UNIMPLEMENTED");
+            printf("VEC4_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_IMPLODE:
-            printf("VEC4_IMPLODE: UNIMPLEMENTED");
+            printf("VEC4_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_VEC4_MULMAT4:
-            printf("VEC4_MULMAT4: UNIMPLEMENTED");
+            printf("VEC4_MULMAT4: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_POP:
-            printf("MAT2_POP: UNIMPLEMENTED");
+            printf("MAT2_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_DUP:
-            printf("MAT2_DUP: UNIMPLEMENTED");
+            printf("MAT2_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_SWAP:
-            printf("MAT2_SWAP: UNIMPLEMENTED");
+            printf("MAT2_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_JUMPEM:
-            printf("MAT2_JUMPEM: UNIMPLEMENTED");
+            printf("MAT2_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_STORE:
-            printf("MAT2_STORE: UNIMPLEMENTED");
+            printf("MAT2_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_LOAD:
-            printf("MAT2_LOAD: UNIMPLEMENTED");
+            printf("MAT2_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_ADD:
-            printf("MAT2_ADD: UNIMPLEMENTED");
+            printf("MAT2_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_SUB:
-            printf("MAT2_SUB: UNIMPLEMENTED");
+            printf("MAT2_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_MUL:
-            printf("MAT2_MUL: UNIMPLEMENTED");
+            printf("MAT2_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_EQ:
-            printf("MAT2_EQ: UNIMPLEMENTED");
+            printf("MAT2_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_EXPLODE:
-            printf("MAT2_EXPLODE: UNIMPLEMENTED");
+            printf("MAT2_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_IDENT:
-            printf("MAT2_IDENT: UNIMPLEMENTED");
+            printf("MAT2_IDENT: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_IMPLODE:
-            printf("MAT2_IMPLODE: UNIMPLEMENTED");
+            printf("MAT2_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_ROTATE:
-            printf("MAT2_ROTATE: UNIMPLEMENTED");
+            printf("MAT2_ROTATE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_SCALE:
-            printf("MAT2_SCALE: UNIMPLEMENTED");
+            printf("MAT2_SCALE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT2_TRANSP:
-            printf("MAT2_TRANSP: UNIMPLEMENTED");
+            printf("MAT2_TRANSP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_POP:
-            printf("MAT3_POP: UNIMPLEMENTED");
+            printf("MAT3_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_DUP:
-            printf("MAT3_DUP: UNIMPLEMENTED");
+            printf("MAT3_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_SWAP:
-            printf("MAT3_SWAP: UNIMPLEMENTED");
+            printf("MAT3_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_JUMPEM:
-            printf("MAT3_JUMPEM: UNIMPLEMENTED");
+            printf("MAT3_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_STORE:
-            printf("MAT3_STORE: UNIMPLEMENTED");
+            printf("MAT3_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_LOAD:
-            printf("MAT3_LOAD: UNIMPLEMENTED");
+            printf("MAT3_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_ADD:
-            printf("MAT3_ADD: UNIMPLEMENTED");
+            printf("MAT3_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_SUB:
-            printf("MAT3_SUB: UNIMPLEMENTED");
+            printf("MAT3_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_MUL:
-            printf("MAT3_MUL: UNIMPLEMENTED");
+            printf("MAT3_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_EQ:
-            printf("MAT3_EQ: UNIMPLEMENTED");
+            printf("MAT3_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_EXPLODE:
-            printf("MAT3_EXPLODE: UNIMPLEMENTED");
+            printf("MAT3_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_IDENT:
-            printf("MAT3_IDENT: UNIMPLEMENTED");
+            printf("MAT3_IDENT: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_IMPLODE:
-            printf("MAT3_IMPLODE: UNIMPLEMENTED");
+            printf("MAT3_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_ROTATE:
-            printf("MAT3_ROTATE: UNIMPLEMENTED");
+            printf("MAT3_ROTATE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_SCALE:
-            printf("MAT3_SCALE: UNIMPLEMENTED");
+            printf("MAT3_SCALE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_TRANSL:
-            printf("MAT3_TRANSL: UNIMPLEMENTED");
+            printf("MAT3_TRANSL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT3_TRANSP:
-            printf("MAT3_TRANSP: UNIMPLEMENTED");
+            printf("MAT3_TRANSP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_POP:
-            printf("MAT4_POP: UNIMPLEMENTED");
+            printf("MAT4_POP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_DUP:
-            printf("MAT4_DUP: UNIMPLEMENTED");
+            printf("MAT4_DUP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_SWAP:
-            printf("MAT4_SWAP: UNIMPLEMENTED");
+            printf("MAT4_SWAP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_JUMPEM:
-            printf("MAT4_JUMPEM: UNIMPLEMENTED");
+            printf("MAT4_JUMPEM: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_STORE:
-            printf("MAT4_STORE: UNIMPLEMENTED");
+            printf("MAT4_STORE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_LOAD:
-            printf("MAT4_LOAD: UNIMPLEMENTED");
+            printf("MAT4_LOAD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_ADD:
-            printf("MAT4_ADD: UNIMPLEMENTED");
+            printf("MAT4_ADD: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_SUB:
-            printf("MAT4_SUB: UNIMPLEMENTED");
+            printf("MAT4_SUB: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_MUL:
-            printf("MAT4_MUL: UNIMPLEMENTED");
+            printf("MAT4_MUL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_EQ:
-            printf("MAT4_EQ: UNIMPLEMENTED");
+            printf("MAT4_EQ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_EXPLODE:
-            printf("MAT4_EXPLODE: UNIMPLEMENTED");
+            printf("MAT4_EXPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_IDENT:
-            printf("MAT4_IDENT: UNIMPLEMENTED");
+            printf("MAT4_IDENT: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_IMPLODE:
-            printf("MAT4_IMPLODE: UNIMPLEMENTED");
+            printf("MAT4_IMPLODE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_ROTATEX:
-            printf("MAT4_ROTATEX: UNIMPLEMENTED");
+            printf("MAT4_ROTATEX: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_ROTATEY:
-            printf("MAT4_ROTATEY: UNIMPLEMENTED");
+            printf("MAT4_ROTATEY: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_ROTATEZ:
-            printf("MAT4_ROTATEZ: UNIMPLEMENTED");
+            printf("MAT4_ROTATEZ: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_SCALE:
-            printf("MAT4_SCALE: UNIMPLEMENTED");
+            printf("MAT4_SCALE: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_TRANSL:
-            printf("MAT4_TRANSL: UNIMPLEMENTED");
+            printf("MAT4_TRANSL: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         case VM_MAT4_TRANSP:
-            printf("MAT4_TRANSP: UNIMPLEMENTED");
+            printf("MAT4_TRANSP: UNIMPLEMENTED\n");
             vm->running = 0;
             break;
         default:
