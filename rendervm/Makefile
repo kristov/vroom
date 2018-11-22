@@ -6,6 +6,9 @@ TESTS := test.t
 
 all: $(OBJECTS) tests
 
+testrun:
+	make tests && ./test.t
+
 tests: $(TESTS) rendervm.o rendervm.c
 
 %.o: %.c %.h

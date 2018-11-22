@@ -110,19 +110,17 @@ void test_opcode_JUMP(test_harness_t* test, rendervm_t* vm) {
 
 void test_opcode_UINT8_POP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_POP};
-    vm->uint8_sp++;
-    vm->uint8_stack[0] = 0x05;
+    vm->uint8_stack[++vm->uint8_sp] = 0x05;
     rendervm_exec(vm, program, 1);
-    is_equal_uint16(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_POP: uint8_sp correct");
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_POP: uint8_sp correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_DUP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_DUP, 0x01, 0x00};
-    vm->uint8_sp++;
-    vm->uint8_stack[0] = 0x06;
+    vm->uint8_stack[++vm->uint8_sp] = 0x06;
     rendervm_exec(vm, program, 3);
-    is_equal_uint16(test, vm->uint8_sp, 0x01, "OP UINT8_DUP: uint8_sp correct");
+    is_equal_uint8(test, vm->uint8_sp, 0x01, "OP UINT8_DUP: uint8_sp correct");
     is_equal_uint8(test, vm->uint8_stack[0], 0x06, "OP UINT8_DUP: first stack item correct");
     is_equal_uint8(test, vm->uint8_stack[1], 0x06, "OP UINT8_DUP: second stack item correct");
     rendervm_reset(vm);
@@ -130,12 +128,10 @@ void test_opcode_UINT8_DUP(test_harness_t* test, rendervm_t* vm) {
 
 void test_opcode_UINT8_SWAP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_SWAP};
-    vm->uint8_sp++;
-    vm->uint8_stack[0] = 0x07;
-    vm->uint8_sp++;
-    vm->uint8_stack[1] = 0x08;
+    vm->uint8_stack[++vm->uint8_sp] = 0x07;
+    vm->uint8_stack[++vm->uint8_sp] = 0x08;
     rendervm_exec(vm, program, 1);
-    is_equal_uint16(test, vm->uint8_sp, 0x01, "OP UINT8_SWAP: uint8_sp correct");
+    is_equal_uint8(test, vm->uint8_sp, 0x01, "OP UINT8_SWAP: uint8_sp correct");
     is_equal_uint8(test, vm->uint8_stack[0], 0x08, "OP UINT8_SWAP: first stack item correct");
     is_equal_uint8(test, vm->uint8_stack[1], 0x07, "OP UINT8_SWAP: second stack item correct");
     rendervm_reset(vm);
@@ -149,206 +145,365 @@ void test_opcode_UINT8_JUMPEM(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT8_STORE(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_STORE};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT8_STORE, 0x02, 0x00};
+    uint8_t memory[] = {0x03};
+    vm->uint8_stack[++vm->uint8_sp] = 0x07;
+    vm->uint8_memory = &memory[0];
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, memory[0], 0x07, "OP UINT8_STORE: memory stored");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_LOAD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_LOAD};
+    uint8_t memory[] = {0x00, 0x03};
+    vm->uint8_memory = &memory[0];
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x03, "OP UINT8_LOAD: memory loaded");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_ADD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_ADD};
+    vm->uint8_stack[++vm->uint8_sp] = 0x03;
+    vm->uint8_stack[++vm->uint8_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x07, "OP UINT8_ADD: addition works");
+    test_harness_make_note(test, "OP UINT8_ADD: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_SUB(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_SUB};
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    vm->uint8_stack[++vm->uint8_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x06, "OP UINT8_SUB: subtraction works");
+    test_harness_make_note(test, "OP UINT8_SUB: TODO test underflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_MUL(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_MUL};
+    vm->uint8_stack[++vm->uint8_sp] = 0x02;
+    vm->uint8_stack[++vm->uint8_sp] = 0x06;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x0c, "OP UINT8_MUL: multiplication works");
+    test_harness_make_note(test, "OP UINT8_MUL: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_EQ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT8_EQ};
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x01, "OP UINT8_EQ: equals works (true)");
     rendervm_reset(vm);
+    vm->uint8_stack[++vm->uint8_sp] = 0x01;
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x00, "OP UINT8_EQ: equals works (false)");
+    rendervm_exec(vm, program, 1);
 }
 
 void test_opcode_UINT8_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_JUMPNZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT8_JUMPNZ, 0x06, 0x00};
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT8_JUMPNZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint8_stack[++vm->uint8_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT8_JUMPNZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_JUMPZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_JUMPZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT8_JUMPZ, 0x06, 0x00};
+    vm->uint8_stack[++vm->uint8_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT8_JUMPZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint8_stack[++vm->uint8_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT8_JUMPZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_PUSH(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_PUSH};
+    uint8_t program[] = {VM_UINT8_PUSH, 0x0f};
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint8_stack[0], 0x0f, "OP UINT8_PUSH: pushed value");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_POP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_POP};
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_DUP};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_DUP, 0x01, 0x00};
+    vm->uint16_stack[++vm->uint16_sp] = 0x06;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint16_sp, 0x01, "OP UINT16_DUP: uint16_sp correct");
+    is_equal_uint16(test, vm->uint16_stack[0], 0x06, "OP UINT16_DUP: first stack item correct");
+    is_equal_uint16(test, vm->uint16_stack[1], 0x06, "OP UINT16_DUP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_SWAP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_SWAP};
+    vm->uint16_stack[++vm->uint16_sp] = 0x07;
+    vm->uint16_stack[++vm->uint16_sp] = 0x08;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint16_sp, 0x01, "OP UINT16_SWAP: uint16_sp correct");
+    is_equal_uint16(test, vm->uint16_stack[0], 0x08, "OP UINT16_SWAP: first stack item correct");
+    is_equal_uint16(test, vm->uint16_stack[1], 0x07, "OP UINT16_SWAP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_JUMPEM(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_JUMPEM};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_JUMPEM, 0x0a, 0x00};
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->pc, 10, "OP UINT16_JUMPEM: pc correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_STORE(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_STORE};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_STORE, 0x02, 0x00};
+    uint16_t memory[] = {0x03};
+    vm->uint16_stack[++vm->uint16_sp] = 0x07;
+    vm->uint16_memory = &memory[0];
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, memory[0], 0x07, "OP UINT16_STORE: memory stored");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_LOAD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_LOAD};
+    uint16_t memory[] = {0x00, 0x03};
+    vm->uint16_memory = &memory[0];
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
     rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x03, "OP UINT16_LOAD: memory loaded");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_ADD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_ADD};
+    vm->uint16_stack[++vm->uint16_sp] = 0x03;
+    vm->uint16_stack[++vm->uint16_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x07, "OP UINT16_ADD: addition works");
+    test_harness_make_note(test, "OP UINT16_ADD: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_SUB(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_SUB};
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    vm->uint16_stack[++vm->uint16_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x06, "OP UINT16_SUB: subtraction works");
+    test_harness_make_note(test, "OP UINT16_SUB: TODO test underflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_MUL(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_MUL};
+    vm->uint16_stack[++vm->uint16_sp] = 0x02;
+    vm->uint16_stack[++vm->uint16_sp] = 0x06;
     rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x0c, "OP UINT16_MUL: multiplication works");
+    test_harness_make_note(test, "OP UINT16_MUL: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_EQ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT16_EQ};
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
     rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x01, "OP UINT16_EQ: equals works (true)");
     rendervm_reset(vm);
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    rendervm_exec(vm, program, 1);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x00, "OP UINT16_EQ: equals works (false)");
+    rendervm_exec(vm, program, 1);
 }
 
 void test_opcode_UINT16_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_JUMPNZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_JUMPNZ, 0x06, 0x00};
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT16_JUMPNZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint16_stack[++vm->uint16_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT16_JUMPNZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_JUMPZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_JUMPZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_JUMPZ, 0x06, 0x00};
+    vm->uint16_stack[++vm->uint16_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT16_JUMPZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint16_stack[++vm->uint16_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT16_JUMPZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_PUSH(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_PUSH};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT16_PUSH, 0x0f, 0x00};
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->uint16_stack[0], 0x0f, "OP UINT16_PUSH: pushed value");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_POP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_POP};
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_DUP};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT32_DUP, 0x01, 0x00};
+    vm->uint32_stack[++vm->uint32_sp] = 0x06;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint32_sp, 0x01, "OP UINT32_DUP: uint32_sp correct");
+    is_equal_uint32(test, vm->uint32_stack[0], 0x06, "OP UINT32_DUP: first stack item correct");
+    is_equal_uint32(test, vm->uint32_stack[1], 0x06, "OP UINT32_DUP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_SWAP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_SWAP};
+    vm->uint32_stack[++vm->uint32_sp] = 0x07;
+    vm->uint32_stack[++vm->uint32_sp] = 0x08;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->uint32_sp, 0x01, "OP UINT32_SWAP: uint32_sp correct");
+    is_equal_uint32(test, vm->uint32_stack[0], 0x08, "OP UINT32_SWAP: first stack item correct");
+    is_equal_uint32(test, vm->uint32_stack[1], 0x07, "OP UINT32_SWAP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_JUMPEM(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_JUMPEM};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT32_JUMPEM, 0x0a, 0x00};
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->pc, 10, "OP UINT32_JUMPEM: pc correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_STORE(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_STORE};
+    uint32_t memory[] = {0x00, 0x03};
+    vm->uint32_stack[++vm->uint32_sp] = 0x07;
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
+    vm->uint32_memory = &memory[0];
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, memory[1], 0x07, "OP UINT32_STORE: memory stored");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_LOAD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_LOAD};
+    uint32_t memory[] = {0x00, 0x03};
+    vm->uint32_memory = &memory[0];
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x03, "OP UINT32_LOAD: memory loaded");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_ADD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_ADD};
+    vm->uint32_stack[++vm->uint32_sp] = 0x03;
+    vm->uint32_stack[++vm->uint32_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x07, "OP UINT32_ADD: addition works");
+    test_harness_make_note(test, "OP UINT32_ADD: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_SUB(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_SUB};
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    vm->uint32_stack[++vm->uint32_sp] = 0x04;
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x06, "OP UINT32_SUB: subtraction works");
+    test_harness_make_note(test, "OP UINT32_SUB: TODO test underflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_MUL(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_MUL};
+    vm->uint32_stack[++vm->uint32_sp] = 0x02;
+    vm->uint32_stack[++vm->uint32_sp] = 0x06;
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x0c, "OP UINT32_MUL: multiplication works");
+    test_harness_make_note(test, "OP UINT32_MUL: TODO test overflow");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_EQ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_EQ};
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
     rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x01, "OP UINT32_EQ: equals works (true)");
     rendervm_reset(vm);
+    vm->uint32_stack[++vm->uint32_sp] = 0x01;
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    rendervm_exec(vm, program, 1);
+    is_equal_uint32(test, vm->uint32_stack[0], 0x00, "OP UINT32_EQ: equals works (false)");
+    rendervm_exec(vm, program, 1);
 }
 
 void test_opcode_UINT32_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_JUMPNZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT32_JUMPNZ, 0x06, 0x00};
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT32_JUMPNZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint32_stack[++vm->uint32_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT32_JUMPNZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_JUMPZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_JUMPZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_UINT32_JUMPZ, 0x06, 0x00};
+    vm->uint32_stack[++vm->uint32_sp] = 0x00;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP UINT32_JUMPZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->uint32_stack[++vm->uint32_sp] = 0x0a;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP UINT32_JUMPZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
@@ -361,73 +516,127 @@ void test_opcode_UINT32_PUSH(test_harness_t* test, rendervm_t* vm) {
 
 void test_opcode_FLOAT_POP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_POP};
+    vm->float_stack[++vm->float_sp] = 3.14f;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_DUP};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_FLOAT_DUP, 0x01, 0x00};
+    vm->float_stack[++vm->float_sp] = 6.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, 0x01, "OP FLOAT_DUP: float_sp correct");
+    is_equal_float(test, vm->float_stack[0], 6.0f, "OP FLOAT_DUP: first stack item correct");
+    is_equal_float(test, vm->float_stack[1], 6.0f, "OP FLOAT_DUP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_SWAP(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_SWAP};
+    vm->float_stack[++vm->float_sp] = 7.0f;
+    vm->float_stack[++vm->float_sp] = 8.0f;
     rendervm_exec(vm, program, 1);
+    is_equal_uint8(test, vm->float_sp, 0x01, "OP FLOAT_SWAP: float_sp correct");
+    is_equal_float(test, vm->float_stack[0], 8.0f, "OP FLOAT_SWAP: first stack item correct");
+    is_equal_float(test, vm->float_stack[1], 7.0f, "OP FLOAT_SWAP: second stack item correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_JUMPEM(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_JUMPEM};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_FLOAT_JUMPEM, 0x0a, 0x00};
+    rendervm_exec(vm, program, 3);
+    is_equal_uint16(test, vm->pc, 10, "OP FLOAT_JUMPEM: pc correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_STORE(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_STORE};
-    rendervm_exec(vm, program, 1);
+    float_t memory[] = {0.0f, 3.0f};
+    vm->float_stack[++vm->float_sp] = 7.0f;
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
+    vm->float_memory = &memory[0];
+    rendervm_exec(vm, program, 3);
+    is_equal_float(test, memory[1], 7.0f, "OP FLOAT_STORE: memory stored");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_LOAD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_LOAD};
+    float_t memory[] = {0.0f, 3.0f};
+    vm->float_memory = &memory[0];
+    vm->uint16_stack[++vm->uint16_sp] = 0x01;
     rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 3.0f, "OP FLOAT_LOAD: memory loaded");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_ADD(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_ADD};
+    vm->float_stack[++vm->float_sp] = 3.0f;
+    vm->float_stack[++vm->float_sp] = 4.0f;
     rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 7.0f, "OP FLOAT_ADD: addition works");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_SUB(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_SUB};
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    vm->float_stack[++vm->float_sp] = 4.0f;
     rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 6.0f, "OP FLOAT_SUB: subtraction works");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_MUL(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_MUL};
+    vm->float_stack[++vm->float_sp] = 2.0f;
+    vm->float_stack[++vm->float_sp] = 6.0f;
     rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 12.0f, "OP FLOAT_MUL: multiplication works");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_EQ(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_FLOAT_EQ};
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    vm->float_stack[++vm->float_sp] = 10.0f;
     rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 1.0f, "OP FLOAT_EQ: equals works (true)");
     rendervm_reset(vm);
+    vm->float_stack[++vm->float_sp] = 1.0f;
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    rendervm_exec(vm, program, 1);
+    is_equal_float(test, vm->float_stack[0], 0.0f, "OP FLOAT_EQ: equals works (false)");
+    rendervm_exec(vm, program, 1);
 }
 
 void test_opcode_FLOAT_JUMPNZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_JUMPNZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_FLOAT_JUMPNZ, 0x06, 0x00};
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP FLOAT_JUMPNZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->float_stack[++vm->float_sp] = 0.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_JUMPNZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP FLOAT_JUMPNZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_JUMPZ(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_JUMPZ};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_FLOAT_JUMPZ, 0x06, 0x00};
+    vm->float_stack[++vm->float_sp] = 0.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x06, "OP FLOAT_JUMPZ: program counter correct (jump)");
+    rendervm_reset(vm);
+    vm->float_stack[++vm->float_sp] = 10.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_JUMPZ: stack empty");
+    is_equal_uint16(test, vm->pc, 0x03, "OP FLOAT_JUMPZ: program counter correct (no jump)");
     rendervm_reset(vm);
 }
 
@@ -1013,53 +1222,53 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT8_DUP(test, vm);
     test_opcode_UINT8_SWAP(test, vm);
     test_opcode_UINT8_JUMPEM(test, vm);
-    //test_opcode_UINT8_STORE(test, vm);
-    //test_opcode_UINT8_LOAD(test, vm);
-    //test_opcode_UINT8_ADD(test, vm);
-    //test_opcode_UINT8_SUB(test, vm);
-    //test_opcode_UINT8_MUL(test, vm);
-    //test_opcode_UINT8_EQ(test, vm);
-    //test_opcode_UINT8_JUMPNZ(test, vm);
-    //test_opcode_UINT8_JUMPZ(test, vm);
-    //test_opcode_UINT8_PUSH(test, vm);
-    //test_opcode_UINT16_POP(test, vm);
-    //test_opcode_UINT16_DUP(test, vm);
-    //test_opcode_UINT16_SWAP(test, vm);
-    //test_opcode_UINT16_JUMPEM(test, vm);
-    //test_opcode_UINT16_STORE(test, vm);
-    //test_opcode_UINT16_LOAD(test, vm);
-    //test_opcode_UINT16_ADD(test, vm);
-    //test_opcode_UINT16_SUB(test, vm);
-    //test_opcode_UINT16_MUL(test, vm);
-    //test_opcode_UINT16_EQ(test, vm);
-    //test_opcode_UINT16_JUMPNZ(test, vm);
-    //test_opcode_UINT16_JUMPZ(test, vm);
-    //test_opcode_UINT16_PUSH(test, vm);
-    //test_opcode_UINT32_POP(test, vm);
-    //test_opcode_UINT32_DUP(test, vm);
-    //test_opcode_UINT32_SWAP(test, vm);
-    //test_opcode_UINT32_JUMPEM(test, vm);
-    //test_opcode_UINT32_STORE(test, vm);
-    //test_opcode_UINT32_LOAD(test, vm);
-    //test_opcode_UINT32_ADD(test, vm);
-    //test_opcode_UINT32_SUB(test, vm);
-    //test_opcode_UINT32_MUL(test, vm);
-    //test_opcode_UINT32_EQ(test, vm);
-    //test_opcode_UINT32_JUMPNZ(test, vm);
-    //test_opcode_UINT32_JUMPZ(test, vm);
+    test_opcode_UINT8_STORE(test, vm);
+    test_opcode_UINT8_LOAD(test, vm);
+    test_opcode_UINT8_ADD(test, vm);
+    test_opcode_UINT8_SUB(test, vm);
+    test_opcode_UINT8_MUL(test, vm);
+    test_opcode_UINT8_EQ(test, vm);
+    test_opcode_UINT8_JUMPNZ(test, vm);
+    test_opcode_UINT8_JUMPZ(test, vm);
+    test_opcode_UINT8_PUSH(test, vm);
+    test_opcode_UINT16_POP(test, vm);
+    test_opcode_UINT16_DUP(test, vm);
+    test_opcode_UINT16_SWAP(test, vm);
+    test_opcode_UINT16_JUMPEM(test, vm);
+    test_opcode_UINT16_STORE(test, vm);
+    test_opcode_UINT16_LOAD(test, vm);
+    test_opcode_UINT16_ADD(test, vm);
+    test_opcode_UINT16_SUB(test, vm);
+    test_opcode_UINT16_MUL(test, vm);
+    test_opcode_UINT16_EQ(test, vm);
+    test_opcode_UINT16_JUMPNZ(test, vm);
+    test_opcode_UINT16_JUMPZ(test, vm);
+    test_opcode_UINT16_PUSH(test, vm);
+    test_opcode_UINT32_POP(test, vm);
+    test_opcode_UINT32_DUP(test, vm);
+    test_opcode_UINT32_SWAP(test, vm);
+    test_opcode_UINT32_JUMPEM(test, vm);
+    test_opcode_UINT32_STORE(test, vm);
+    test_opcode_UINT32_LOAD(test, vm);
+    test_opcode_UINT32_ADD(test, vm);
+    test_opcode_UINT32_SUB(test, vm);
+    test_opcode_UINT32_MUL(test, vm);
+    test_opcode_UINT32_EQ(test, vm);
+    test_opcode_UINT32_JUMPNZ(test, vm);
+    test_opcode_UINT32_JUMPZ(test, vm);
     test_opcode_UINT32_PUSH(test, vm);
-    //test_opcode_FLOAT_POP(test, vm);
-    //test_opcode_FLOAT_DUP(test, vm);
-    //test_opcode_FLOAT_SWAP(test, vm);
-    //test_opcode_FLOAT_JUMPEM(test, vm);
-    //test_opcode_FLOAT_STORE(test, vm);
-    //test_opcode_FLOAT_LOAD(test, vm);
-    //test_opcode_FLOAT_ADD(test, vm);
-    //test_opcode_FLOAT_SUB(test, vm);
-    //test_opcode_FLOAT_MUL(test, vm);
-    //test_opcode_FLOAT_EQ(test, vm);
-    //test_opcode_FLOAT_JUMPNZ(test, vm);
-    //test_opcode_FLOAT_JUMPZ(test, vm);
+    test_opcode_FLOAT_POP(test, vm);
+    test_opcode_FLOAT_DUP(test, vm);
+    test_opcode_FLOAT_SWAP(test, vm);
+    test_opcode_FLOAT_JUMPEM(test, vm);
+    test_opcode_FLOAT_STORE(test, vm);
+    test_opcode_FLOAT_LOAD(test, vm);
+    test_opcode_FLOAT_ADD(test, vm);
+    test_opcode_FLOAT_SUB(test, vm);
+    test_opcode_FLOAT_MUL(test, vm);
+    test_opcode_FLOAT_EQ(test, vm);
+    test_opcode_FLOAT_JUMPNZ(test, vm);
+    test_opcode_FLOAT_JUMPZ(test, vm);
     test_opcode_FLOAT_PUSH(test, vm);
     //test_opcode_VEC2_POP(test, vm);
     //test_opcode_VEC2_DUP(test, vm);

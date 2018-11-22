@@ -452,7 +452,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
         case VM_UINT32_JUMPZ:
             vm->b0 = NCODE(vm);
             vm->b1 = NCODE(vm);
-            if (UINT16_POP(vm) == 0) {
+            if (UINT32_POP(vm) == 0) {
                 u160 = UINT16_MAKE(vm);
                 vm->pc = u160;
             }
