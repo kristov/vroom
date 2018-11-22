@@ -3,12 +3,8 @@
 use strict;
 use warnings;
 
-use constant SIZEOF_ADDR    => 2;
-use constant SIZEOF_STACK   => 1;
-use constant SIZEOF_UINT8   => 1;
-use constant SIZEOF_UINT16  => 2;
-use constant SIZEOF_UINT32  => 4;
-use constant SIZEOF_FLOAT   => 4;
+use constant TYPE_ADDR  => 'uint16';
+use constant TYPE_STACK => 'uint8';
 
 my @CORE = qw(
     HALT
@@ -19,7 +15,7 @@ my @CORE = qw(
     JUMP
 );
 
-my @TYPES = qw(
+my @STACKS = qw(
     UINT8
     UINT16
     UINT32
@@ -54,87 +50,87 @@ my @MATH_OPS = qw(
 my %BASE_ARGLEN = (
     HALT => {
         desc   => "Halts the VM and but does not reset",
-        arglen => 0,
+        type   => [],
         stacks => [],
     },
     YIELD => {
         desc   => "Stops the machine but leaves the state in-tact. When the machine is started again it will resume from the next instruction.",
-        arglen => 0,
+        type   => [],
         stacks => [],
     },
     RESET => {
         desc   => "Resets the internal registers of the VM and stops the machine.",
-        arglen => 0,
+        type   => [],
         stacks => [],
     },
     CALL => {
         desc   => "Adds the next instruction address to the ctrl stack and jumps to the specified address.",
-        arglen => SIZEOF_ADDR,
+        type   => [TYPE_ADDR],
         stacks => [qw(ctrl.+)],
     },
     RETURN => {
         desc   => "Pops the last address off the ctrl stack and jumps to this address.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(ctrl.-)],
     },
     JUMP => {
         desc   => "Jumps to the specified address.",
-        arglen => SIZEOF_ADDR,
+        type   => [TYPE_ADDR],
         stacks => [],
     },
     POP => {
         desc   => "Removes N items from the top of the [STACK] stack, disgarding the values.",
-        arglen => SIZEOF_STACK,
+        type   => [TYPE_STACK],
         stacks => [qw(STACK.-)],
     },
     DUP => {
         desc   => "Copies N items from the top of the [STACK] stack and pushes them again.",
-        arglen => SIZEOF_STACK,
+        type   => [TYPE_STACK],
         stacks => [qw(STACK.+)],
     },
     SWAP => {
         desc   => "Swaps the top two items on the [STACK] stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-- STACK.++)],
     },
     ROT => {
         desc   => "",
-        arglen => SIZEOF_ADDR,
+        type   => [TYPE_STACK],
         stacks => [],
     },
     JUMPEM => {
         desc   => "Jump to an address if the [STACK] stack is empty",
-        arglen => SIZEOF_ADDR,
+        type   => [TYPE_ADDR],
         stacks => [],
     },
     STORE => {
         desc   => "Takes an address from the uint16 stack, removes a value from the [STACK] stack and stores that value in memory.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-)],
     },
     LOAD => {
         desc   => "Takes an address from the uint16 stack and loads a value from memory, putting the value on the [STACK] stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.+)],
     },
     ADD => {
         desc   => "Takes two from the [STACK] stack and adds them, returning the result to the [STACK] stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-- STACK.+)],
     },
     SUB => {
         desc   => "Takes two from the stack and subtracts them, returning the result to the stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-- STACK.+)],
     },
     MUL => {
         desc   => "Takes two from the stack and multiplies them, returning the result to the stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-- STACK.+)],
     },
     EQ => {
         desc   => "Takes two from the stack, performs an equality check and places a 1 or 0 on the uint8 stack.",
-        arglen => 0,
+        type   => [],
         stacks => [qw(STACK.-- uint8.+)],
     },
 );
@@ -143,250 +139,260 @@ my %CUSTOM = (
     UINT8 => {
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         JUMPNZ => {
             desc   => "Jump to the specified address if the [STACK] value not zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         PUSH => {
             desc   => "Push a constant value onto the [STACK] stack.",
-            arglen => SIZEOF_UINT8,
+            type   => ['uint8'],
             stacks => [qw(STACK.+)],
         },
     },
     UINT16 => {
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         JUMPNZ => {
             desc   => "Jump to the specified address if the [STACK] value not zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         PUSH => {
             desc   => "Push a constant value onto the [STACK] stack.",
-            arglen => SIZEOF_UINT16,
+            type   => ['uint16'],
             stacks => [qw(STACK.+)],
+        },
+        MOVE_UINT8 => {
+            desc   => "Move values from the uint8 stack to the [STACK] stack.",
+            type   => [TYPE_STACK],
+            stacks => [qw(uint8.- STACK.+)],
         },
     },
     UINT32 => {
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         JUMPNZ => {
             desc   => "Jump to the specified address if the [STACK] value not zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         PUSH => {
             desc   => "Push a constant value onto the [STACK] stack.",
-            arglen => SIZEOF_UINT32,
+            type   => ['uint32'],
             stacks => [qw(STACK.+)],
+        },
+        MOVE_UINT8 => {
+            desc   => "Move values from the uint8 stack to the [STACK] stack.",
+            type   => [TYPE_STACK],
+            stacks => [qw(uint8.- STACK.+)],
         },
     },
     FLOAT => {
         JUMPZ => {
             desc   => "Jump to the specified address if the [STACK] value is zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         JUMPNZ => {
             desc   => "Jump to the specified address if the [STACK] value not zero.",
-            arglen => SIZEOF_ADDR,
+            type   => [TYPE_ADDR],
             stacks => [qw(STACK.-)],
         },
         PUSH => {
             desc   => "Push a constant value onto the [STACK] stack.",
-            arglen => SIZEOF_FLOAT,
+            type   => ['float'],
             stacks => [qw(STACK.+)],
         },
     },
     VEC2 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 2 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.++)],
         },
         IMPLODE => {
             desc   => "Takes 2 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.-- STACK.+)],
         },
         MULMAT2 => {
             desc   => "Multiply the value by the mat2 matrix on top of the mat2 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat2.- STACK.+)],
         },
         MULMAT3 => {
             desc   => "Multiply the value by the mat3 matrix on top of the mat3 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat3.- STACK.+)],
         },
         MULMAT4 => {
             desc   => "Multiply the value by the mat4 matrix on top of the mat4 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat4.- STACK.+)],
         },
     },
     VEC3 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 3 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.+++)],
         },
         IMPLODE => {
             desc   => "Takes 3 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.--- STACK.+)],
         },
         MULMAT3 => {
             desc   => "Multiply the value by the mat3 matrix on top of the mat3 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat3.- STACK.+)],
         },
         MULMAT4 => {
             desc   => "Multiply the value by the mat4 matrix on top of the mat4 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat4.- STACK.+)],
         },
     },
     VEC4 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 4 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.++++)],
         },
         IMPLODE => {
             desc   => "Takes 4 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.---- STACK.+)],
         },
         MULMAT4 => {
             desc   => "Multiply the value by the mat4 matrix on top of the mat4 stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- mat4.- STACK.+)],
         },
     },
     MAT2 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 4 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.++++)],
         },
         IDENT => {
             desc   => "Set the identity matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
         IMPLODE => {
             desc   => "Takes 4 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.---- STACK.+)],
         },
         ROTATE => {
             desc   => "Add a rotation component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.- STACK.+)],
         },
         SCALE => {
             desc   => "Add a scale component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- vec2.- STACK.+)],
         },
         TRANSP => {
             desc   => "Transpose the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
     },
     MAT3 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 9 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.+++++++++)],
         },
         IDENT => {
             desc   => "Set the identity matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
         IMPLODE => {
             desc   => "Takes 9 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.--------- STACK.+)],
         },
         ROTATE => {
             desc   => "Add a rotation component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.- STACK.+)],
         },
         SCALE => {
             desc   => "Add a scale component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- vec2.- STACK.+)],
         },
         TRANSL => {
             desc   => "Add a translation component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- vec2.- STACK.+)],
         },
         TRANSP => {
             desc   => "Transpose the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
     },
     MAT4 => {
         EXPLODE => {
             desc   => "Takes a value form the [STACK] stack, unpacks the 16 float values and pushes them onto the float stack.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.++++++++++++++++)],
         },
         IDENT => {
             desc   => "Set the identity matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
         IMPLODE => {
             desc   => "Takes 16 values from the float stack, creates a new [STACK] item and pushes it.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(float.---------------- STACK.+)],
         },
         ROTATEX => {
             desc   => "Add a rotation component to the matrix around the X axis.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.- STACK.+)],
         },
         ROTATEY => {
             desc   => "Add a rotation component to the matrix around the Y axis.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.- STACK.+)],
         },
         ROTATEZ => {
             desc   => "Add a rotation component to the matrix around the Z axis.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- float.- STACK.+)],
         },
         SCALE => {
             desc   => "Add a scale component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- vec3.- STACK.+)],
         },
         TRANSL => {
             desc   => "Add a translation component to the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- vec3.- STACK.+)],
         },
         TRANSP => {
             desc   => "Transpose the matrix.",
-            arglen => 0,
+            type   => [],
             stacks => [qw(STACK.- STACK.+)],
         },
     },
@@ -395,70 +401,75 @@ my %CUSTOM = (
 my @all_ops;
 my $idx = 0;
 for my $opcode (@CORE) {
-    my $arglen = $BASE_ARGLEN{$opcode}->{arglen};
+    my $type = $BASE_ARGLEN{$opcode}->{type};
     push @all_ops, {
         opcode => $opcode,
         code   => $idx++,
         desc   => $BASE_ARGLEN{$opcode}->{desc},
-        arglen => $arglen,
+        type   => $type,
         stack  => 'ctrl',
         stacks => $BASE_ARGLEN{$opcode}->{stacks},
     }
 }
-for my $type (@TYPES) {
+for my $stack (@STACKS) {
     for my $op (@STACK_OPS) {
-        my $opcode = join('_', $type, $op);
-        my $arglen = $BASE_ARGLEN{$op}->{arglen};
+        my $opcode = join('_', $stack, $op);
+        my $type = $BASE_ARGLEN{$op}->{type};
         push @all_ops, {
             opcode => $opcode,
             code   => $idx++,
             desc   => $BASE_ARGLEN{$op}->{desc},
-            arglen => $arglen,
-            stack  => lc($type),
+            type   => $type,
+            stack  => lc($stack),
             stacks => $BASE_ARGLEN{$op}->{stacks},
         }
     }
     for my $op (@MEMORY_OPS) {
-        my $opcode = join('_', $type, $op);
-        my $arglen = $BASE_ARGLEN{$op}->{arglen};
+        my $opcode = join('_', $stack, $op);
+        my $type = $BASE_ARGLEN{$op}->{type};
         push @all_ops, {
             opcode => $opcode,
             code   => $idx++,
             desc   => $BASE_ARGLEN{$op}->{desc},
-            arglen => $arglen,
-            stack  => lc($type),
+            type   => $type,
+            stack  => lc($stack),
             stacks => $BASE_ARGLEN{$op}->{stacks},
         }
     }
     for my $op (@MATH_OPS) {
-        my $opcode = join('_', $type, $op);
-        my $arglen = $BASE_ARGLEN{$op}->{arglen};
+        my $opcode = join('_', $stack, $op);
+        my $type = $BASE_ARGLEN{$op}->{type};
         push @all_ops, {
             opcode => $opcode,
             code   => $idx++,
             desc   => $BASE_ARGLEN{$op}->{desc},
-            arglen => $arglen,
-            stack  => lc($type),
+            type   => $type,
+            stack  => lc($stack),
             stacks => $BASE_ARGLEN{$op}->{stacks},
         }
     }
-    for my $op (sort keys %{$CUSTOM{$type}}) {
-        my $arglen = $CUSTOM{$type}->{$op}->{arglen};
-        my $opcode = join('_', $type, $op);
+    for my $op (sort keys %{$CUSTOM{$stack}}) {
+        my $type = $CUSTOM{$stack}->{$op}->{type};
+        my $opcode = join('_', $stack, $op);
         push @all_ops, {
             opcode => $opcode,
             code   => $idx++,
-            desc   => $CUSTOM{$type}->{$op}->{desc},
-            arglen => $arglen,
-            stack  => lc($type),
-            stacks => $CUSTOM{$type}->{$op}->{stacks},
+            desc   => $CUSTOM{$stack}->{$op}->{desc},
+            type   => $type,
+            stack  => lc($stack),
+            stacks => $CUSTOM{$stack}->{$op}->{stacks},
         }
     }
 }
 
 printf("my %%INS_ARG_LENGTH = (\n");
 for my $op (@all_ops) {
-    printf("    %-20s=> [0x%02x, [0x%02x]],\n", $op->{opcode}, $op->{code}, $op->{arglen});
+    printf(
+        "    %-20s=> [0x%02x, [%s]],\n",
+        $op->{opcode},
+        $op->{code},
+        join(',', map {"'$_'"} @{$op->{type}})
+    );
 }
 printf(");\n");
 

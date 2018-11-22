@@ -25,13 +25,13 @@ load_tile:
     uint8_dup 2
 
     ; Move y onto the uint16 stack and multiply by 64.
-    uint16_move_uint8
+    uint16_move_uint8 1
     uint16_push 5
-    uint16_multiply
+    uint16_mul
 
     ; Move the x value onto the uint16 stack and add
     ; to the previous value.
-    uint16_move_uint8
+    uint16_move_uint8 1
     uint16_add
 
     ; Duplicate the loaded tile address for later.
@@ -40,7 +40,7 @@ load_tile:
     ; Take this idx from the 16 stack and load that
     ; memory value from uint8 map memory onto the
     ; uint8 stack.
-    uint8_load_uint16
+    uint8_load
 
     ; Store the tile value in a variable and remove
     ; it from the stack.
@@ -48,7 +48,7 @@ load_tile:
 
     ; Set the map value to 10 to mark it as seen.
     uint8_push 10
-    uint8_store_uint16
+    uint8_store
 
     return
 
@@ -83,7 +83,7 @@ flood:
 flood_loop:
     ; Test to see if there are any values on the
     ; uint8 stack.
-    uint8_jump_empty flood_end
+    uint8_jumpem flood_end
 
     uint8_store tmp_x
     uint8_store tmp_y
@@ -93,7 +93,7 @@ up_test:
     uint8_load tmp_x
     uint8_load tmp_y
     uint8_push 1
-    uint8_subtract
+    uint8_sub
     call load_tile
 
     ; If its zero its more floor so leave the coords
@@ -101,24 +101,24 @@ up_test:
     uint8_load tile
     uint8_push 0
     uint8_eq
-    uint8_jump_nzero down_test
+    uint8_jumpnz down_test
 
     ; If its 10 it means its been visited so throw
     ; away the coords.
     uint8_load tile
     uint8_push 10
     uint8_eq
-    uint8_jump_nzero up_throw
+    uint8_jumpnz up_throw
 
     ; Push the number 4 (down facing side) onto the
     ; uint16 stack. Then push the coords.
     uint16_push 4
-    uint16_copy_uint8 2
+    uint16_move_uint8 2
+    jump down_test
 
 up_throw:
     ; Throw away the up coords
-    uint8_pop
-    uint8_pop
+    uint8_pop 2
 
 down_test:
     ; Change y to y + 1 and create the map index.
@@ -133,31 +133,31 @@ down_test:
     uint8_load tile
     uint8_push 0
     uint8_eq
-    uint8_jump_nzero left_test
+    uint8_jumpnz left_test
 
     ; If its 10 it means its been visited so throw
     ; away the coords.
     uint8_load tile
     uint8_push 10
     uint8_eq
-    uint8_jump_nzero down_throw
+    uint8_jumpnz down_throw
 
     ; Push the number 1 (up facing side) onto the
     ; uint16 stack. Then push the coords.
     uint16_push 1
-    uint16_copy_uint8 2
+    uint16_move_uint8 2
+    jump left_test
 
 down_throw:
     ; Throw away the down coords
-    uint8_pop
-    uint8_pop
+    uint8_pop 2
 
 left_test:
     ; Change x to x - 1 and create the map index.
     uint8_load tmp_y
     uint8_load tmp_x
     uint8_push 1
-    uint8_subtract
+    uint8_sub
     uint8_swap
     call load_tile
 
@@ -166,24 +166,24 @@ left_test:
     uint8_load tile
     uint8_push 0
     uint8_eq
-    uint8_jump_nzero right_test
+    uint8_jumpnz right_test
 
     ; If its 10 it means its been visited so throw
     ; away the coords.
     uint8_load tile
     uint8_push 10
     uint8_eq
-    uint8_jump_nzero left_throw
+    uint8_jumpnz left_throw
 
     ; Push the number 2 (right facing side) onto the
     ; uint16 stack. Then push the coords.
     uint16_push 2
-    uint16_copy_uint8 2
+    uint16_move_uint8 2
+    jump right_test
 
 left_throw:
     ; Throw away the left coords
-    uint8_pop
-    uint8_pop
+    uint8_pop 2
 
 right_test:
     ; Change x to x + 1 and create the map index.
@@ -199,23 +199,23 @@ right_test:
     uint8_load tile
     uint8_push 0
     uint8_eq
-    uint8_jump_nzero flood_loop
+    uint8_jumpnz flood_loop
 
     ; If its 10 it means its been visited so throw
     ; away the coords.
     uint8_load tile
     uint8_push 10
     uint8_eq
-    uint8_jump_nzero right_throw
+    uint8_jumpnz right_throw
 
     ; Push the number 8 (left facing side) onto the
     ; uint16 stack. Then push the coords.
     uint16_push 8
-    uint16_copy_uint8 2
+    uint16_move_uint8 2
+    jump flood_loop
 
 right_throw:
-    uint8_pop
-    uint8_pop
+    uint8_pop 2
 
     jump flood_loop
 
