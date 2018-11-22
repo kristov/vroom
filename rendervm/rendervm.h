@@ -24,15 +24,40 @@ typedef struct rendervm {
     float* float_stack;
     uint8_t float_sp;
 
+    float* vec2_stack;
+    uint8_t vec2_sp;
+
+    float* vec3_stack;
+    uint8_t vec3_sp;
+
+    float* vec4_stack;
+    uint8_t vec4_sp;
+
+    float* mat2_stack;
+    uint8_t mat2_sp;
+
+    float* mat3_stack;
+    uint8_t mat3_sp;
+
+    float* mat4_stack;
+    uint8_t mat4_sp;
+
     uint8_t b0;
     uint8_t b1;
     uint8_t b2;
     uint8_t b3;
 
+    uint8_t mmem_flag;
     uint8_t* uint8_memory;
     uint16_t* uint16_memory;
     uint32_t* uint32_memory;
     float* float_memory;
+    float* vec2_memory;
+    float* vec3_memory;
+    float* vec4_memory;
+    float* mat2_memory;
+    float* mat3_memory;
+    float* mat4_memory;
 
     uint32_t vertex_id;
     uint32_t normal_id;

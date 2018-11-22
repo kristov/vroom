@@ -951,6 +951,12 @@ rendervm_t* rendervm_create() {
     vm->uint16_sp = VM_MAX_ADDR;
     vm->uint32_sp = VM_MAX_ADDR;
     vm->float_sp = VM_MAX_ADDR;
+    vm->vec2_sp = VM_MAX_ADDR;
+    vm->vec3_sp = VM_MAX_ADDR;
+    vm->vec4_sp = VM_MAX_ADDR;
+    vm->mat2_sp = VM_MAX_ADDR;
+    vm->mat3_sp = VM_MAX_ADDR;
+    vm->mat4_sp = VM_MAX_ADDR;
 
     vm->ctrl_stack = malloc(VM_STACK_SIZE);
     memset(vm->ctrl_stack, 0, VM_STACK_SIZE);
@@ -966,6 +972,24 @@ rendervm_t* rendervm_create() {
 
     vm->float_stack = malloc(VM_STACK_SIZE);
     memset(vm->float_stack, 0, VM_STACK_SIZE);
+
+    vm->vec2_stack = malloc(VM_STACK_SIZE);
+    memset(vm->vec2_stack, 0, VM_STACK_SIZE);
+
+    vm->vec3_stack = malloc(VM_STACK_SIZE);
+    memset(vm->vec3_stack, 0, VM_STACK_SIZE);
+
+    vm->vec4_stack = malloc(VM_STACK_SIZE);
+    memset(vm->vec4_stack, 0, VM_STACK_SIZE);
+
+    vm->mat2_stack = malloc(VM_STACK_SIZE);
+    memset(vm->mat2_stack, 0, VM_STACK_SIZE);
+
+    vm->mat3_stack = malloc(VM_STACK_SIZE);
+    memset(vm->mat3_stack, 0, VM_STACK_SIZE);
+
+    vm->mat4_stack = malloc(VM_STACK_SIZE);
+    memset(vm->mat4_stack, 0, VM_STACK_SIZE);
 
     return vm;
 }
