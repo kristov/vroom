@@ -21,6 +21,9 @@
 #define FLOAT_PUSH(vm, v)   vm->float_stack[++vm->float_sp] = v
 #define FLOAT_POP(vm)       vm->float_stack[vm->float_sp--]
 #define FLOAT_PEEK(vm, v)   vm->float_stack[v]
+#define VEC2_PUSH1(vm, v)   vm->vec2_stack[++vm->vec2_sp] = v
+#define VEC2_POP1(vm)       vm->vec2_stack[vm->vec2_sp--]
+#define VEC2_PEEK1(vm, v)   vm->vec2_stack[v]
 
 typedef union {
     float f;
@@ -241,7 +244,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->pc = u160;
             break;
         case VM_UINT8_POP:
-            u80 = UINT8_POP(vm);
+            u80 = NCODE(vm);
+            for (u81 = 0; u81 < u80; u81++) {
+                u82 = UINT8_POP(vm);
+            }
             break;
         case VM_UINT8_DUP:
             u80 = NCODE(vm);
@@ -320,7 +326,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT8_PUSH(vm, u80);
             break;
         case VM_UINT16_POP:
-            u160 = UINT16_POP(vm);
+            u80 = NCODE(vm);
+            for (u81 = 0; u81 < u80; u81++) {
+                u160 = UINT16_POP(vm);
+            }
             break;
         case VM_UINT16_DUP:
             u80 = NCODE(vm);
@@ -406,7 +415,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT16_PUSH(vm, u160);
             break;
         case VM_UINT32_POP:
-            u320 = UINT32_POP(vm);
+            u80 = NCODE(vm);
+            for (u81 = 0; u81 < u80; u81++) {
+                u320 = UINT32_POP(vm);
+            }
             break;
         case VM_UINT32_DUP:
             u80 = NCODE(vm);
@@ -497,7 +509,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             UINT32_PUSH(vm, u320);
             break;
         case VM_FLOAT_POP:
-            fl0 = FLOAT_POP(vm);
+            u80 = NCODE(vm);
+            for (u81 = 0; u81 < u80; u81++) {
+                fl0 = FLOAT_POP(vm);
+            }
             break;
         case VM_FLOAT_DUP:
             u80 = NCODE(vm);
@@ -584,12 +599,24 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             FLOAT_PUSH(vm, fl0);
             break;
         case VM_VEC2_POP:
-            printf("VEC2_POP: UNIMPLEMENTED\n");
-            vm->running = 0;
+            u80 = NCODE(vm);
+            for (u81 = 0; u81 < u80; u81++) {
+                vm->vec2_sp -= 2;
+            }
             break;
         case VM_VEC2_DUP:
-            printf("VEC2_DUP: UNIMPLEMENTED\n");
-            vm->running = 0;
+            u80 = NCODE(vm);
+            u80 = u80 * 2;
+            if (u80 > 128) {
+                // exception
+                vm->running = 0;
+                break;
+            }
+            u81 = vm->vec2_sp;
+            for (u82 = u80; u82 > 0; u82--) {
+                fl0 = VEC2_PEEK1(vm, (u81 - (u82 - 1)));
+                VEC2_PUSH1(vm, fl0);
+            }
             break;
         case VM_VEC2_SWAP:
             printf("VEC2_SWAP: UNIMPLEMENTED\n");

@@ -109,17 +109,17 @@ void test_opcode_JUMP(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT8_POP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_POP};
+    uint8_t program[] = {VM_UINT8_POP, 0x01};
     vm->uint8_stack[++vm->uint8_sp] = 0x05;
-    rendervm_exec(vm, program, 1);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint8_sp, VM_MAX_ADDR, "OP UINT8_POP: uint8_sp correct");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT8_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT8_DUP, 0x01, 0x00};
+    uint8_t program[] = {VM_UINT8_DUP, 0x01};
     vm->uint8_stack[++vm->uint8_sp] = 0x06;
-    rendervm_exec(vm, program, 3);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint8_sp, 0x01, "OP UINT8_DUP: uint8_sp correct");
     is_equal_uint8(test, vm->uint8_stack[0], 0x06, "OP UINT8_DUP: first stack item correct");
     is_equal_uint8(test, vm->uint8_stack[1], 0x06, "OP UINT8_DUP: second stack item correct");
@@ -252,17 +252,17 @@ void test_opcode_UINT8_PUSH(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT16_POP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_POP};
+    uint8_t program[] = {VM_UINT16_POP, 0x01};
     vm->uint16_stack[++vm->uint16_sp] = 0x0a;
-    rendervm_exec(vm, program, 1);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint16_sp, VM_MAX_ADDR, "OP UINT16_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT16_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT16_DUP, 0x01, 0x00};
+    uint8_t program[] = {VM_UINT16_DUP, 0x01};
     vm->uint16_stack[++vm->uint16_sp] = 0x06;
-    rendervm_exec(vm, program, 3);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint16_sp, 0x01, "OP UINT16_DUP: uint16_sp correct");
     is_equal_uint16(test, vm->uint16_stack[0], 0x06, "OP UINT16_DUP: first stack item correct");
     is_equal_uint16(test, vm->uint16_stack[1], 0x06, "OP UINT16_DUP: second stack item correct");
@@ -404,17 +404,17 @@ void test_opcode_UINT16_PUSH(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_UINT32_POP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_POP};
+    uint8_t program[] = {VM_UINT32_POP, 0x01};
     vm->uint32_stack[++vm->uint32_sp] = 0x0a;
-    rendervm_exec(vm, program, 1);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint32_sp, VM_MAX_ADDR, "OP UINT32_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_UINT32_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_UINT32_DUP, 0x01, 0x00};
+    uint8_t program[] = {VM_UINT32_DUP, 0x01};
     vm->uint32_stack[++vm->uint32_sp] = 0x06;
-    rendervm_exec(vm, program, 3);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->uint32_sp, 0x01, "OP UINT32_DUP: uint32_sp correct");
     is_equal_uint32(test, vm->uint32_stack[0], 0x06, "OP UINT32_DUP: first stack item correct");
     is_equal_uint32(test, vm->uint32_stack[1], 0x06, "OP UINT32_DUP: second stack item correct");
@@ -557,17 +557,17 @@ void test_opcode_UINT32_PUSH(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_FLOAT_POP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_POP};
+    uint8_t program[] = {VM_FLOAT_POP, 0x01};
     vm->float_stack[++vm->float_sp] = 3.14f;
-    rendervm_exec(vm, program, 1);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP FLOAT_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_FLOAT_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_FLOAT_DUP, 0x01, 0x00};
+    uint8_t program[] = {VM_FLOAT_DUP, 0x01};
     vm->float_stack[++vm->float_sp] = 6.0f;
-    rendervm_exec(vm, program, 3);
+    rendervm_exec(vm, program, 2);
     is_equal_uint8(test, vm->float_sp, 0x01, "OP FLOAT_DUP: float_sp correct");
     is_equal_float(test, vm->float_stack[0], 6.0f, "OP FLOAT_DUP: first stack item correct");
     is_equal_float(test, vm->float_stack[1], 6.0f, "OP FLOAT_DUP: second stack item correct");
@@ -698,14 +698,24 @@ void test_opcode_FLOAT_PUSH(test_harness_t* test, rendervm_t* vm) {
 }
 
 void test_opcode_VEC2_POP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_VEC2_POP};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_VEC2_POP, 0x01};
+    vm->vec2_stack[++vm->vec2_sp] = 1.0f;
+    vm->vec2_stack[++vm->vec2_sp] = 2.0f;
+    rendervm_exec(vm, program, 3);
+    is_equal_uint8(test, vm->float_sp, VM_MAX_ADDR, "OP VEC2_POP: stack empty");
     rendervm_reset(vm);
 }
 
 void test_opcode_VEC2_DUP(test_harness_t* test, rendervm_t* vm) {
-    uint8_t program[] = {VM_VEC2_DUP};
-    rendervm_exec(vm, program, 1);
+    uint8_t program[] = {VM_VEC2_DUP, 0x01};
+    vm->vec2_stack[++vm->vec2_sp] = 6.0f;
+    vm->vec2_stack[++vm->vec2_sp] = 2.0f;
+    rendervm_exec(vm, program, 2);
+    is_equal_uint8(test, vm->vec2_sp, 0x03, "OP VEC2_DUP: vec2_sp correct");
+    is_equal_float(test, vm->vec2_stack[0], 6.0f, "OP VEC2_DUP: first stack item correct");
+    is_equal_float(test, vm->vec2_stack[1], 2.0f, "OP VEC2_DUP: second stack item correct");
+    is_equal_float(test, vm->vec2_stack[2], 6.0f, "OP VEC2_DUP: third stack item correct");
+    is_equal_float(test, vm->vec2_stack[3], 2.0f, "OP VEC2_DUP: forth stack item correct");
     rendervm_reset(vm);
 }
 
@@ -1326,8 +1336,8 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_FLOAT_JUMPNZ(test, vm);
     test_opcode_FLOAT_JUMPZ(test, vm);
     test_opcode_FLOAT_PUSH(test, vm);
-    //test_opcode_VEC2_POP(test, vm);
-    //test_opcode_VEC2_DUP(test, vm);
+    test_opcode_VEC2_POP(test, vm);
+    test_opcode_VEC2_DUP(test, vm);
     //test_opcode_VEC2_SWAP(test, vm);
     //test_opcode_VEC2_JUMPEM(test, vm);
     //test_opcode_VEC2_STORE(test, vm);
