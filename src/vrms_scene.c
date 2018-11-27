@@ -129,14 +129,14 @@ void vrms_scene_destroy_object_data(vrms_object_data_t* data) {
         free(data->local_storage);
     }
     if (data->gl_id > 0) {
-        glDeleteBuffers(1, &data->gl_id);
+        vrms_gl_delete_buffer(&data->gl_id);
     }
     vrms_object_data_destroy(data);
 }
 
 void vrms_scene_destroy_object_texture(vrms_object_texture_t* texture) {
     if (texture->gl_id > 0) {
-        glDeleteBuffers(1, &texture->gl_id);
+        vrms_gl_delete_buffer(&texture->gl_id);
     }
     vrms_object_texture_destroy(texture);
 }
@@ -149,10 +149,10 @@ void vrms_scene_destroy_object_skybox(vrms_object_skybox_t* skybox) {
         free(skybox->index_data);
     }
     if (skybox->vertex_gl_id > 0) {
-        glDeleteBuffers(1, &skybox->vertex_gl_id);
+        vrms_gl_delete_buffer(&skybox->vertex_gl_id);
     }
     if (skybox->index_gl_id > 0) {
-        glDeleteBuffers(1, &skybox->index_gl_id);
+        vrms_gl_delete_buffer(&skybox->index_gl_id);
     }
     vrms_object_skybox_destroy(skybox);
 }

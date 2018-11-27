@@ -35,7 +35,7 @@ typedef enum vrms_queue_item_type {
 
 typedef struct vrms_queue_item_data_load {
     vrms_data_type_t type;
-    GLuint* destination;
+    uint32_t* destination;
     uint8_t* buffer;
     uint32_t size;
 } vrms_queue_item_data_load_t;
@@ -47,7 +47,7 @@ typedef struct vrms_queue_item_update_system_matrix {
 } vrms_queue_item_update_system_matrix_t;
 
 typedef struct vrms_queue_item_texture_load {
-    GLuint* destination;
+    uint32_t* destination;
     uint8_t* buffer;
     uint32_t size;
     uint32_t width;
@@ -69,45 +69,6 @@ typedef struct vrms_queue_item {
         vrms_queue_item_event_t* event;
     } item;
 } vrms_queue_item_t;
-
-int VprintGlError(char *file, int line) {
-    GLenum glErr;
-    int retCode = 0;
-    glErr = glGetError();
-    switch (glErr) {
-        case GL_INVALID_ENUM:
-            printf("GL_INVALID_ENUM in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_INVALID_VALUE:
-            printf("GL_INVALID_VALUE in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_INVALID_OPERATION:
-            printf("GL_INVALID_OPERATION in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_STACK_OVERFLOW:
-            printf("GL_STACK_OVERFLOW in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_STACK_UNDERFLOW:
-            printf("GL_STACK_UNDERFLOW in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_OUT_OF_MEMORY:
-            printf("GL_OUT_OF_MEMORY in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            printf("GL_INVALID_FRAMEBUFFER_OPERATION in file %s @ line %d: %d\n", file, line, glErr);
-            retCode = 1;
-        break;
-    }
-    return retCode;
-}
-
-#define printOpenGLError() VprintGlError(__FILE__, __LINE__)
 
 vrms_server_t* vrms_server_create() {
     vrms_server_t* server = SAFEMALLOC(sizeof(vrms_server_t));
@@ -166,7 +127,7 @@ uint32_t vrms_server_destroy_scene(vrms_server_t* server, uint32_t scene_id) {
     return 1;
 }
 
-uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, uint8_t* buffer) {
+uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, uint32_t* gl_id_ref, vrms_data_type_t type, uint8_t* buffer) {
     vrms_queue_item_data_load_t* data_load = SAFEMALLOC(sizeof(vrms_queue_item_data_load_t));
     memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
 
@@ -190,7 +151,7 @@ uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, G
     return idx;
 }
 
-uint32_t vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, uint8_t* buffer) {
+uint32_t vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, uint32_t* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, uint8_t* buffer) {
     vrms_queue_item_texture_load_t* texture_load = SAFEMALLOC(sizeof(vrms_queue_item_texture_load_t));
     memset(texture_load, 0, sizeof(vrms_queue_item_texture_load_t));
 
@@ -217,7 +178,7 @@ uint32_t vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size
     return idx;
 }
 
-void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, GLuint* gl_id_ref, vrms_data_type_t type, void* buffer) {
+void vrms_server_queue_add_matrix_load(vrms_server_t* server, uint32_t size, uint32_t* gl_id_ref, vrms_data_type_t type, void* buffer) {
     vrms_queue_item_data_load_t* data_load = SAFEMALLOC(sizeof(vrms_queue_item_data_load_t));
     memset(data_load, 0, sizeof(vrms_queue_item_data_load_t));
 
@@ -259,18 +220,10 @@ void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_t
 }
 
 void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    GLuint b_vertex;
-    GLuint b_normal;
-    GLuint u_color;
-    GLuint m_mvp;
-    GLuint m_mv;
-    GLuint shader_id;
     float* mvp_matrix;
     float* mv_matrix;
-
-    shader_id = server->color_shader_id;
-    glUseProgram(shader_id);
-printOpenGLError();
+    vrms_gl_render_t render;
+    vrms_gl_matrix_t matrix;
 
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
@@ -279,57 +232,26 @@ printOpenGLError();
     esmMultiply(mvp_matrix, view_matrix);
     esmMultiply(mvp_matrix, model_matrix);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_gl_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
-    glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_vertex);
-printOpenGLError();
+    matrix.mv = mv_matrix;
+    matrix.mvp = mvp_matrix;
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
-    b_normal = glGetAttribLocation(shader_id, "b_normal");
-    glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_normal);
-printOpenGLError();
+    render.shader_id = server->color_shader_id;
+    render.vertex_id = mesh->vertex_gl_id;
+    render.normal_id = mesh->normal_gl_id;
+    render.index_id = mesh->index_gl_id;
+    render.nr_indicies = mesh->nr_indicies;
 
-    u_color = glGetUniformLocation(shader_id, "u_color");
-    glUniform4f(u_color, mesh->r, mesh->g, mesh->b, mesh->a);
-    glEnableVertexAttribArray(u_color);
-printOpenGLError();
-
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
-    glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
-printOpenGLError();
-
-    m_mv = glGetUniformLocation(shader_id, "m_mv");
-    glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
-printOpenGLError();
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
-    glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
-printOpenGLError();
+    vrms_gl_draw_mesh_color(render, matrix, mesh->r, mesh->g, mesh->b, mesh->a);
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-printOpenGLError();
 }
 
 void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    GLuint b_vertex;
-    GLuint b_normal;
-    GLuint b_uv;
-    GLuint s_tex;
-    GLuint m_mvp;
-    GLuint m_mv;
-    GLuint shader_id;
     float* mvp_matrix;
     float* mv_matrix;
-
-    shader_id = server->texture_shader_id;
-    glUseProgram(shader_id);
-printOpenGLError();
+    vrms_gl_render_t render;
+    vrms_gl_matrix_t matrix;
 
     mv_matrix = esmCreateCopy(view_matrix);
     esmMultiply(mv_matrix, model_matrix);
@@ -338,91 +260,41 @@ printOpenGLError();
     esmMultiply(mvp_matrix, view_matrix);
     esmMultiply(mvp_matrix, model_matrix);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_gl_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
-    glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_vertex);
-printOpenGLError();
+    matrix.mv = mv_matrix;
+    matrix.mvp = mvp_matrix;
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->normal_gl_id);
-    b_normal = glGetAttribLocation(shader_id, "b_normal");
-    glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_normal);
-printOpenGLError();
+    render.shader_id = server->texture_shader_id;
+    render.vertex_id = mesh->vertex_gl_id;
+    render.normal_id = mesh->normal_gl_id;
+    render.uv_id = mesh->uv_gl_id;
+    render.texture_id = mesh->texture_gl_id;
+    render.index_id = mesh->index_gl_id;
+    render.nr_indicies = mesh->nr_indicies;
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->uv_gl_id);
-    b_uv = glGetAttribLocation(shader_id, "b_uv");
-    glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_uv);
-printOpenGLError();
-
-    s_tex = glGetUniformLocation(shader_id, "s_tex");
-    glActiveTexture(GL_TEXTURE1);
-    glUniform1i(s_tex, 1);
-    glBindTexture(GL_TEXTURE_2D, mesh->texture_gl_id);
-printOpenGLError();
-
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
-    glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
-printOpenGLError();
-
-    m_mv = glGetUniformLocation(shader_id, "m_mv");
-    glUniformMatrix4fv(m_mv, 1, GL_FALSE, mv_matrix);
-printOpenGLError();
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->index_gl_id);
-    glDrawElements(GL_TRIANGLES, mesh->nr_indicies, GL_UNSIGNED_SHORT, NULL);
-printOpenGLError();
+    vrms_gl_draw_mesh_texture(render, matrix);
 
     esmDestroy(mvp_matrix);
     esmDestroy(mv_matrix);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-printOpenGLError();
 }
 
 void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    GLuint b_vertex;
-    GLuint s_tex;
-    GLuint m_mvp;
-    GLuint shader_id;
     float* mvp_matrix;
+    vrms_gl_render_t render;
+    vrms_gl_matrix_t matrix;
 
-    shader_id = server->cubemap_shader_id;
-    glUseProgram(shader_id);
-
-    glDisable(GL_DEPTH_TEST);
     mvp_matrix = esmCreateCopy(projection_matrix);
     esmMultiply(mvp_matrix, view_matrix);
 
-    glBindBuffer(GL_ARRAY_BUFFER, skybox->vertex_gl_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
-    glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(b_vertex);
-printOpenGLError();
+    matrix.mvp = mvp_matrix;
 
-    s_tex = glGetUniformLocation(shader_id, "s_tex");
-    glActiveTexture(GL_TEXTURE1);
-    glUniform1i(s_tex, 1);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->texture_gl_id);
-printOpenGLError();
+    render.shader_id = server->cubemap_shader_id;
+    render.vertex_id = skybox->vertex_gl_id;
+    render.texture_id = skybox->texture_gl_id;
+    render.index_id = skybox->index_gl_id;
 
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
-    glUniformMatrix4fv(m_mvp, 1, GL_FALSE, mvp_matrix);
-printOpenGLError();
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, skybox->index_gl_id);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_SHORT, NULL);
-printOpenGLError();
+    vrms_gl_draw_skybox(render, matrix);
 
     esmDestroy(mvp_matrix);
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
@@ -453,148 +325,6 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
     server->render_usecs[0] = usec_elapsed;
 }
 
-void vrms_queue_load_gl_element_buffer(vrms_queue_item_data_load_t* load) {
-    if (!load->buffer) {
-        return;
-    }
-
-    glGenBuffers(1, load->destination);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *load->destination);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, load->size, load->buffer, GL_STATIC_DRAW);
-    if (0 == *load->destination) {
-        debug_print("unable to load gl element buffer\n");
-        printOpenGLError();
-    }
-    else {
-        debug_print("vrms_queue_load_gl_element_buffer() loaded GL id: %d\n", *load->destination);
-    }
-}
-
-void vrms_queue_load_gl_texture_buffer(vrms_queue_item_texture_load_t* load) {
-    GLint ifmt;
-    GLenum dfmt;
-    GLenum bfmt;
-    uint32_t w, h;
-    uint32_t part_offset;
-    uint32_t off;
-    uint8_t* buffer;
-    uint8_t* tmp;
-
-    if (!load->buffer) {
-        return;
-    }
-    buffer = load->buffer;
-
-    w = load->width;
-    h = load->height;
-
-    switch (load->format) {
-        case VRMS_FORMAT_BGR888:
-            ifmt = GL_RGB8;
-            dfmt = GL_RGB;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        case VRMS_FORMAT_XBGR8888:
-            ifmt = GL_RGBA8;
-            dfmt = GL_RGBA;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        case VRMS_FORMAT_ABGR8888:
-            ifmt = GL_RGBA8;
-            dfmt = GL_RGBA;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        case VRMS_FORMAT_RGB888:
-            ifmt = GL_RGB8;
-            dfmt = GL_BGR;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        case VRMS_FORMAT_XRGB8888:
-            ifmt = GL_RGBA8;
-            dfmt = GL_BGRA;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        case VRMS_FORMAT_ARGB8888:
-            ifmt = GL_RGBA8;
-            dfmt = GL_BGRA;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
-        default:
-            debug_print("texture format unrecognized: %d\n", load->format);
-            break;
-    }
-
-    switch (load->type) {
-        case VRMS_TEXTURE_2D:
-            glGenTextures(1, load->destination);
-            glBindTexture(GL_TEXTURE_2D, *load->destination);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-            glTexImage2D(GL_TEXTURE_2D, 0, ifmt, w, h, 0, dfmt, bfmt, (void*)buffer);
-            debug_print("vrms_queue_load_gl_texture_buffer(GL_TEXTURE_2D) loaded GL id: %d\n", *load->destination);
-            break;
-        case VRMS_TEXTURE_CUBE_MAP:
-            off = 0;
-            part_offset = w * h * 3;
-            glGenTextures(1, load->destination);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, *load->destination);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            off += part_offset;
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            off += part_offset;
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            off += part_offset;
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            off += part_offset;
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            off += part_offset;
-            tmp = &buffer[off];
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ifmt, w, h, 0, dfmt, bfmt, tmp);
-            debug_print("vrms_queue_load_gl_texture_buffer(GL_TEXTURE_CUBE_MAP) loaded GL id: %d\n", *load->destination);
-            break;
-        default:
-            debug_print("unknown texture type: %d\n", load->type);
-            break;
-    }
-    if (0 == *load->destination) {
-        debug_print("unable to load gl texture buffer\n");
-        printOpenGLError();
-    }
-}
-
-void vrms_queue_load_gl_buffer(vrms_queue_item_data_load_t* load) {
-    if (!load->buffer) {
-        return;
-    }
-
-    glGenBuffers(1, load->destination);
-    glBindBuffer(GL_ARRAY_BUFFER, *load->destination);
-    glBufferData(GL_ARRAY_BUFFER, load->size, load->buffer, GL_STATIC_DRAW);
-    if (0 == *load->destination) {
-        debug_print("unable to load gl buffer\n");
-        printOpenGLError();
-    }
-    else {
-        debug_print("vrms_queue_load_gl_buffer() loaded GL id: %d\n", *load->destination);
-    }
-}
-
 void vrms_queue_update_system_matrix(vrms_server_t* server, vrms_queue_item_update_system_matrix_t* update_system_matrix) {
     float* matrix;
 
@@ -611,21 +341,24 @@ void vrms_server_queue_item_process(vrms_server_t* server, vrms_queue_item_t* qu
         vrms_queue_item_update_system_matrix_t* update_system_matrix;
         case VRMS_QUEUE_DATA_LOAD:
             data_load = queue_item->item.data_load;
-            if (VRMS_INDEX == data_load->type) {
-                vrms_queue_load_gl_element_buffer(data_load);
+            if (!data_load->buffer) {
+                return;
             }
-            else {
-                vrms_queue_load_gl_buffer(data_load);
-            }
+            vrms_gl_load_buffer(data_load->buffer, data_load->destination, data_load->size, data_load->type);
             free(data_load);
             break;
         case VRMS_QUEUE_TEXTURE_LOAD:
             texture_load = queue_item->item.texture_load;
-            vrms_queue_load_gl_texture_buffer(texture_load);
+            if (!texture_load->buffer) {
+                return;
+            }
+            vrms_gl_load_texture_buffer(texture_load->buffer, texture_load->destination, texture_load->width, texture_load->height, texture_load->format, texture_load->type);
+            free(texture_load);
             break;
         case VRMS_QUEUE_UPDATE_SYSTEM_MATRIX:
             update_system_matrix = queue_item->item.update_system_matrix;
             vrms_queue_update_system_matrix(server, update_system_matrix);
+            free(update_system_matrix);
             break;
         case VRMS_QUEUE_EVENT:
             debug_print("not supposed to get a VRMS_QUEUE_EVENT from a client\n");

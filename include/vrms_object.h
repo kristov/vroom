@@ -14,7 +14,7 @@ typedef struct vrms_object_data {
     uint32_t item_length;
     uint32_t data_length;
     vrms_data_type_t type;
-    GLuint gl_id;
+    uint32_t gl_id;
     void* local_storage;
 } vrms_object_data_t;
 
@@ -24,7 +24,7 @@ typedef struct vrms_object_texture {
     uint32_t height;
     vrms_texture_format_t format;
     vrms_texture_type_t type;
-    GLuint gl_id;
+    uint32_t gl_id;
 } vrms_object_texture_t;
 
 typedef struct vrms_object_geometry {
@@ -39,24 +39,24 @@ typedef struct vrms_object_mesh_texture {
     uint32_t geometry_id;
     uint32_t texture_id;
     uint32_t uv_id;
-    GLuint vertex_gl_id;
-    GLuint normal_gl_id;
-    GLuint index_gl_id;
-    GLuint texture_gl_id;
-    GLuint uv_gl_id;
+    uint32_t vertex_gl_id;
+    uint32_t normal_gl_id;
+    uint32_t index_gl_id;
+    uint32_t texture_gl_id;
+    uint32_t uv_gl_id;
     uint32_t nr_indicies;
 } vrms_object_mesh_texture_t;
 
 typedef struct vrms_object_mesh_color {
     uint32_t id;
     uint32_t geometry_id;
-    GLuint vertex_gl_id;
-    GLuint normal_gl_id;
-    GLuint index_gl_id;
-    GLfloat r;
-    GLfloat g;
-    GLfloat b;
-    GLfloat a;
+    uint32_t vertex_gl_id;
+    uint32_t normal_gl_id;
+    uint32_t index_gl_id;
+    float r;
+    float g;
+    float b;
+    float a;
     uint32_t nr_indicies;
 } vrms_object_mesh_color_t;
 
@@ -71,14 +71,14 @@ typedef struct vrms_object_skybox {
     uint32_t texture_id;
     float* vertex_data;
     uint16_t* index_data;
-    GLuint vertex_gl_id;
-    GLuint index_gl_id;
-    GLuint texture_gl_id;
+    uint32_t vertex_gl_id;
+    uint32_t index_gl_id;
+    uint32_t texture_gl_id;
 } vrms_object_skybox_t;
 
 typedef struct vrms_object_matrix {
     uint32_t id;
-    GLfloat* data;
+    float* data;
 } vrms_object_matrix_t;
 
 typedef struct vrms_object {

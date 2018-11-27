@@ -1,3 +1,8 @@
+#ifndef OPENGL_STEREO_H
+#define OPENGL_STEREO_H
+
+#include "gl_compat.h"
+
 typedef struct opengl_stereo_camera {
     float* projection_matrix;
     GLfloat model_translation;
@@ -52,3 +57,5 @@ opengl_stereo* opengl_stereo_create(int width, int height, double physical_width
 
 double opengl_stereo_get_config_value(opengl_stereo* ostereo, char* name);
 void opengl_stereo_set_config_value(opengl_stereo* ostereo, char* name, double value);
+
+#endif

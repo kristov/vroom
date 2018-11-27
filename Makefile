@@ -9,7 +9,7 @@ TESTDIR := test
 INCDIR := include
 EXTDIR := external
 
-SERVEROBJS := $(addprefix $(OBJDIR)/, vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_runtime.o vrms_render_vm.o)
+SERVEROBJS := $(addprefix $(OBJDIR)/, vrms_object.o vrms_scene.o vrms_server.o opengl_stereo.o ogl_shader_loader.o esm.o vrms_runtime.o vrms_render_vm.o vrms_gl.o)
 SERVERLINKS := -ldl -lm -lpthread
 
 CLIENTS := $(addprefix $(BINDIR)/, green_cube textured_cube red_square textured_square skybox)

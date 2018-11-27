@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "vrms_gl.h"
 #define DTR 0.0174532925
 #include "safe_malloc.h"
 #include "opengl_stereo.h"

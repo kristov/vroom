@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vrms_gl.h"
+#include "gl_compat.h"
 #include "safe_malloc.h"
 
 GLchar *file_contents(const char *filename, GLint *length) {

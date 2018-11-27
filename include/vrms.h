@@ -1,5 +1,6 @@
 #ifndef VRMS_H
 #define VRMS_H
+
 typedef enum vrms_object_type {
     VRMS_OBJECT_INVALID,
     VRMS_OBJECT_SCENE,
@@ -72,4 +73,5 @@ typedef enum vrms_error {
     VRMS_UNKNOWNID,
     VRMS_OUTOFMEMORY
 } vrms_error_t;
+
 #endif
