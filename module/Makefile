@@ -1,6 +1,9 @@
 CC := gcc
 CFLAGS := -Wall -Werror -ggdb
 
+OBJECTS =
+OBJECTS += array_heap.o
+
 MODULES =
 MODULES += vroom_protocol.so
 MODULES += input_libinput.so
@@ -8,21 +11,15 @@ MODULES += input_openhmd.so
 
 all: $(MODULES)
 
-$(OBJDIR)/vroom_pb.o: $(SRCDIR)/vroom_pb.c
-	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+pb.o: pb.c
+	$(CC) $(CFLAGS) -c -fPIC -o $@ $<
 
-$(OBJDIR)/array_heap.o: $(SRCDIR)/array_heap.c
-	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
+%.o: %.c %.h
+	$(CC) $(CFLAGS) -c -fPIC -o $@ $<
 
-$(OBJDIR)/hid_monitor.o: $(SRCDIR)/linux/hid_monitor.c
-	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
-
-$(OBJDIR)/esm.o: $(SRCDIR)/esm.c
-	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o $@ $<
-
-vroom_protocol.so: vroom_protocol.c vroom_pb.o array_heap.o
+vroom_protocol.so: vroom_protocol.c pb.o array_heap.o
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o vroom_protocol.o vroom_protocol.c
-	$(CC) $(CFLAGS) -shared -o $@ -fPIC vroom_protocol.o vroom_pb.o array_heap.o -lrt -lev -lprotobuf-c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC vroom_protocol.o pb.o array_heap.o -lrt -lev -lprotobuf-c
 
 test_rotate.so: test_rotate.c
 	$(CC) $(CFLAGS) $(INCDIRS) -c -fPIC -o test_rotate.o test_rotate.c
@@ -42,3 +39,4 @@ input_openhmd.so: input_openhmd.c esm.o
 
 clean:
 	rm -f $(MODULES)
+	rm -f *.o
