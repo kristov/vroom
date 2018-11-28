@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "vrms_gl.h"
+#include "gl.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>
@@ -16,11 +16,11 @@
 #include <unistd.h>
 #include "memfd.h"
 
-#include "safe_malloc.h"
-#include "vrms_object.h"
-#include "vrms_render_vm.h"
-#include "vrms_scene.h"
-#include "vrms_server.h"
+#include "safemalloc.h"
+#include "object.h"
+#include "render_vm.h"
+#include "scene.h"
+#include "server.h"
 #include "esm.h"
 
 #define DEBUG 1

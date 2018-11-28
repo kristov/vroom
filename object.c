@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "safe_malloc.h"
-#include "vrms.h"
-#include "vrms_object.h"
+#include "safemalloc.h"
+#include "vroom.h"
+#include "object.h"
 
 vrms_object_t* vrms_object_create() {
     vrms_object_t* object = SAFEMALLOC(sizeof(vrms_object_t));

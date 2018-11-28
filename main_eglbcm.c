@@ -9,7 +9,7 @@
 #include <GL/glut.h>
 #endif /* RASPBERRYPI */
 #include "bcm_host.h"
-#include "vrms_runtime.h"
+#include "runtime.h"
 
 vrms_runtime_t* vrms_runtime;
 

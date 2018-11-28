@@ -2,7 +2,7 @@
 #define VRMS_GL_H
 
 #include <stdint.h>
-#include "vrms.h"
+#include "vroom.h"
 
 typedef struct vrms_gl_render {
     uint32_t shader_id;

@@ -9,7 +9,7 @@
 #include <errno.h>
 #include "array_heap.h"
 #include "vroom_pb.h"
-#include "vrms_runtime.h"
+#include "runtime.h"
 #include "safemalloc.h"
 
 #define DEBUG 1

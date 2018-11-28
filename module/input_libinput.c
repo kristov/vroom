@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <poll.h>
 #include "esm.h"
-#include "vrms_runtime.h"
+#include "runtime.h"
 #include "libinput.h"
 
 static void log_handler(struct libinput *li, enum libinput_log_priority priority, const char *format, va_list args) {

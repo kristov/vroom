@@ -4,16 +4,16 @@
 #include <pthread.h>
 #include <string.h>
 #include <dirent.h>
-#include "vrms_gl.h"
-#include "safe_malloc.h"
-#include "vrms_render_vm.h"
-#include "vrms_object.h"
-#include "vrms_server.h"
-#include "vrms_scene.h"
+#include "gl.h"
+#include "safemalloc.h"
+#include "render_vm.h"
+#include "object.h"
+#include "server.h"
+#include "scene.h"
 #include "esm.h"
 #include "opengl_stereo.h"
-#include "vrms.h"
-#include "vrms_runtime.h"
+#include "vroom.h"
+#include "runtime.h"
 
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "vrms_gl.h"
+#include "gl.h"
 #include "esm.h"
 #include "gl_compat.h"
 

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <GL/glut.h>
-#include <esm.h>
-#include "vrms_runtime.h"
+#include "esm.h"
+#include "runtime.h"
 
 #define PI    3.141593f
 #define TWOPI 6.283185f

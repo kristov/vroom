@@ -11,7 +11,7 @@
 #include <xf86drmMode.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
-#include "vrms_runtime.h"
+#include "runtime.h"
 
 vrms_runtime_t* vrms_runtime;
 

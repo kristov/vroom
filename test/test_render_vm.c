@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <math.h>
-#include "vrms_render_vm.h"
+#include "render_vm.h"
 #include "test_harness.h"
 
 // Things the load_matrix() and draw() hooks always expect

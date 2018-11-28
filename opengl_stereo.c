@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #define DTR 0.0174532925
-#include "safe_malloc.h"
+#include "safemalloc.h"
 #include "opengl_stereo.h"
 #include "ogl_shader_loader.h"
 #include "esm.h"

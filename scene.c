@@ -12,12 +12,12 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
-#include "safe_malloc.h"
-#include "vrms.h"
-#include "vrms_object.h"
-#include "vrms_render_vm.h"
-#include "vrms_scene.h"
-#include "vrms_server.h"
+#include "safemalloc.h"
+#include "vroom.h"
+#include "object.h"
+#include "render_vm.h"
+#include "scene.h"
+#include "server.h"
 #include "esm.h"
 
 #define DEBUG 1

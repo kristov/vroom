@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <time.h>
-#include "vrms_runtime.h"
+#include "runtime.h"
 #include "esm.h"
 
 #define NANO_SECOND_MULTIPLIER 1000000

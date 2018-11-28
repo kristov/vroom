@@ -1,5 +1,3 @@
-bin/*
-lib/*
 module/*
 test/test_*
 vroom-server
@@ -7,3 +5,4 @@ temp/
 rendervm/*.o
 rendervm/*.t
 gl-matrix/*.o
+*.o

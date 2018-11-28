@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "gl_compat.h"
-#include "safe_malloc.h"
+#include "safemalloc.h"
 
 GLchar *file_contents(const char *filename, GLint *length) {
     char *buffer = 0;

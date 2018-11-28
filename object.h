@@ -1,5 +1,5 @@
-#include "vrms_gl.h"
-#include "vrms.h"
+#include "gl.h"
+#include "vroom.h"
 
 typedef struct vrms_object_memory {
     uint32_t fd;

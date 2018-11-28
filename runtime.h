@@ -1,7 +1,7 @@
 #ifndef VRMS_RUNTIME_H
 #define VRMS_RUNTIME_H
 
-#include "vrms.h"
+#include "vroom.h"
 #include <pthread.h>
 
 typedef struct vrms_server vrms_server_t;

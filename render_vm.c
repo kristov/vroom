@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <esm.h>
-#include "vrms_render_vm.h"
+#include "esm.h"
+#include "render_vm.h"
 
 /*
         loadi r0 2      ; Drawable object
