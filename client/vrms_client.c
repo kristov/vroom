@@ -13,8 +13,8 @@
 #include <linux/memfd.h>
 #include <unistd.h>
 #include "memfd.h"
-#include "safe_malloc.h"
-#include "vroom_pb.h"
+#include "safemalloc.h"
+#include "pb.h"
 #include "vrms_client.h"
 
 #define DEBUG 1

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
-#include "safe_malloc.h"
+#include "safemalloc.h"
 #include "vrms_client.h"
-#include "vrms_render_vm.h"
+#include "render_vm.h"
 #include "vrms_geometry.h"
 #include "esm.h"
 
