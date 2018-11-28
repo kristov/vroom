@@ -4,7 +4,7 @@ CFLAGS := -Wall -Werror -ggdb
 OBJECTS =
 OBJECTS += pb.o
 
-all: protobuf $(OBJECTS)
+all: $(OBJECTS)
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -15,5 +15,9 @@ protobuf: vroom.proto
 	mv vroom.pb-c.h pb.h
 	sed -i 's/vroom.pb-c.h/pb.h/g' pb.c
 
+vroom.proto:
+	cp ../vroom.proto ./
+
 clean:
-	rm -f $(OBJECTS) pb.c pb.h
+	rm -f $(OBJECTS)
+	rm -f vroom.proto

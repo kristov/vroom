@@ -6,3 +6,4 @@ rendervm/*.o
 rendervm/*.t
 gl-matrix/*.o
 *.o
+protocol/c/vroom.proto
