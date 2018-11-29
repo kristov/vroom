@@ -278,23 +278,28 @@ void vrms_runtime_module_thread_destroy(vrms_runtime_module_thread_t* module_thr
 }
 
 void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
-    int32_t thread_ret;
-    DIR *dir;
-    struct dirent *entry;
-    uint8_t index;
-    vrms_runtime_module_thread_t* module_thread;
-
-    dir = opendir(vrms_runtime->module_load_path);
+    DIR* dir = opendir(vrms_runtime->module_load_path);
     if (!dir) {
         fprintf(stderr, "could not open module dir: %s\n", vrms_runtime->module_load_path);
         return;
     }
 
-    index = 0;
+    vrms_runtime_module_thread_t* module_thread;
+    int32_t thread_ret;
+    struct dirent* entry;
+    uint8_t index = 0;
     while ((entry = readdir(dir))) {
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
             continue;
         }
+        char* ext = strrchr(entry->d_name, '.');
+        if (!ext) {
+            continue;
+        }
+        if (strcmp(ext + 1, "so")) {
+            continue;
+        }
+
         module_thread = vrms_runtime_module_thread_create(entry->d_name);
         module_thread->vrms_runtime = vrms_runtime;
         thread_ret = pthread_create(&module_thread->pthread, NULL, start_module_thread, module_thread);

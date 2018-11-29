@@ -19,9 +19,9 @@ all: $(MODULES)
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -fPIC -o $@ $<
 
-vroom_protocol.so: vroom_protocol.c $(PROTOCOL)/c/pb_pic.o array_heap.o
+vroom_protocol.so: vroom_protocol.c $(PROTOCOL)/c/pb_pic.o $(COMMON)/safemalloc_pic.o array_heap.o
 	$(CC) $(CFLAGS) $(INCD) -I$(PROTOCOL)/c -c -fPIC -o vroom_protocol.o vroom_protocol.c
-	$(CC) $(CFLAGS) -shared -o $@ -fPIC vroom_protocol.o $(PROTOCOL)/c/pb_pic.o array_heap.o -lrt -lev -lprotobuf-c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC vroom_protocol.o $(PROTOCOL)/c/pb_pic.o $(COMMON)/safemalloc_pic.o array_heap.o -lrt -lev -lprotobuf-c
 
 test_rotate.so: test_rotate.c
 	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o test_rotate.o test_rotate.c
@@ -35,9 +35,9 @@ input_libinput.so: input_libinput.c
 	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o input_libinput.o input_libinput.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC input_libinput.o -linput
 
-input_openhmd.so: input_openhmd.c $(COMMON)/esm_pic.o
+input_openhmd.so: input_openhmd.c $(COMMON)/esm_pic.o $(COMMON)/safemalloc_pic.o
 	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o input_openhmd.o input_openhmd.c
-	$(CC) $(CFLAGS) -shared -o $@ -fPIC input_openhmd.o $(COMMON)/esm_pic.o -lopenhmd
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC input_openhmd.o $(COMMON)/esm_pic.o $(COMMON)/safemalloc_pic.o -lopenhmd
 
 clean:
 	rm -f $(MODULES)
