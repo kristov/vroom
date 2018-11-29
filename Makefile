@@ -1,52 +1,56 @@
 CC := gcc
 CFLAGS := -Wall -Werror -ggdb
 
-EXTDIR := external
+COMMON = common
 
 OBJECTS =
-OBJECTS += esm.o
 OBJECTS += gl.o
 OBJECTS += object.o
 OBJECTS += ogl_shader_loader.o
 OBJECTS += opengl_stereo.o
 OBJECTS += render_vm.o
 OBJECTS += runtime.o
-OBJECTS += safemalloc.o
 OBJECTS += scene.o
 OBJECTS += server.o
 
 LINKS := -ldl -lm -lpthread
 
 EXTGL := -lGL -lGLU -lglut
-INCDIRS := -I$(EXTDIR)
-LINKDIRS :=
-PREPROC :=
+INCD := -I$(COMMON)
+LINKD :=
+DEFS :=
+MAINSRC := main_glut.c
 
 # Raspberry Pi
 eglbcm-server : EXTGL := -lbcm_host -lEGL -lGLESv2
-eglbcm-server : INCDIRS := -I/opt/vc/include
-eglbcm-server : LINKDIRS := -L/opt/vc/lib
-eglbcm-server : PREPROC := -DRASPBERRYPI
+eglbcm-server : INCD += -I/opt/vc/include
+eglbcm-server : LINKD := -L/opt/vc/lib
+eglbcm-server : DEFS := -DRASPBERRYPI
+eglbcm-server : MAINSRC := main_eglbcm.c
 
 # Linux without X
 eglkms-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
-eglkms-server : INCDIRS := -I/usr/include/libdrm
-eglkms-server : PREPROC := -DEGLGBM
+eglkms-server : INCD += -I/usr/include/libdrm
+eglkms-server : DEFS := -DEGLGBM
+eglbcm-server : MAINSRC := main_eglkms.c
 
 all: x11-server
 
-x11-server: main_glut.c $(OBJECTS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(LINKS) $(EXTGL) -o vroom-server $(OBJECTS) $<
+x11-server: vroom-server
+eglbcm-server: vroom-server
+eglkms-server: vroom-server
 
-eglbcm-server: main_eglbcm.c $(OBJECTS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(LINKS) $(EXTGL) -o vroom-server $(OBJECTS) $<
+commonlibs:
+	cd $(COMMON) && make
 
-eglkms-server: main_eglkms.c $(OBJECTS)
-	$(CC) $(CFLAGS) $(PREPROC) $(LINKDIRS) $(INCDIRS) $(LINKS) $(EXTGL) -o vroom-server $(OBJECTS) $<
+vroom-server: $(MAINSRC) commonlibs $(OBJECTS)
+	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(COMMON)/esm.o $(COMMON)/safemalloc.o $<
 
 %.o: %.c %.h
-	$(CC) $(CFLAGS) $(PREPROC) $(INCDIRS) -c -o $@ $<
+	$(CC) $(CFLAGS) $(DEFS) $(INCD) -c -o $@ $<
 
 clean:
 	rm -f *.o
 	rm -f vroom-server
+	cd $(COMMON) && make clean
+
