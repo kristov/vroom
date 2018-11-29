@@ -3,11 +3,15 @@ CFLAGS := -Wall -Werror -ggdb
 
 OBJECTS =
 OBJECTS += pb.o
+OBJECTS += pb_pic.o
 
 all: $(OBJECTS)
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+pb_pic.o: pb.c pb.h
+	$(CC) $(CFLAGS) -c -fPIC -o $@ $<
 
 protobuf: vroom.proto
 	protoc-c --c_out=. vroom.proto

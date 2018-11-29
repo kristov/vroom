@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include "array_heap.h"
-#include "vroom_pb.h"
+#include "pb.h"
 #include "runtime.h"
 #include "safemalloc.h"
 
