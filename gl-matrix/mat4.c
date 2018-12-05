@@ -209,6 +209,13 @@ void mat4_translate(float dst[16], float v[3]) {
     dst[15] = dst[3] * x + dst[7] * y + dst[11] * z + dst[15];
 }
 
+void mat4_translatef(float dst[16], float x, float y, float z) {
+    dst[12] = dst[0] * x + dst[4] * y + dst[8] * z + dst[12];
+    dst[13] = dst[1] * x + dst[5] * y + dst[9] * z + dst[13];
+    dst[14] = dst[2] * x + dst[6] * y + dst[10] * z + dst[14];
+    dst[15] = dst[3] * x + dst[7] * y + dst[11] * z + dst[15];
+}
+
 void mat4_scale(float* dst, float* v) {
     float x = v[0], y = v[1], z = v[2];
 

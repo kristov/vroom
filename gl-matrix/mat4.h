@@ -87,6 +87,16 @@ void mat4_multiply(float* dst, float* b);
 void mat4_translate(float dst[16], float v[3]);
 
 /**
+ * Translate a mat4 by the given flat 4 floats
+ *
+ * @param {mat4} out the receiving matrix
+ * @param {x} X translation
+ * @param {y} Y translation
+ * @param {z} Z translation
+ */
+void mat4_translatef(float dst[16], float x, float y, float z);
+
+/**
  * Scales the mat4 by the dimensions in the given vec3 not using vectorization
  *
  * @param {mat4} out the receiving matrix

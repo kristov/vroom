@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <GL/glut.h>
-#include "esm.h"
+#include "gl-matrix.h"
 #include "runtime.h"
 
 #define PI    3.141593f
@@ -27,9 +27,9 @@ void motion(int x, int y) {
     xangle = TWOPI * xpct;
     yangle = (PI * ypct) - (PI / 2);
 
-    esmLoadIdentity(view_matrix);
-    esmRotatef(view_matrix, yangle, 1, 0, 0);
-    esmRotatef(view_matrix, xangle, 0, 1, 0);
+    mat4_identity(view_matrix);
+    mat4_rotateX(view_matrix, yangle);
+    mat4_rotateY(view_matrix, xangle);
     vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, view_matrix);
 }
 

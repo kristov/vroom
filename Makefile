@@ -4,6 +4,7 @@ CFLAGS := -Wall -Werror -ggdb
 COMMON = common
 MODULE = module
 PROTOCOL = protocol
+GLMATRIX = gl-matrix
 
 OBJECTS =
 OBJECTS += gl.o
@@ -18,7 +19,7 @@ OBJECTS += server.o
 LINKS = -ldl -lm -lpthread
 
 EXTGL =
-INCD = -I$(COMMON)
+INCD = -I$(COMMON) -I$(GLMATRIX)
 LINKD =
 DEFS =
 MAINSRC =
@@ -48,18 +49,21 @@ eglbcm-server: vroom-server
 eglkms-server: vroom-server
 
 vroom-server: $(MAINSRC) $(OBJECTS)
-	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(COMMON)/esm.o $(COMMON)/safemalloc.o $(MAINSRC)
+	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(GLMATRIX)/gl-matrix.o $(COMMON)/safemalloc.o $(MAINSRC)
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) $(DEFS) $(INCD) -c -o $@ $<
 
-deps: commonlibs protocol-c modules
+deps: gl-matrix commonlibs protocol-c modules
 
 commonlibs:
 	cd $(COMMON) && make
 
 modules:
 	cd $(MODULE) && make
+
+gl-matrix:
+	cd $(GLMATRIX) && make
 
 protocol-c:
 	cd $(PROTOCOL)/c && make
@@ -69,5 +73,6 @@ clean:
 	rm -f vroom-server
 	cd $(COMMON) && make clean
 	cd $(MODULE) && make clean
+	cd $(GLMATRIX) && make clean
 	cd $(PROTOCOL)/c && make clean
 

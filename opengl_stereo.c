@@ -6,7 +6,7 @@
 #include "safemalloc.h"
 #include "opengl_stereo.h"
 #include "ogl_shader_loader.h"
-#include "esm.h"
+#include "gl-matrix.h"
 
 #ifdef RASPBERRYPI
 static char screen_vert[] = "shaders/100/screen_vert.glsl";
@@ -202,7 +202,7 @@ void opengl_stereo_create_render_texture(opengl_stereo* ostereo) {
 
 void opengl_stereo_camera_frustrum_L(opengl_stereo_camera* left_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
     left_camera->model_translation = IODh;
-    esmFrustumf(
+    mat4_frustum(
         left_camera->projection_matrix,
         -right + frustumshift,
         right + frustumshift,
@@ -215,7 +215,7 @@ void opengl_stereo_camera_frustrum_L(opengl_stereo_camera* left_camera, double I
 
 void opengl_stereo_camera_frustrum_R(opengl_stereo_camera* right_camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
     right_camera->model_translation = -IODh;
-    esmFrustumf(
+    mat4_frustum(
         right_camera->projection_matrix,
         -right - frustumshift,
         right - frustumshift,
@@ -228,7 +228,7 @@ void opengl_stereo_camera_frustrum_R(opengl_stereo_camera* right_camera, double 
 
 void opengl_stereo_camera_frustrum_I(opengl_stereo_camera* camera, double IODh, double top, double right, double frustumshift, double nearZ, double farZ) {
     camera->model_translation = 0.0;
-    esmFrustumf(
+    mat4_frustum(
         camera->projection_matrix,
         -right,
         right,
@@ -275,12 +275,12 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, ostereo->width / 2, ostereo->height);
 
-    esmLoadIdentity(ostereo->view_matrix);
-    esmLoadIdentity(ostereo->model_matrix);
+    mat4_identity(ostereo->view_matrix);
+    mat4_identity(ostereo->model_matrix);
 
-    ostereo->projection_matrix = ostereo->left_camera->projection_matrix;
-    esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_copy(ostereo->projection_matrix, ostereo->left_camera->projection_matrix);
+    mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
+    mat4_translatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 
@@ -293,8 +293,8 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     //glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
     //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    esmLoadIdentity(ostereo->screen_matrix);
-    esmTranslatef(ostereo->screen_matrix, -1.0 + ostereo->texture_shift, -1.0, 0.0);
+    mat4_identity(ostereo->screen_matrix);
+    mat4_translatef(ostereo->screen_matrix, -1.0 + ostereo->texture_shift, -1.0, 0.0);
 
     m_projection = glGetUniformLocation(ostereo->screen_shader_program_id, "m_projection");
     glUniformMatrix4fv(m_projection, 1, GL_FALSE, ostereo->screen_matrix);
@@ -319,12 +319,12 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, ostereo->width / 2, ostereo->height);
 
-    esmLoadIdentity(ostereo->view_matrix);
-    esmLoadIdentity(ostereo->model_matrix);
+    mat4_identity(ostereo->view_matrix);
+    mat4_identity(ostereo->model_matrix);
 
-    ostereo->projection_matrix = ostereo->right_camera->projection_matrix;
-    esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    esmTranslatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_copy(ostereo->projection_matrix, ostereo->right_camera->projection_matrix);
+    mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
+    mat4_translatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 
@@ -337,8 +337,8 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     //glClearColor(0.0f, 0.8f, 0.8f, 1.0f);
     //glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-    esmLoadIdentity(ostereo->screen_matrix);
-    esmTranslatef(ostereo->screen_matrix, -1.0 - ostereo->texture_shift, -1.0, 0.0);
+    mat4_identity(ostereo->screen_matrix);
+    mat4_translatef(ostereo->screen_matrix, -1.0 - ostereo->texture_shift, -1.0, 0.0);
 
     m_projection = glGetUniformLocation(ostereo->screen_shader_program_id, "m_projection");
     glUniformMatrix4fv(m_projection, 1, GL_FALSE, ostereo->screen_matrix);
@@ -361,11 +361,11 @@ void opengl_stereo_render_mono_scene(opengl_stereo* ostereo) {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glViewport(0, 0, ostereo->width, ostereo->height);
 
-    esmLoadIdentity(ostereo->view_matrix);
-    esmLoadIdentity(ostereo->model_matrix);
+    mat4_identity(ostereo->view_matrix);
+    mat4_identity(ostereo->model_matrix);
 
-    esmMultiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    esmTranslatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
+    mat4_translatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 }
@@ -467,7 +467,6 @@ void opengl_stereo_init(opengl_stereo* ostereo) {
 opengl_stereo_camera* opengl_stereo_camera_new() {
     opengl_stereo_camera* camera = SAFEMALLOC(sizeof(opengl_stereo_camera));
     memset(camera, 0, sizeof(opengl_stereo_camera));
-    camera->projection_matrix = esmCreate();
     camera->model_translation = 0.0f;
     return camera;
 }
@@ -493,10 +492,10 @@ opengl_stereo* opengl_stereo_create(int width, int height, double physical_width
     ostereo->right_camera = opengl_stereo_camera_new();
     ostereo->skybox_camera = opengl_stereo_camera_new();
     ostereo->screen_buffers = opengl_stereo_buffer_store_new();
-    ostereo->screen_matrix = esmCreate();
-    ostereo->model_matrix = esmCreate();
-    ostereo->view_matrix = esmCreate();
-    ostereo->hmd_matrix = esmCreate();
+    mat4_identity(ostereo->screen_matrix);
+    mat4_identity(ostereo->model_matrix);
+    mat4_identity(ostereo->view_matrix);
+    mat4_identity(ostereo->hmd_matrix);
     opengl_stereo_init(ostereo);
     return ostereo;
 }

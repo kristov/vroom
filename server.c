@@ -21,7 +21,7 @@
 #include "render_vm.h"
 #include "scene.h"
 #include "server.h"
-#include "esm.h"
+#include "gl-matrix.h"
 
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
@@ -73,6 +73,7 @@ typedef struct vrms_queue_item {
 vrms_server_t* vrms_server_create() {
     vrms_server_t* server = SAFEMALLOC(sizeof(vrms_server_t));
     //vrms_server_t* server = SAFEMALLOC(-1UL);
+    memset(server, 0, sizeof(vrms_server_t));
 
     server->scenes = SAFEMALLOC(sizeof(vrms_scene_t) * 10);
     memset(server->scenes, 0, sizeof(vrms_scene_t) * 10);
@@ -84,8 +85,8 @@ vrms_server_t* vrms_server_create() {
     server->inbound_queue_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
     memset(server->inbound_queue_lock, 0, sizeof(pthread_mutex_t));
 
-    server->head_matrix = esmCreate();
-    server->body_matrix = esmCreate();
+    mat4_identity(server->head_matrix);
+    mat4_identity(server->body_matrix);
 
     return server;
 }
@@ -219,18 +220,18 @@ void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_t
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    float* mvp_matrix;
-    float* mv_matrix;
+void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
+    float mvp_matrix[16];
+    float mv_matrix[16];
     vrms_gl_render_t render;
     vrms_gl_matrix_t matrix;
 
-    mv_matrix = esmCreateCopy(view_matrix);
-    esmMultiply(mv_matrix, model_matrix);
+    mat4_copy(mv_matrix, view_matrix);
+    mat4_multiply(mv_matrix, model_matrix);
 
-    mvp_matrix = esmCreateCopy(projection_matrix);
-    esmMultiply(mvp_matrix, view_matrix);
-    esmMultiply(mvp_matrix, model_matrix);
+    mat4_copy(mvp_matrix, projection_matrix);
+    mat4_multiply(mvp_matrix, view_matrix);
+    mat4_multiply(mvp_matrix, model_matrix);
 
     matrix.mv = mv_matrix;
     matrix.mvp = mvp_matrix;
@@ -242,23 +243,20 @@ void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t
     render.nr_indicies = mesh->nr_indicies;
 
     vrms_gl_draw_mesh_color(render, matrix, mesh->r, mesh->g, mesh->b, mesh->a);
-
-    esmDestroy(mvp_matrix);
-    esmDestroy(mv_matrix);
 }
 
-void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    float* mvp_matrix;
-    float* mv_matrix;
+void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
+    float mvp_matrix[16];
+    float mv_matrix[16];
     vrms_gl_render_t render;
     vrms_gl_matrix_t matrix;
 
-    mv_matrix = esmCreateCopy(view_matrix);
-    esmMultiply(mv_matrix, model_matrix);
+    mat4_copy(mv_matrix, view_matrix);
+    mat4_multiply(mv_matrix, model_matrix);
 
-    mvp_matrix = esmCreateCopy(projection_matrix);
-    esmMultiply(mvp_matrix, view_matrix);
-    esmMultiply(mvp_matrix, model_matrix);
+    mat4_copy(mvp_matrix, projection_matrix);
+    mat4_multiply(mvp_matrix, view_matrix);
+    mat4_multiply(mvp_matrix, model_matrix);
 
     matrix.mv = mv_matrix;
     matrix.mvp = mvp_matrix;
@@ -272,18 +270,15 @@ void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_textu
     render.nr_indicies = mesh->nr_indicies;
 
     vrms_gl_draw_mesh_texture(render, matrix);
-
-    esmDestroy(mvp_matrix);
-    esmDestroy(mv_matrix);
 }
 
-void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float* projection_matrix, float* view_matrix, float* model_matrix) {
-    float* mvp_matrix;
+void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
+    float mvp_matrix[16];
     vrms_gl_render_t render;
     vrms_gl_matrix_t matrix;
 
-    mvp_matrix = esmCreateCopy(projection_matrix);
-    esmMultiply(mvp_matrix, view_matrix);
+    mat4_copy(mvp_matrix, projection_matrix);
+    mat4_multiply(mvp_matrix, view_matrix);
 
     matrix.mvp = mvp_matrix;
 
@@ -293,11 +288,9 @@ void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox
     render.index_id = skybox->index_gl_id;
 
     vrms_gl_draw_skybox(render, matrix);
-
-    esmDestroy(mvp_matrix);
 }
 
-void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
+void vrms_server_draw_scenes(vrms_server_t* server, float projection_matrix[16], float view_matrix[16], float model_matrix[16], float skybox_projection_matrix[16]) {
     int si;//, oi;
     vrms_scene_t* scene;
     uint32_t usec_elapsed;
@@ -308,7 +301,7 @@ void vrms_server_draw_scenes(vrms_server_t* server, float* projection_matrix, fl
     // other scenes starve. Sounds a bit like a task scheduler.
     usec_elapsed = 0;
     for (si = 1; si < server->next_scene_id; si++) {
-        esmLoadIdentity(model_matrix);
+        mat4_identity(model_matrix);
         scene = server->scenes[si];
         if (NULL != scene) {
             usec_elapsed += vrms_scene_draw(scene, projection_matrix, view_matrix, model_matrix, skybox_projection_matrix);

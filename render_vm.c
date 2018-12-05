@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "esm.h"
+#include "gl-matrix.h"
 #include "render_vm.h"
 
 /*
@@ -96,7 +96,7 @@ void vrms_render_vm_mregister_set_identity(vrms_render_vm_t* vm, uint8_t reg) {
     if (reg >= NUM_REGS) {
         return;
     }
-    esmLoadIdentity(&vm->mregister[reg * 16]);
+    mat4_identity(&vm->mregister[reg * 16]);
 }
 
 float* vrms_render_vm_sysmregister_get(vrms_render_vm_t* vm, vrms_render_vm_sysmreg_t reg) {
@@ -943,7 +943,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
                 break;
             }
             reg1 = reg1 * 16;
-            esmLoadIdentity(&vm->mregister[reg1]);
+            mat4_identity(&vm->mregister[reg1]);
             break;
         case VM_MATLS:
             // Load a matrix register from one of the system matrix registers
@@ -969,7 +969,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             }
             reg1 = reg1 * 16;
             reg2 = reg2 * 16;
-            esmMultiply(&vm->mregister[reg1], &vm->mregister[reg2]);
+            mat4_multiply(&vm->mregister[reg1], &vm->mregister[reg2]);
             break;
         case VM_MATMTV:
             // Translate a matrix register by a vector register
@@ -989,7 +989,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
             }
             reg1 = reg1 * 16;
             reg2 = reg2 * 3;
-            esmTranslatef(&vm->mregister[reg1], vm->vregister[reg2 + VM_VREG_X], vm->vregister[reg2 + VM_VREG_Y], vm->vregister[reg2 + VM_VREG_Z]);
+            mat4_translatef(&vm->mregister[reg1], vm->vregister[reg2 + VM_VREG_X], vm->vregister[reg2 + VM_VREG_Y], vm->vregister[reg2 + VM_VREG_Z]);
             break;
         case VM_MATMRX:
             // Rotate a matrix around the X axis by a float register
@@ -1008,7 +1008,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
                 break;
             }
             reg1 = reg1 * 16;
-            esmRotatef(&vm->mregister[reg1], vm->fregister[reg2], 1, 0, 0);
+            mat4_rotateX(&vm->mregister[reg1], vm->fregister[reg2]);
             break;
         case VM_MATMRY:
             // Rotate a matrix around the Y axis by a float register
@@ -1027,7 +1027,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
                 break;
             }
             reg1 = reg1 * 16;
-            esmRotatef(&vm->mregister[reg1], vm->fregister[reg2], 0, 1, 0);
+            mat4_rotateY(&vm->mregister[reg1], vm->fregister[reg2]);
             break;
         case VM_MATMRZ:
             // Rotate a matrix around the Z axis by a float register
@@ -1046,7 +1046,7 @@ uint8_t vrms_render_vm_exec(vrms_render_vm_t* vm, uint8_t* program, uint32_t len
                 break;
             }
             reg1 = reg1 * 16;
-            esmRotatef(&vm->mregister[reg1], vm->fregister[reg2], 0, 0, 1);
+            mat4_rotateZ(&vm->mregister[reg1], vm->fregister[reg2]);
             break;
 
         // Drawing instructions

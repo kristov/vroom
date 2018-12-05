@@ -4,8 +4,8 @@
 #include "gl_compat.h"
 
 typedef struct opengl_stereo_camera {
-    float* projection_matrix;
-    GLfloat model_translation;
+    float projection_matrix[16];
+    float model_translation;
 } opengl_stereo_camera;
 
 typedef struct opengl_stereo_buffer_store {
@@ -32,15 +32,15 @@ typedef struct opengl_stereo {
     GLuint screen_plane_vdb;
     GLuint screen_plane_idb;
     GLuint screen_text_offset;
-    float* screen_matrix;
+    float screen_matrix[16];
     GLuint screen_shader_program_id;
     GLuint onecolor_shader_id;
     GLuint texture_shader_id;
     GLuint cubemap_shader_id;
-    float* model_matrix;
-    float* view_matrix;
-    float* hmd_matrix;
-    float* projection_matrix;
+    float model_matrix[16];
+    float view_matrix[16];
+    float hmd_matrix[16];
+    float projection_matrix[16];
     ostereo_draw_scene_callback_t draw_scene_callback;
     void* draw_scene_callback_data;
     GLuint barrel_power_id;
