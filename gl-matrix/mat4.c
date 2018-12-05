@@ -3,7 +3,7 @@
 #include <math.h>
 #include <float.h>
 
-void mat4_identity(float* dst) {
+void mat4_identity(float dst[16]) {
     dst[0] = 1;
     dst[1] = 0;
     dst[2] = 0;
@@ -201,7 +201,7 @@ void mat4_multiply(float* dst, float* b) {
     dst[15] = b0*a03 + b1*a13 + b2*a23 + b3*a33;
 }
 
-void mat4_translate(float* dst, float* v) {
+void mat4_translate(float dst[16], float v[3]) {
     float x = v[0], y = v[1], z = v[2];
     dst[12] = dst[0] * x + dst[4] * y + dst[8] * z + dst[12];
     dst[13] = dst[1] * x + dst[5] * y + dst[9] * z + dst[13];

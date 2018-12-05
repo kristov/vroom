@@ -8,7 +8,7 @@
  *
  * @param {mat4} out the receiving matrix
  */
-void mat4_identity(float* dst);
+void mat4_identity(float dst[16]);
 
 /**
  * Copy the values from one mat4 to another
@@ -84,7 +84,7 @@ void mat4_multiply(float* dst, float* b);
  * @param {mat4} out the receiving matrix
  * @param {vec3} v vector to translate by
  */
-void mat4_translate(float* dst, float* v);
+void mat4_translate(float dst[16], float v[3]);
 
 /**
  * Scales the mat4 by the dimensions in the given vec3 not using vectorization

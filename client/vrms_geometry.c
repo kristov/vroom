@@ -944,7 +944,7 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     vec3[2] = z;
 
     mat4_identity(model_matrix);
-    mat4_translate(model_matrix, (float*)&vec3);
+    mat4_translate(model_matrix, vec3);
 
     matrix_data_id = vrms_client_create_data_object(client, memory_id, 0, matrix_size, matrix_size, sizeof(float), VRMS_MATRIX);
     if (0 == matrix_data_id) {
