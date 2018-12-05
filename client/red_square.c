@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include "vrms_client.h"
 #include "vrms_geometry.h"
-#include "esm.h"
 
 int main(void) {
     vrms_client_t* client = vrms_connect();

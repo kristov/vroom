@@ -2,7 +2,10 @@ CC := gcc
 CFLAGS := -Wall -Werror -ggdb
 
 EXTDIR := external
-INCDIRS := -I../protocol -I../ -Iexternal
+PROTODIR := ../protocol/c
+COMMON := ../common
+GLMATRIX := ../gl-matrix
+INCDIRS := -I$(PROTODIR) -I$(COMMON) -I$(GLMATRIX) -I../ -Iexternal
 
 CLIENTS =
 CLIENTS += green_cube
@@ -23,7 +26,7 @@ all: clients
 clients: $(OBJECTS) $(CLIENTS)
 
 %: %.c $(OBJECTS)
-	$(CC) $(CFLAGS) $(LINKS) $(INCDIRS) -o $@ $(OBJECTS) ../protocol/pb.o $<
+	$(CC) $(CFLAGS) $(LINKS) $(INCDIRS) -o $@ $(OBJECTS) $(PROTODIR)/pb.o $(GLMATRIX)/gl-matrix.o $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(LINKS) $(INCDIRS) -c -o $@ $<

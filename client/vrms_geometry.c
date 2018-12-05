@@ -4,7 +4,7 @@
 #include "vrms_client.h"
 #include "render_vm.h"
 #include "vrms_geometry.h"
-#include "esm.h"
+#include "gl-matrix.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -919,6 +919,7 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     uint32_t* registers;
     uint32_t prog_off;
     uint32_t reg_off;
+    float vec3[3];
 
     matrix_size = sizeof(float) * 16;
     prog_size = sizeof(uint8_t) * 10;
@@ -938,8 +939,12 @@ uint8_t vrms_geometry_render_buffer_basic(vrms_client_t* client, uint32_t object
     program = ((uint8_t*)&shared_mem[prog_off]);
     registers = ((uint32_t*)&shared_mem[reg_off]);
 
-    esmLoadIdentity(model_matrix);
-    esmTranslatef(model_matrix, x, y, z);
+    vec3[0] = x;
+    vec3[1] = y;
+    vec3[2] = z;
+
+    mat4_identity(model_matrix);
+    mat4_translate(model_matrix, (float*)&vec3);
 
     matrix_data_id = vrms_client_create_data_object(client, memory_id, 0, matrix_size, matrix_size, sizeof(float), VRMS_MATRIX);
     if (0 == matrix_data_id) {
