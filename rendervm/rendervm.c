@@ -87,6 +87,8 @@ const char *opcode2str[] = {
     "UINT32_JUMPZ",
     "UINT32_MOVE_UINT8",
     "UINT32_PUSH",
+    "UINT32_REG_GET",
+    "UINT32_REG_SET",
     "FLOAT_POP",
     "FLOAT_DUP",
     "FLOAT_SWAP",
@@ -507,6 +509,16 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->b3 = NCODE(vm);
             u320 = UINT32_MAKE(vm);
             UINT32_PUSH(vm, u320);
+            break;
+        case VM_UINT32_REG_GET:
+            u80 = NCODE(vm);
+            if (u80 > 9) break;
+            UINT32_PUSH(vm, vm->draw_reg[u80]);
+            break;
+        case VM_UINT32_REG_SET:
+            u80 = NCODE(vm);
+            if (u80 > 9) break;
+            vm->draw_reg[u80] = UINT32_POP(vm);
             break;
         case VM_FLOAT_POP:
             u80 = NCODE(vm);

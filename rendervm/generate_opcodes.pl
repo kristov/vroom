@@ -236,6 +236,16 @@ my %CUSTOM = (
             type   => [TYPE_STACK],
             stacks => [qw(uint8.- STACK.+)],
         },
+        REG_SET => {
+            desc   => "Move a value from the [STACK] stack to a draw register.",
+            type   => ['uint8'],
+            stacks => [qw(STACK.-)],
+        },
+        REG_GET => {
+            desc   => "Copy a value from the draw register to the [STACK] stack.",
+            type   => ['uint8'],
+            stacks => [qw(STACK.+)],
+        },
     },
     FLOAT => {
         ADDN => {

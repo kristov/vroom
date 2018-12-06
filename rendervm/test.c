@@ -552,7 +552,25 @@ void test_opcode_UINT32_MOVE_UINT8(test_harness_t* test, rendervm_t* vm) {
 void test_opcode_UINT32_PUSH(test_harness_t* test, rendervm_t* vm) {
     uint8_t program[] = {VM_UINT32_PUSH, 0x19, 0x00, 0x00, 0x00};
     rendervm_exec(vm, program, 5);
-    is_equal_float(test, vm->uint32_stack[0], 25, "OP UINT32_PUSH: value correct");
+    is_equal_uint32(test, vm->uint32_stack[0], 25, "OP UINT32_PUSH: value correct");
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_REG_GET(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_REG_GET, 0x03};
+    vm->draw_reg[3] = 25;
+    rendervm_exec(vm, program, 2);
+    is_equal_uint32(test, vm->uint32_stack[0], 25, "OP UINT32_REG_GET: value correct");
+    vm->draw_reg[3] = 0;
+    rendervm_reset(vm);
+}
+
+void test_opcode_UINT32_REG_SET(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {VM_UINT32_REG_SET, 0x03};
+    vm->draw_reg[3] = 0;
+    vm->uint32_stack[++vm->uint32_sp] = 25;
+    rendervm_exec(vm, program, 2);
+    is_equal_uint32(test, vm->draw_reg[3], 25, "OP UINT32_REG_SET: value correct");
     rendervm_reset(vm);
 }
 
@@ -1322,6 +1340,8 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_UINT32_JUMPZ(test, vm);
     test_opcode_UINT32_MOVE_UINT8(test, vm);
     test_opcode_UINT32_PUSH(test, vm);
+    test_opcode_UINT32_REG_GET(test, vm);
+    test_opcode_UINT32_REG_SET(test, vm);
     test_opcode_FLOAT_POP(test, vm);
     test_opcode_FLOAT_DUP(test, vm);
     test_opcode_FLOAT_SWAP(test, vm);
