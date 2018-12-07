@@ -1289,6 +1289,19 @@ void test_opcode_MAT4_TRANSP(test_harness_t* test, rendervm_t* vm) {
     rendervm_reset(vm);
 }
 
+void test_opcode_CUSTOM_callback(rendervm_t* vm, rendervm_opcode_t opcode, void* user_data) {
+    test_harness_t* test = (test_harness_t*)user_data;
+    test_harness_make_note(test, "OP CUSTOM: Received callback");
+    is_equal_uint8(test, opcode, 0xc8, "OP CUSTOM: received the correct opcode");
+}
+
+void test_opcode_CUSTOM(test_harness_t* test, rendervm_t* vm) {
+    uint8_t program[] = {0xc8};
+    rendervm_attach_callback(vm, test_opcode_CUSTOM_callback, (void*)test);
+    rendervm_exec(vm, program, 1);
+    rendervm_reset(vm);
+}
+
 void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     test_opcode_HALT(test, vm);
     test_opcode_YIELD(test, vm);
@@ -1450,6 +1463,7 @@ void test_all_opcodes(test_harness_t* test, rendervm_t* vm) {
     //test_opcode_MAT4_SCALE(test, vm);
     //test_opcode_MAT4_TRANSL(test, vm);
     //test_opcode_MAT4_TRANSP(test, vm);
+    test_opcode_CUSTOM(test, vm);
 }
 
 int main(void) {

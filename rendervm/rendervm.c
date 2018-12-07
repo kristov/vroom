@@ -999,11 +999,19 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->running = 0;
             break;
         default:
+            if (vm->callback != NULL) {
+                vm->callback(vm, opcode, vm->user_data);
+            }
             break;
     }
     vm->last_opcode = opcode;
 
     return vm->running;
+}
+
+void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data) {
+    vm->callback = callback;
+    vm->user_data = user_data;
 }
 
 const char* rendervm_opcode2str(rendervm_opcode_t opcode) {

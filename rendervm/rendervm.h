@@ -6,6 +6,11 @@
 #define VM_MAX_ADDR      255
 #define VM_STACK_SIZE    256
 
+typedef struct rendervm rendervm_t;
+typedef enum rendervm_opcode rendervm_opcode_t;
+
+typedef void (*rendervm_callback_t)(rendervm_t* vm, rendervm_opcode_t opcode, void* user_data);
+
 typedef struct rendervm {
     uint16_t pc;
 
@@ -63,6 +68,9 @@ typedef struct rendervm {
 
     uint8_t running;
     uint8_t last_opcode;
+
+    void* user_data;
+    rendervm_callback_t callback;
 } rendervm_t;
 
 typedef enum rendervm_opcode {
@@ -238,5 +246,6 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length);
 const char* rendervm_opcode2str(rendervm_opcode_t opcode);
 //void rendervm_alloc_ex_interrupt(rendervm_t* vm);
 //uint8_t rendervm_has_exception(rendervm_t* vm);
+void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data);
 
 #endif
