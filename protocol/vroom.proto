@@ -60,11 +60,6 @@ message CreateTextureObject {
     required Type type = 6;
 }
 
-message CreateProgram {
-    required int32 scene_id = 1;
-    required int32 data_id = 2;
-}
-
 message RunProgram {
     required int32 scene_id = 1;
     required int32 program_id = 2;
@@ -90,29 +85,6 @@ message UpdateSystemMatrix {
 message DestroyObject {
     required int32 scene_id = 1;
     required int32 id = 2;
-}
-
-message CreateGeometryObject {
-    required int32 scene_id = 1;
-    required int32 vertex_id = 2;
-    required int32 normal_id = 3;
-    required int32 index_id = 4;
-}
-
-message CreateMeshColor {
-    required int32 scene_id = 1;
-    required int32 geometry_id = 2;
-    required float r = 3;
-    required float g = 4;
-    required float b = 5;
-    required float a = 6;
-}
-
-message CreateMeshTexture {
-    required int32 scene_id = 1;
-    required int32 geometry_id = 2;
-    required int32 texture_id = 3;
-    required int32 uv_id = 4;
 }
 
 message CreateSkybox {

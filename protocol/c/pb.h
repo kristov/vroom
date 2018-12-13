@@ -21,13 +21,9 @@ typedef struct _DestroyScene DestroyScene;
 typedef struct _CreateMemory CreateMemory;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _CreateTextureObject CreateTextureObject;
-typedef struct _CreateProgram CreateProgram;
 typedef struct _RunProgram RunProgram;
 typedef struct _UpdateSystemMatrix UpdateSystemMatrix;
 typedef struct _DestroyObject DestroyObject;
-typedef struct _CreateGeometryObject CreateGeometryObject;
-typedef struct _CreateMeshColor CreateMeshColor;
-typedef struct _CreateMeshTexture CreateMeshTexture;
 typedef struct _CreateSkybox CreateSkybox;
 
 
@@ -145,17 +141,6 @@ struct  _CreateTextureObject
     , 0, 0, 0, 0, 0, 0 }
 
 
-struct  _CreateProgram
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  int32_t data_id;
-};
-#define CREATE_PROGRAM__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_program__descriptor) \
-    , 0, 0 }
-
-
 struct  _RunProgram
 {
   ProtobufCMessage base;
@@ -191,47 +176,6 @@ struct  _DestroyObject
 #define DESTROY_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&destroy_object__descriptor) \
     , 0, 0 }
-
-
-struct  _CreateGeometryObject
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  int32_t vertex_id;
-  int32_t normal_id;
-  int32_t index_id;
-};
-#define CREATE_GEOMETRY_OBJECT__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_geometry_object__descriptor) \
-    , 0, 0, 0, 0 }
-
-
-struct  _CreateMeshColor
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  int32_t geometry_id;
-  float r;
-  float g;
-  float b;
-  float a;
-};
-#define CREATE_MESH_COLOR__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_mesh_color__descriptor) \
-    , 0, 0, 0, 0, 0, 0 }
-
-
-struct  _CreateMeshTexture
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  int32_t geometry_id;
-  int32_t texture_id;
-  int32_t uv_id;
-};
-#define CREATE_MESH_TEXTURE__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_mesh_texture__descriptor) \
-    , 0, 0, 0, 0 }
 
 
 struct  _CreateSkybox
@@ -360,25 +304,6 @@ CreateTextureObject *
 void   create_texture_object__free_unpacked
                      (CreateTextureObject *message,
                       ProtobufCAllocator *allocator);
-/* CreateProgram methods */
-void   create_program__init
-                     (CreateProgram         *message);
-size_t create_program__get_packed_size
-                     (const CreateProgram   *message);
-size_t create_program__pack
-                     (const CreateProgram   *message,
-                      uint8_t             *out);
-size_t create_program__pack_to_buffer
-                     (const CreateProgram   *message,
-                      ProtobufCBuffer     *buffer);
-CreateProgram *
-       create_program__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   create_program__free_unpacked
-                     (CreateProgram *message,
-                      ProtobufCAllocator *allocator);
 /* RunProgram methods */
 void   run_program__init
                      (RunProgram         *message);
@@ -436,63 +361,6 @@ DestroyObject *
 void   destroy_object__free_unpacked
                      (DestroyObject *message,
                       ProtobufCAllocator *allocator);
-/* CreateGeometryObject methods */
-void   create_geometry_object__init
-                     (CreateGeometryObject         *message);
-size_t create_geometry_object__get_packed_size
-                     (const CreateGeometryObject   *message);
-size_t create_geometry_object__pack
-                     (const CreateGeometryObject   *message,
-                      uint8_t             *out);
-size_t create_geometry_object__pack_to_buffer
-                     (const CreateGeometryObject   *message,
-                      ProtobufCBuffer     *buffer);
-CreateGeometryObject *
-       create_geometry_object__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   create_geometry_object__free_unpacked
-                     (CreateGeometryObject *message,
-                      ProtobufCAllocator *allocator);
-/* CreateMeshColor methods */
-void   create_mesh_color__init
-                     (CreateMeshColor         *message);
-size_t create_mesh_color__get_packed_size
-                     (const CreateMeshColor   *message);
-size_t create_mesh_color__pack
-                     (const CreateMeshColor   *message,
-                      uint8_t             *out);
-size_t create_mesh_color__pack_to_buffer
-                     (const CreateMeshColor   *message,
-                      ProtobufCBuffer     *buffer);
-CreateMeshColor *
-       create_mesh_color__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   create_mesh_color__free_unpacked
-                     (CreateMeshColor *message,
-                      ProtobufCAllocator *allocator);
-/* CreateMeshTexture methods */
-void   create_mesh_texture__init
-                     (CreateMeshTexture         *message);
-size_t create_mesh_texture__get_packed_size
-                     (const CreateMeshTexture   *message);
-size_t create_mesh_texture__pack
-                     (const CreateMeshTexture   *message,
-                      uint8_t             *out);
-size_t create_mesh_texture__pack_to_buffer
-                     (const CreateMeshTexture   *message,
-                      ProtobufCBuffer     *buffer);
-CreateMeshTexture *
-       create_mesh_texture__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   create_mesh_texture__free_unpacked
-                     (CreateMeshTexture *message,
-                      ProtobufCAllocator *allocator);
 /* CreateSkybox methods */
 void   create_skybox__init
                      (CreateSkybox         *message);
@@ -532,9 +400,6 @@ typedef void (*CreateDataObject_Closure)
 typedef void (*CreateTextureObject_Closure)
                  (const CreateTextureObject *message,
                   void *closure_data);
-typedef void (*CreateProgram_Closure)
-                 (const CreateProgram *message,
-                  void *closure_data);
 typedef void (*RunProgram_Closure)
                  (const RunProgram *message,
                   void *closure_data);
@@ -543,15 +408,6 @@ typedef void (*UpdateSystemMatrix_Closure)
                   void *closure_data);
 typedef void (*DestroyObject_Closure)
                  (const DestroyObject *message,
-                  void *closure_data);
-typedef void (*CreateGeometryObject_Closure)
-                 (const CreateGeometryObject *message,
-                  void *closure_data);
-typedef void (*CreateMeshColor_Closure)
-                 (const CreateMeshColor *message,
-                  void *closure_data);
-typedef void (*CreateMeshTexture_Closure)
-                 (const CreateMeshTexture *message,
                   void *closure_data);
 typedef void (*CreateSkybox_Closure)
                  (const CreateSkybox *message,
@@ -571,15 +427,11 @@ extern const ProtobufCEnumDescriptor    create_data_object__type__descriptor;
 extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__type__descriptor;
-extern const ProtobufCMessageDescriptor create_program__descriptor;
 extern const ProtobufCMessageDescriptor run_program__descriptor;
 extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__update_type__descriptor;
 extern const ProtobufCMessageDescriptor destroy_object__descriptor;
-extern const ProtobufCMessageDescriptor create_geometry_object__descriptor;
-extern const ProtobufCMessageDescriptor create_mesh_color__descriptor;
-extern const ProtobufCMessageDescriptor create_mesh_texture__descriptor;
 extern const ProtobufCMessageDescriptor create_skybox__descriptor;
 
 PROTOBUF_C__END_DECLS

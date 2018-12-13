@@ -17,8 +17,12 @@ typedef struct vrms_gl_render {
 } vrms_gl_render_t;
 
 typedef struct vrms_gl_matrix {
-    float* mvp;
-    float* mv;
+    float* m;
+    float* v;
+    float* p;
+    float mvp[16];
+    float mv[16];
+    uint8_t realized;
 } vrms_gl_matrix_t;
 
 void vrms_gl_draw_mesh_color(vrms_gl_render_t render, vrms_gl_matrix_t matrix, float r, float g, float b, float a);

@@ -5,13 +5,6 @@
 #include "vroom.h"
 #include "object.h"
 
-vrms_object_t* vrms_object_create() {
-    vrms_object_t* object = SAFEMALLOC(sizeof(vrms_object_t));
-    memset(object, 0, sizeof(vrms_object_t));
-    object->type = VRMS_OBJECT_INVALID;
-    return object;
-}
-
 vrms_object_t* vrms_object_memory_create(uint32_t fd, void* address, uint32_t size) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_MEMORY;
@@ -69,68 +62,6 @@ vrms_object_t* vrms_object_texture_create(uint32_t memory_length, uint32_t width
     return object;
 }
 
-vrms_object_t* vrms_object_geometry_create(uint32_t vertex_id, uint32_t normal_id, uint32_t index_id) {
-    vrms_object_t* object = vrms_object_create();
-    object->type = VRMS_OBJECT_GEOMETRY;
-    object->realized = 0;
-
-    vrms_object_geometry_t* object_geometry = SAFEMALLOC(sizeof(vrms_object_geometry_t));
-    memset(object_geometry, 0, sizeof(vrms_object_geometry_t));
-
-    object_geometry->vertex_id = vertex_id;
-    object_geometry->normal_id = normal_id;
-    object_geometry->index_id = index_id;
-    object->object.object_geometry = object_geometry;
-
-    return object;
-}
-
-vrms_object_t* vrms_object_mesh_color_create(uint32_t geometry_id, float r, float g, float b, float a) {
-    vrms_object_t* object = vrms_object_create();
-    object->type = VRMS_OBJECT_MESH_COLOR;
-    object->realized = 0;
-
-    vrms_object_mesh_color_t* object_mesh_color = SAFEMALLOC(sizeof(vrms_object_mesh_color_t));
-    memset(object_mesh_color, 0, sizeof(vrms_object_mesh_color_t));
-    object_mesh_color->geometry_id = geometry_id;
-    object_mesh_color->r = r;
-    object_mesh_color->g = g;
-    object_mesh_color->b = b;
-    object_mesh_color->a = a;
-    object->object.object_mesh_color = object_mesh_color;
-
-    return object;
-}
-
-vrms_object_t* vrms_object_program_create(uint32_t program_length) {
-    vrms_object_t* object = vrms_object_create();
-    object->type = VRMS_OBJECT_PROGRAM;
-    object->realized = 0;
-
-    vrms_object_program_t* object_program = SAFEMALLOC(sizeof(vrms_object_program_t));
-    memset(object_program, 0, sizeof(vrms_object_program_t));
-    object_program->length = program_length;
-    object_program->data = NULL;
-    object->object.object_program = object_program;
-
-    return object;
-}
-
-vrms_object_t* vrms_object_mesh_texture_create(uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
-    vrms_object_t* object = vrms_object_create();
-    object->type = VRMS_OBJECT_MESH_TEXTURE;
-    object->realized = 0;
-
-    vrms_object_mesh_texture_t* object_mesh_texture = SAFEMALLOC(sizeof(vrms_object_mesh_texture_t));
-    memset(object_mesh_texture, 0, sizeof(vrms_object_mesh_texture_t));
-    object_mesh_texture->geometry_id = geometry_id;
-    object_mesh_texture->uv_id = uv_id;
-    object_mesh_texture->texture_id = texture_id;
-    object->object.object_mesh_texture = object_mesh_texture;
-
-    return object;
-}
-
 vrms_object_t* vrms_object_skybox_create(uint32_t texture_id) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_SKYBOX;
@@ -152,27 +83,8 @@ void vrms_object_data_destroy(vrms_object_data_t* data) {
     free(data);
 }
 
-void vrms_object_geometry_destroy(vrms_object_geometry_t* geometry) {
-    free(geometry);
-}
-
-void vrms_object_mesh_color_destroy(vrms_object_mesh_color_t* mesh_color) {
-    free(mesh_color);
-}
-
-void vrms_object_mesh_texture_destroy(vrms_object_mesh_texture_t* mesh_texture) {
-    free(mesh_texture);
-}
-
 void vrms_object_texture_destroy(vrms_object_texture_t* texture) {
     free(texture);
-}
-
-void vrms_object_program_destroy(vrms_object_program_t* program) {
-    if (NULL != program->data) {
-        free(program->data);
-    }
-    free(program);
 }
 
 void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
@@ -182,4 +94,11 @@ void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
 
 void vrms_object_skybox_destroy(vrms_object_skybox_t* skybox) {
     free(skybox);
+}
+
+vrms_object_t* vrms_object_create() {
+    vrms_object_t* object = SAFEMALLOC(sizeof(vrms_object_t));
+    memset(object, 0, sizeof(vrms_object_t));
+    object->type = VRMS_OBJECT_INVALID;
+    return object;
 }

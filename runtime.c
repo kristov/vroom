@@ -26,10 +26,6 @@ void fill_interface() {
     runtime_interface.create_memory = vrms_runtime_create_memory;
     runtime_interface.create_object_data = vrms_runtime_create_object_data;
     runtime_interface.create_object_texture = vrms_runtime_create_object_texture;
-    runtime_interface.create_object_geometry = vrms_runtime_create_object_geometry;
-    runtime_interface.create_object_mesh_color = vrms_runtime_create_object_mesh_color;
-    runtime_interface.create_object_mesh_texture = vrms_runtime_create_object_mesh_texture;
-    runtime_interface.create_program = vrms_runtime_create_program;
     runtime_interface.run_program = vrms_runtime_run_program;
     runtime_interface.create_object_skybox = vrms_runtime_create_object_skybox;
     runtime_interface.destroy_scene = vrms_runtime_destroy_scene;
@@ -90,54 +86,6 @@ uint32_t vrms_runtime_create_object_texture(vrms_runtime_t* vrms_runtime, uint32
         return 0;
     }
     return vrms_scene_create_object_texture(vrms_scene, data_id, width, height, format, type);
-}
-
-uint32_t vrms_runtime_create_object_geometry(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (!vrms_scene) {
-        return 0;
-    }
-    return vrms_scene_create_object_geometry(vrms_scene, vertex_id, normal_id, index_id);
-}
-
-uint32_t vrms_runtime_create_object_mesh_color(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t geometry_id, float r, float g, float b, float a) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (!vrms_scene) {
-        return 0;
-    }
-    return vrms_scene_create_object_mesh_color(vrms_scene, geometry_id, r, g, b, a);
-}
-
-uint32_t vrms_runtime_create_object_mesh_texture(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (!vrms_scene) {
-        return 0;
-    }
-    return vrms_scene_create_object_mesh_texture(vrms_scene, geometry_id, texture_id, uv_id);
-}
-
-uint32_t vrms_runtime_create_program(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (!vrms_scene) {
-        return 0;
-    }
-    return vrms_scene_create_program(vrms_scene, data_id);
 }
 
 uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t program_id, uint32_t register_id) {
