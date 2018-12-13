@@ -1,3 +1,6 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include <stdint.h>
 #include <stdlib.h>
 #include "vroom.h"
@@ -23,10 +26,24 @@
  *
  */
 
+typedef struct vrms_client_interface vrms_client_interface_t;
+
 typedef struct vrms_client {
     int32_t socket;
     uint32_t scene_id;
+    vrms_client_interface_t* interface;
 } vrms_client_t;
+
+typedef struct vrms_client_interface {
+    uint32_t (*create_scene)(vrms_client_t* client, char* name);
+    uint32_t (*create_memory)(vrms_client_t* client, int32_t fd, uint32_t size);
+    uint32_t (*create_object_data)(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
+    uint32_t (*create_object_texture)(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
+    uint32_t (*create_program)(vrms_client_t* client, uint32_t data_id);
+    uint32_t (*run_program)(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
+    uint32_t (*destroy_scene)(vrms_client_t* client);
+    uint32_t (*destroy_object)(vrms_client_t* client, uint32_t object_id);
+} vrms_client_interface_t;
 
 /**
  * @brief Create a new connection to VRoom
@@ -50,25 +67,11 @@ vrms_client_t* vrms_connect();
  * interact with the server without a scene.
  *
  * @code{.c}
- * uint32_t scene_id = vrms_create_scene(client, "Scene Name");
+ * uint32_t scene_id = vrms_client_create_scene(client, "Scene Name");
  * @endcode
  * @return Returns an object_id representing the scene.
  */
-uint32_t vrms_create_scene(vrms_client_t* client, char* name);
-
-/**
- * @brief Destroy a scene
- *
- * Destroying a scene destroys all objects within the scene. This includes any
- * memory objects, meaning probably shared memory should be freed after calling
- * this.
- *
- * @code{.c}
- * uint32_t ok = vrms_destroy_scene(client);
- * @endcode
- * @return Returns 1 on success and 0 on failure
- */
-uint32_t vrms_destroy_scene(vrms_client_t* client);
+uint32_t vrms_client_create_scene(vrms_client_t* client, char* name);
 
 /**
  * @brief Create a shared memory chunk
@@ -87,7 +90,7 @@ uint32_t vrms_destroy_scene(vrms_client_t* client);
  * @endcode
  * @return A new object id
  */
-uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, size_t size);
+uint32_t vrms_client_create_memory(vrms_client_t* client, int32_t fd, uint32_t size);
 
 /**
  * @brief Create a data object
@@ -103,7 +106,7 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
  * verticies in the data object it is memory_length / item_length.
  *
  * @code{.c}
- * uint32_t data_id = vrms_client_create_data_object(client, memory_id, memory_offset, memory_length, item_length, data_length, type);
+ * uint32_t data_id = vrms_client_create_object_data(client, memory_id, memory_offset, memory_length, item_length, data_length, type);
  * @endcode
  * @param memory_id The memory object this data object is in
  * @param memory_offset The offset into this memory object where the data begins in bytes
@@ -113,7 +116,7 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, uint8_t** address, siz
  * @param type
  * @return A new object id
  */
-uint32_t vrms_client_create_data_object(vrms_client_t* client, int32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
+uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
 
 /**
  * @brief Create a texture object
@@ -128,7 +131,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, int32_t memory_id
  * loaded into memory in the order XPOS, XNEG, YPOS, YNEG, ZPOS, ZNEG.
  *
  * @code{.c}
- * uint32_t texture_id = vrms_client_create_texture_object(client, data_id, width, height, format, type);
+ * uint32_t texture_id = vrms_client_create_object_texture(client, data_id, width, height, format, type);
  * @endcode
  * @param data_id A data object containing a texture
  * @param width The width of the texture
@@ -137,59 +140,7 @@ uint32_t vrms_client_create_data_object(vrms_client_t* client, int32_t memory_id
  * @param type What type of texture (2D or Cube map)
  * @return A new object id
  */
-uint32_t vrms_client_create_texture_object(vrms_client_t* client, int32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
-
-/**
- * @brief Create a new geometry object
- *
- * Creates a new geometry object from the supplied vertex, normal and index
- * data. This defines the physical structure of an object but it is not
- * renderable itself and needs to be attached to a mesh before that mesh object
- * is rendered.
- *
- * @code{.c}
- * uint32_t geometry_id = vrms_client_create_geometry_object(client, vertex_id, normal_id, index_id);
- * @endcode
- * @param vertex_id A data object containing vertex data
- * @param normal_id A data object containing normals
- * @param index_id A data object containing index values
- * @return A new object id
- */
-uint32_t vrms_client_create_geometry_object(vrms_client_t* client, uint32_t vertex_id, uint32_t normal_id, uint32_t index_id);
-
-/**
- * @brief Create a colored mesh
- *
- * Creates a mesh from the supplied geometry object with a solid color of RGBA.
- *
- * @code{.c}
- * uint32_t = vrms_client_create_mesh_color(client, geometry_id, r, g, b, a);
- * @endcode
- * @param geometry_id The object id of a geometry
- * @param r Red component
- * @param g Green component
- * @param b Blue component
- * @param a Alpha component
- * @return A new object id
- */
-uint32_t vrms_client_create_mesh_color(vrms_client_t* client, uint32_t geometry_id, float r, float g, float b, float a);
-
-/**
- * @brief Create a textured mesh
- *
- * Creates a mesh from the supplied geometry object, texture object and UV
- * mapping data. A geometry object must be created first containing the vertex
- * and index data.
- *
- * @code{.c}
- * uint32_t mesh_id = vrms_client_create_mesh_texture(client, geometry_id, texture_id, uv_id);
- * @endcode
- * @param geometry_id The object id of a geometry
- * @param texture_id The object id of a texture
- * @param uv_id A data object containing UV mapping coordinates
- * @return A new object id
- */
-uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometry_id, uint32_t texture_id, uint32_t uv_id);
+uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
 
 /**
  * @brief Create a new program
@@ -202,7 +153,7 @@ uint32_t vrms_client_create_mesh_texture(vrms_client_t* client, uint32_t geometr
  * @param data_id
  * @return A new object id
  */
-uint32_t vrms_client_create_program_object(vrms_client_t* client, uint32_t data_id);
+uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t data_id);
 
 /**
  * @brief Run a program
@@ -225,35 +176,31 @@ uint32_t vrms_client_create_program_object(vrms_client_t* client, uint32_t data_
 uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
 
 /**
- * @brief Update a system matrix
+ * @brief Destroy an object
  *
- * Used currently by the openhmd input driver as a way to set the view matrix
- * from a client.
+ * Destroying an object destroys that object on the server, freeing up GPU
+ * memory (if the object resides there)
  *
  * @code{.c}
- * uint32_t ok = vrms_client_update_system_matrix(client, data_id, data_index, matrix_type, update_type);
+ * uint32_t ok = vrms_client_destroy_object(client, object_id);
  * @endcode
- * @param data_id A data object containing matricies
- * @param data_index An index into that array where the matrix is stored
- * @param matrix_type View or projection matrix
- * @param update_type Multiply or set
- * @return OK
+ * @param object_id Object id of a program to be run
+ * @return Returns 1 on success and 0 on failure
  */
-uint32_t vrms_client_update_system_matrix(vrms_client_t* client, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);
+uint32_t vrms_client_destroy_object(vrms_client_t* client, uint32_t object_id);
 
 /**
- * @brief Create a Skybox
+ * @brief Destroy a scene
  *
- * Creates a Skybox background for the scene. It is a special type of object
- * due to the significan differences between rendering regular geometry and
- * rendering a skybox. A skybox must be included in the render program in order
- * to be shown.
+ * Destroying a scene destroys all objects within the scene. This includes any
+ * memory objects, meaning probably shared memory should be freed after calling
+ * this.
  *
  * @code{.c}
- * uint32_t skybox_id = vrms_client_create_skybox(client, texture_id, size);
+ * uint32_t ok = vrms_client_destroy_scene(client);
  * @endcode
- * @param texture_id An object id for a loaded texture. The texture must be of
- * the type VRMS_TEXTURE_CUBE_MAP
- * @return A new object id
+ * @return Returns 1 on success and 0 on failure
  */
-uint32_t vrms_client_create_skybox(vrms_client_t* client, uint32_t texture_id);
+uint32_t vrms_client_destroy_scene(vrms_client_t* client);
+
+#endif

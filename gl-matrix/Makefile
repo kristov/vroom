@@ -17,4 +17,4 @@ gl-matrix.h: $(OBJECTS)
 
 clean:
 	rm -rf *.o
-	rm gl-matrix.h
+	rm -f gl-matrix.h

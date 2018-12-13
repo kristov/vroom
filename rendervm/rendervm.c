@@ -276,6 +276,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
         case VM_UINT8_STORE:
             u80 = UINT8_POP(vm);
             u160 = UINT16_POP(vm);
+            if (u160 >= vm->uint8_memory_size) {
+                rendervm_exception(vm, VM_X_OUT_OF_BOUNDS);
+                break;
+            }
             vm->uint8_memory[u160] = u80;
             break;
         case VM_UINT8_LOAD:
@@ -358,6 +362,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
         case VM_UINT16_STORE:
             u160 = UINT16_POP(vm);
             u161 = UINT16_POP(vm);
+            if (u161 >= vm->uint16_memory_size) {
+                rendervm_exception(vm, VM_X_OUT_OF_BOUNDS);
+                break;
+            }
             vm->uint16_memory[u161] = u160;
             break;
         case VM_UINT16_LOAD:
@@ -447,6 +455,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
         case VM_UINT32_STORE:
             u320 = UINT32_POP(vm);
             u161 = UINT16_POP(vm);
+            if (u161 >= vm->uint32_memory_size) {
+                rendervm_exception(vm, VM_X_OUT_OF_BOUNDS);
+                break;
+            }
             vm->uint32_memory[u161] = u320;
             break;
         case VM_UINT32_LOAD:
@@ -551,6 +563,10 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
         case VM_FLOAT_STORE:
             fl0 = FLOAT_POP(vm);
             u161 = UINT16_POP(vm);
+            if (u161 >= vm->float_memory_size) {
+                rendervm_exception(vm, VM_X_OUT_OF_BOUNDS);
+                break;
+            }
             vm->float_memory[u161] = fl0;
             break;
         case VM_FLOAT_LOAD:
@@ -1007,6 +1023,15 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
     vm->last_opcode = opcode;
 
     return vm->running;
+}
+
+uint8_t rendervm_has_exception(rendervm_t* vm) {
+    return (VM_X_ALL_OK == vm->exception) ? 0 : 1;
+}
+
+void rendervm_exception(rendervm_t* vm, rendervm_exception_t exception) {
+    vm->exception = exception;
+    vm->running = 0;
 }
 
 void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data) {

@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "gl.h"
-
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -18,7 +16,6 @@
 
 #include "safemalloc.h"
 #include "object.h"
-#include "render_vm.h"
 #include "scene.h"
 #include "server.h"
 #include "gl-matrix.h"
@@ -220,58 +217,7 @@ void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_t
     pthread_mutex_unlock(server->inbound_queue_lock);
 }
 
-void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
-    float mvp_matrix[16];
-    float mv_matrix[16];
-    vrms_gl_render_t render;
-    vrms_gl_matrix_t matrix;
-
-    mat4_copy(mv_matrix, view_matrix);
-    mat4_multiply(mv_matrix, model_matrix);
-
-    mat4_copy(mvp_matrix, projection_matrix);
-    mat4_multiply(mvp_matrix, view_matrix);
-    mat4_multiply(mvp_matrix, model_matrix);
-
-    matrix.mv = mv_matrix;
-    matrix.mvp = mvp_matrix;
-
-    render.shader_id = server->color_shader_id;
-    render.vertex_id = mesh->vertex_gl_id;
-    render.normal_id = mesh->normal_gl_id;
-    render.index_id = mesh->index_gl_id;
-    render.nr_indicies = mesh->nr_indicies;
-
-    vrms_gl_draw_mesh_color(render, matrix, mesh->r, mesh->g, mesh->b, mesh->a);
-}
-
-void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
-    float mvp_matrix[16];
-    float mv_matrix[16];
-    vrms_gl_render_t render;
-    vrms_gl_matrix_t matrix;
-
-    mat4_copy(mv_matrix, view_matrix);
-    mat4_multiply(mv_matrix, model_matrix);
-
-    mat4_copy(mvp_matrix, projection_matrix);
-    mat4_multiply(mvp_matrix, view_matrix);
-    mat4_multiply(mvp_matrix, model_matrix);
-
-    matrix.mv = mv_matrix;
-    matrix.mvp = mvp_matrix;
-
-    render.shader_id = server->texture_shader_id;
-    render.vertex_id = mesh->vertex_gl_id;
-    render.normal_id = mesh->normal_gl_id;
-    render.uv_id = mesh->uv_gl_id;
-    render.texture_id = mesh->texture_gl_id;
-    render.index_id = mesh->index_gl_id;
-    render.nr_indicies = mesh->nr_indicies;
-
-    vrms_gl_draw_mesh_texture(render, matrix);
-}
-
+/*
 void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float projection_matrix[16], float view_matrix[16], float model_matrix[16]) {
     float mvp_matrix[16];
     vrms_gl_render_t render;
@@ -289,6 +235,7 @@ void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox
 
     vrms_gl_draw_skybox(render, matrix);
 }
+*/
 
 void vrms_server_draw_scenes(vrms_server_t* server, float projection_matrix[16], float view_matrix[16], float model_matrix[16], float skybox_projection_matrix[16]) {
     int si;//, oi;

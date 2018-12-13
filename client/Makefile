@@ -8,16 +8,16 @@ GLMATRIX := ../gl-matrix
 INCDIRS := -I$(PROTODIR) -I$(COMMON) -I$(GLMATRIX) -I../ -Iexternal
 
 CLIENTS =
-CLIENTS += green_cube
+#CLIENTS += green_cube
 CLIENTS += red_square
-CLIENTS += skybox
-CLIENTS += textured_cube
-CLIENTS += textured_square
+#CLIENTS += skybox
+#CLIENTS += textured_cube
+#CLIENTS += textured_square
 
 OBJECTS =
 OBJECTS += safemalloc.o
-OBJECTS += vrms_client.o
-OBJECTS += vrms_geometry.o
+OBJECTS += client.o
+OBJECTS += geometry2.o
 
 LINKS := -lprotobuf-c -lm
 

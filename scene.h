@@ -1,4 +1,9 @@
+#ifndef VRMS_SCENE_H
+#define VRMS_SCENE_H
+
 #include "vroom.h"
+#include "gl.h"
+#include "rendervm.h"
 
 typedef struct vrms_queue_item vrms_queue_item_t;
 typedef struct vrms_server vrms_server_t;
@@ -16,9 +21,11 @@ typedef struct vrms_scene {
     pthread_mutex_t* outbound_queue_lock;
     uint32_t render_buffer_size;
     uint8_t* render_buffer;
-    vrms_render_vm_t* vm;
+    rendervm_t* vm;
     pthread_mutex_t* scene_lock;
     uint32_t render_allocation_usec;
+    vrms_gl_render_t render;
+    vrms_gl_matrix_t matrix;
 } vrms_scene_t;
 
 vrms_scene_t* vrms_scene_create(char* name);
@@ -38,3 +45,5 @@ uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_i
 vrms_object_t* vrms_scene_get_mesh_by_id(vrms_scene_t* scene, uint32_t mesh_id);
 vrms_object_skybox_t* vrms_scene_get_skybox_by_id(vrms_scene_t* scene, uint32_t skybox_id);
 uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix);
+
+#endif

@@ -6,6 +6,12 @@
 #define VM_MAX_ADDR      255
 #define VM_STACK_SIZE    256
 
+typedef enum rendervm_exception {
+    VM_X_ALL_OK         = 0x00,
+    VM_X_INV_OPCODE     = 0x01,
+    VM_X_OUT_OF_BOUNDS  = 0x02
+} rendervm_exception_t;
+
 typedef struct rendervm rendervm_t;
 typedef enum rendervm_opcode rendervm_opcode_t;
 
@@ -54,18 +60,37 @@ typedef struct rendervm {
     uint8_t b2;
     uint8_t b3;
 
-    uint8_t mmem_flag;
     uint8_t* uint8_memory;
-    uint16_t* uint16_memory;
-    uint32_t* uint32_memory;
-    float* float_memory;
-    float* vec2_memory;
-    float* vec3_memory;
-    float* vec4_memory;
-    float* mat2_memory;
-    float* mat3_memory;
-    float* mat4_memory;
+    uint32_t uint8_memory_size;
 
+    uint16_t* uint16_memory;
+    uint32_t uint16_memory_size;
+
+    uint32_t* uint32_memory;
+    uint32_t uint32_memory_size;
+
+    float* float_memory;
+    uint32_t float_memory_size;
+
+    float* vec2_memory;
+    uint32_t vec2_memory_size;
+
+    float* vec3_memory;
+    uint32_t vec3_memory_size;
+
+    float* vec4_memory;
+    uint32_t vec4_memory_size;
+
+    float* mat2_memory;
+    uint32_t mat2_memory_size;
+
+    float* mat3_memory;
+    uint32_t mat3_memory_size;
+
+    float* mat4_memory;
+    uint32_t mat4_memory_size;
+
+    rendervm_exception_t exception;
     uint8_t running;
     uint8_t last_opcode;
 
@@ -244,8 +269,9 @@ void rendervm_destroy(rendervm_t* vm);
 void rendervm_reset(rendervm_t* vm);
 uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length);
 const char* rendervm_opcode2str(rendervm_opcode_t opcode);
-//void rendervm_alloc_ex_interrupt(rendervm_t* vm);
-//uint8_t rendervm_has_exception(rendervm_t* vm);
+//void rendervm_interrupt(rendervm_t* vm);
+uint8_t rendervm_has_exception(rendervm_t* vm);
+void rendervm_exception(rendervm_t* vm, rendervm_exception_t exception);
 void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data);
 
 #endif

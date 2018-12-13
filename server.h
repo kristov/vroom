@@ -36,8 +36,5 @@ void vrms_server_process_queue(vrms_server_t* server);
 uint32_t vrms_server_queue_add_data_load(vrms_server_t* server, uint32_t size, uint32_t* gl_id_ref, vrms_data_type_t type, uint8_t* buffer);
 uint32_t vrms_server_queue_add_texture_load(vrms_server_t* server, uint32_t size, uint32_t* gl_id_ref, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type, uint8_t* buffer);
 void vrms_server_queue_update_system_matrix(vrms_server_t* server, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, uint8_t* buffer);
-void vrms_server_draw_mesh_color(vrms_server_t* server, vrms_object_mesh_color_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]);
-void vrms_server_draw_mesh_texture(vrms_server_t* server, vrms_object_mesh_texture_t* mesh, float projection_matrix[16], float view_matrix[16], float model_matrix[16]);
-void vrms_server_draw_skybox(vrms_server_t* server, vrms_object_skybox_t* skybox, float projection_matrix[16], float view_matrix[16], float model_matrix[16]);
 
 #endif

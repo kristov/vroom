@@ -6,7 +6,6 @@
 #include <dirent.h>
 #include "gl.h"
 #include "safemalloc.h"
-#include "render_vm.h"
 #include "object.h"
 #include "server.h"
 #include "scene.h"

@@ -1,8 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vrms_client.h"
-#include "vrms_geometry.h"
+#include "client.h"
+#include "geometry2.h"
+
+void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->item_length, item->data_length, item->type);
+}
+
+void realize_layout(memory_layout_t* layout, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    layout->id = client->interface->create_memory(client, layout->fd, layout->total_size);
+}
 
 int main(void) {
     vrms_client_t* client = vrms_connect();
@@ -11,25 +21,26 @@ int main(void) {
         exit(1);
     }
 
-    uint32_t scene_id = vrms_create_scene(client, "Test scene");
+    uint32_t scene_id = client->interface->create_scene(client, "Test scene");
     if (scene_id == 0) {
         fprintf(stderr, "Unable to create scene\n");
-        vrms_destroy_scene(client);
+        client->interface->destroy_scene(client);
         exit(1);
     }
 
-    uint32_t plane_id = vrms_geometry_plane(client, 2, 2, 1.0, 0.0, 0.0, 1.0);
-    if (plane_id == 0) {
-        fprintf(stderr, "Unable to create plane\n");
-        vrms_destroy_scene(client);
-        exit(1);
-    }
+    memory_layout_t* layout = vrms_geometry_layout_create(7);
+    vrms_geometry_layout_realizer(layout, realize_layout, (void*)client);
+    vrms_geometry_layout_item_realizer(layout, realize_layout_item, (void*)client);
+    vrms_geometry_layout_plane_color(layout, 0, 0, 2, 2);
 
-    vrms_geometry_render_buffer_basic(client, plane_id, 0.0f, 0.0f, -10.0f);
+    uint32_t register_id = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_REGISTER);
+    uint32_t program_id = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_PROGRAM);
+
+    client->interface->run_program(client, program_id, register_id);
 
     fprintf(stderr, "sleeping 60 sec\n");
     sleep(10);
 
-    vrms_destroy_scene(client);
+    client->interface->destroy_scene(client);
     return 0;
 }

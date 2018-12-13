@@ -149,6 +149,7 @@ void test_opcode_UINT8_STORE(test_harness_t* test, rendervm_t* vm) {
     uint8_t memory[] = {0x03};
     vm->uint8_stack[++vm->uint8_sp] = 0x07;
     vm->uint8_memory = &memory[0];
+    vm->uint8_memory_size = 1;
     rendervm_exec(vm, program, 3);
     is_equal_uint8(test, memory[0], 0x07, "OP UINT8_STORE: memory stored");
     rendervm_reset(vm);
@@ -292,6 +293,7 @@ void test_opcode_UINT16_STORE(test_harness_t* test, rendervm_t* vm) {
     uint16_t memory[] = {0x03};
     vm->uint16_stack[++vm->uint16_sp] = 0x07;
     vm->uint16_memory = &memory[0];
+    vm->uint16_memory_size = 1;
     rendervm_exec(vm, program, 3);
     is_equal_uint16(test, memory[0], 0x07, "OP UINT16_STORE: memory stored");
     rendervm_reset(vm);
@@ -445,6 +447,7 @@ void test_opcode_UINT32_STORE(test_harness_t* test, rendervm_t* vm) {
     vm->uint32_stack[++vm->uint32_sp] = 0x07;
     vm->uint16_stack[++vm->uint16_sp] = 0x01;
     vm->uint32_memory = &memory[0];
+    vm->uint32_memory_size = 2;
     rendervm_exec(vm, program, 1);
     is_equal_uint32(test, memory[1], 0x07, "OP UINT32_STORE: memory stored");
     rendervm_reset(vm);
@@ -616,6 +619,7 @@ void test_opcode_FLOAT_STORE(test_harness_t* test, rendervm_t* vm) {
     vm->float_stack[++vm->float_sp] = 7.0f;
     vm->uint16_stack[++vm->uint16_sp] = 0x01;
     vm->float_memory = &memory[0];
+    vm->float_memory_size = 2;
     rendervm_exec(vm, program, 3);
     is_equal_float(test, memory[1], 7.0f, "OP FLOAT_STORE: memory stored");
     rendervm_reset(vm);

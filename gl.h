@@ -13,6 +13,7 @@ typedef struct vrms_gl_render {
     uint32_t uv_id;
     uint32_t texture_id;
     uint32_t nr_indicies;
+    uint8_t realized;
 } vrms_gl_render_t;
 
 typedef struct vrms_gl_matrix {
