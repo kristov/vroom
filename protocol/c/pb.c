@@ -308,6 +308,49 @@ void   run_program__free_unpacked
   assert(message->base.descriptor == &run_program__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
+void   set_skybox__init
+                     (SetSkybox         *message)
+{
+  static SetSkybox init_value = SET_SKYBOX__INIT;
+  *message = init_value;
+}
+size_t set_skybox__get_packed_size
+                     (const SetSkybox *message)
+{
+  assert(message->base.descriptor == &set_skybox__descriptor);
+  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
+}
+size_t set_skybox__pack
+                     (const SetSkybox *message,
+                      uint8_t       *out)
+{
+  assert(message->base.descriptor == &set_skybox__descriptor);
+  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
+}
+size_t set_skybox__pack_to_buffer
+                     (const SetSkybox *message,
+                      ProtobufCBuffer *buffer)
+{
+  assert(message->base.descriptor == &set_skybox__descriptor);
+  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
+}
+SetSkybox *
+       set_skybox__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data)
+{
+  return (SetSkybox *)
+     protobuf_c_message_unpack (&set_skybox__descriptor,
+                                allocator, len, data);
+}
+void   set_skybox__free_unpacked
+                     (SetSkybox *message,
+                      ProtobufCAllocator *allocator)
+{
+  assert(message->base.descriptor == &set_skybox__descriptor);
+  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
+}
 void   update_system_matrix__init
                      (UpdateSystemMatrix         *message)
 {
@@ -392,49 +435,6 @@ void   destroy_object__free_unpacked
                       ProtobufCAllocator *allocator)
 {
   assert(message->base.descriptor == &destroy_object__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
-void   create_skybox__init
-                     (CreateSkybox         *message)
-{
-  static CreateSkybox init_value = CREATE_SKYBOX__INIT;
-  *message = init_value;
-}
-size_t create_skybox__get_packed_size
-                     (const CreateSkybox *message)
-{
-  assert(message->base.descriptor == &create_skybox__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t create_skybox__pack
-                     (const CreateSkybox *message,
-                      uint8_t       *out)
-{
-  assert(message->base.descriptor == &create_skybox__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t create_skybox__pack_to_buffer
-                     (const CreateSkybox *message,
-                      ProtobufCBuffer *buffer)
-{
-  assert(message->base.descriptor == &create_skybox__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-CreateSkybox *
-       create_skybox__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (CreateSkybox *)
-     protobuf_c_message_unpack (&create_skybox__descriptor,
-                                allocator, len, data);
-}
-void   create_skybox__free_unpacked
-                     (CreateSkybox *message,
-                      ProtobufCAllocator *allocator)
-{
-  assert(message->base.descriptor == &create_skybox__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
 static const ProtobufCFieldDescriptor reply__field_descriptors[2] =
@@ -1004,6 +1004,57 @@ const ProtobufCMessageDescriptor run_program__descriptor =
   (ProtobufCMessageInit) run_program__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
+static const ProtobufCFieldDescriptor set_skybox__field_descriptors[2] =
+{
+  {
+    "scene_id",
+    1,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SetSkybox, scene_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+  {
+    "texture_id",
+    2,
+    PROTOBUF_C_LABEL_REQUIRED,
+    PROTOBUF_C_TYPE_INT32,
+    0,   /* quantifier_offset */
+    offsetof(SetSkybox, texture_id),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
+};
+static const unsigned set_skybox__field_indices_by_name[] = {
+  0,   /* field[0] = scene_id */
+  1,   /* field[1] = texture_id */
+};
+static const ProtobufCIntRange set_skybox__number_ranges[1 + 1] =
+{
+  { 1, 0 },
+  { 0, 2 }
+};
+const ProtobufCMessageDescriptor set_skybox__descriptor =
+{
+  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
+  "SetSkybox",
+  "SetSkybox",
+  "SetSkybox",
+  "",
+  sizeof(SetSkybox),
+  2,
+  set_skybox__field_descriptors,
+  set_skybox__field_indices_by_name,
+  1,  set_skybox__number_ranges,
+  (ProtobufCMessageInit) set_skybox__init,
+  NULL,NULL,NULL    /* reserved[123] */
+};
 static const ProtobufCEnumValue update_system_matrix__matrix_type__enum_values_by_number[2] =
 {
   { "HEAD", "UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD", 0 },
@@ -1199,70 +1250,5 @@ const ProtobufCMessageDescriptor destroy_object__descriptor =
   destroy_object__field_indices_by_name,
   1,  destroy_object__number_ranges,
   (ProtobufCMessageInit) destroy_object__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCFieldDescriptor create_skybox__field_descriptors[3] =
-{
-  {
-    "scene_id",
-    1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateSkybox, scene_id),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "texture_id",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateSkybox, texture_id),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "size",
-    4,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateSkybox, size),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned create_skybox__field_indices_by_name[] = {
-  0,   /* field[0] = scene_id */
-  2,   /* field[2] = size */
-  1,   /* field[1] = texture_id */
-};
-static const ProtobufCIntRange create_skybox__number_ranges[2 + 1] =
-{
-  { 1, 0 },
-  { 3, 1 },
-  { 0, 3 }
-};
-const ProtobufCMessageDescriptor create_skybox__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "CreateSkybox",
-  "CreateSkybox",
-  "CreateSkybox",
-  "",
-  sizeof(CreateSkybox),
-  3,
-  create_skybox__field_descriptors,
-  create_skybox__field_indices_by_name,
-  2,  create_skybox__number_ranges,
-  (ProtobufCMessageInit) create_skybox__init,
   NULL,NULL,NULL    /* reserved[123] */
 };

@@ -27,7 +27,7 @@ void fill_interface() {
     runtime_interface.create_object_data = vrms_runtime_create_object_data;
     runtime_interface.create_object_texture = vrms_runtime_create_object_texture;
     runtime_interface.run_program = vrms_runtime_run_program;
-    runtime_interface.create_object_skybox = vrms_runtime_create_object_skybox;
+    runtime_interface.set_skybox = vrms_runtime_set_skybox;
     runtime_interface.destroy_scene = vrms_runtime_destroy_scene;
     runtime_interface.destroy_object = vrms_runtime_destroy_object;
     runtime_interface.update_system_matrix = vrms_runtime_update_system_matrix;
@@ -118,7 +118,7 @@ uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_
     return vrms_scene_update_system_matrix(vrms_scene, data_id, data_index, matrix_type, update_type);
 }
 
-uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id) {
+uint32_t vrms_runtime_set_skybox(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id) {
     if (!assert_vrms_server(vrms_runtime)) {
         return 0;
     }
@@ -127,7 +127,7 @@ uint32_t vrms_runtime_create_object_skybox(vrms_runtime_t* vrms_runtime, uint32_
     if (!vrms_scene) {
         return 0;
     }
-    return vrms_scene_create_object_skybox(vrms_scene, texture_id);
+    return vrms_scene_set_skybox(vrms_scene, texture_id);
 }
 
 uint32_t vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id) {
@@ -274,10 +274,7 @@ void vrms_runtime_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_upda
 }
 
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) {
-    vrms_server_t* vrms_server;
-    vrms_runtime_t* vrms_runtime;
-
-    vrms_runtime = malloc(sizeof(vrms_runtime_t));
+    vrms_runtime_t* vrms_runtime = malloc(sizeof(vrms_runtime_t));
     memset(vrms_runtime, 0, sizeof(vrms_runtime_t));
 
     fill_interface();
@@ -287,7 +284,7 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_runtime->h = height;
 
     vrms_runtime->module_load_path = "/home/ceade/src/personal/github/vroom/module";
-    vrms_server = vrms_server_create();
+    vrms_server_t* vrms_server = vrms_server_create();
     vrms_runtime->vrms_server = vrms_server;
 
     ostereo = opengl_stereo_create(width, height, physical_width);

@@ -62,19 +62,6 @@ vrms_object_t* vrms_object_texture_create(uint32_t memory_length, uint32_t width
     return object;
 }
 
-vrms_object_t* vrms_object_skybox_create(uint32_t texture_id) {
-    vrms_object_t* object = vrms_object_create();
-    object->type = VRMS_OBJECT_SKYBOX;
-    object->realized = 0;
-
-    vrms_object_skybox_t* object_skybox = SAFEMALLOC(sizeof(vrms_object_skybox_t));
-    memset(object_skybox, 0, sizeof(vrms_object_skybox_t));
-    object_skybox->texture_id = texture_id;
-    object->object.object_skybox = object_skybox;
-
-    return object;
-}
-
 void vrms_object_memory_destroy(vrms_object_memory_t* memory) {
     free(memory);
 }
@@ -90,10 +77,6 @@ void vrms_object_texture_destroy(vrms_object_texture_t* texture) {
 void vrms_object_matrix_destroy(vrms_object_matrix_t* matrix) {
     free(matrix->data);
     free(matrix);
-}
-
-void vrms_object_skybox_destroy(vrms_object_skybox_t* skybox) {
-    free(skybox);
 }
 
 vrms_object_t* vrms_object_create() {

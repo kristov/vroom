@@ -154,6 +154,7 @@ void vrms_gl_draw_skybox(vrms_gl_render_t render, vrms_gl_matrix_t matrix) {
 
     shader_id = (GLuint)render.shader_id;
     glUseProgram(shader_id);
+printOpenGLError();
     glDisable(GL_DEPTH_TEST);
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.vertex_id);

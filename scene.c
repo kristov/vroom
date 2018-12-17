@@ -70,6 +70,26 @@ vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
     return vrms_object;
 }
 
+uint32_t vrms_scene_queue_add_gl_loaded(vrms_scene_t* scene, vrms_object_type_t type, uint32_t object_id, uint32_t gl_id) {
+    vrms_scene_queue_item_gl_load_t* gl_load = SAFEMALLOC(sizeof(vrms_scene_queue_item_gl_load_t));
+    memset(gl_load, 0, sizeof(vrms_scene_queue_item_gl_load_t));
+
+    gl_load->type = type;
+    gl_load->object_id = object_id;
+    gl_load->gl_id = gl_id;
+
+    pthread_mutex_lock(&scene->outbound_queue_lock);
+    uint32_t idx = scene->outbound_queue_index;
+    vrms_scene_queue_item_t* queue_item = &scene->outbound_queue[idx];
+    scene->outbound_queue_index++;
+    pthread_mutex_unlock(&scene->outbound_queue_lock);
+
+    queue_item->type = VRMS_SCENE_QUEUE_GL_LOAD;
+    queue_item->item.gl_load = gl_load;
+
+    return idx;
+}
+
 vrms_object_memory_t* vrms_scene_get_memory_object_by_id(vrms_scene_t* scene, uint32_t memory_id) {
     vrms_object_t* object;
 
@@ -112,6 +132,27 @@ vrms_object_data_t* vrms_scene_get_data_object_by_id(vrms_scene_t* scene, uint32
     return object->object.object_data;
 }
 
+vrms_object_texture_t* vrms_scene_get_texture_object_by_id(vrms_scene_t* scene, uint32_t texture_id) {
+    vrms_object_t* object;
+
+    if (0 == texture_id) {
+        debug_print("vrms_scene_get_texture_object_by_id: no data id passed\n");
+        return NULL;
+    }
+
+    object = vrms_scene_get_object_by_id(scene, texture_id);
+    if (!object) {
+        return NULL;
+    }
+
+    if (VRMS_OBJECT_TEXTURE != object->type) {
+        debug_print("vrms_scene_get_texture_object_by_id: asked for an id that is not a texture object\n");
+        return NULL;
+    }
+
+    return object->object.object_texture;
+}
+
 void vrms_scene_destroy_object_memory(vrms_object_memory_t* memory) {
     if (NULL != memory->address) {
         munmap(memory->address, memory->size);
@@ -123,33 +164,7 @@ void vrms_scene_destroy_object_data(vrms_object_data_t* data) {
     if (NULL != data->local_storage) {
         free(data->local_storage);
     }
-    if (data->gl_id > 0) {
-        vrms_gl_delete_buffer(&data->gl_id);
-    }
     vrms_object_data_destroy(data);
-}
-
-void vrms_scene_destroy_object_texture(vrms_object_texture_t* texture) {
-    if (texture->gl_id > 0) {
-        vrms_gl_delete_buffer(&texture->gl_id);
-    }
-    vrms_object_texture_destroy(texture);
-}
-
-void vrms_scene_destroy_object_skybox(vrms_object_skybox_t* skybox) {
-    if (NULL != skybox->vertex_data) {
-        free(skybox->vertex_data);
-    }
-    if (NULL != skybox->index_data) {
-        free(skybox->index_data);
-    }
-    if (skybox->vertex_gl_id > 0) {
-        vrms_gl_delete_buffer(&skybox->vertex_gl_id);
-    }
-    if (skybox->index_gl_id > 0) {
-        vrms_gl_delete_buffer(&skybox->index_gl_id);
-    }
-    vrms_object_skybox_destroy(skybox);
 }
 
 void vrms_scene_destroy_object(vrms_scene_t* scene, uint32_t object_id) {
@@ -157,6 +172,14 @@ void vrms_scene_destroy_object(vrms_scene_t* scene, uint32_t object_id) {
     if (!object) {
         return;
     }
+
+    // At some point the gl_id *value* is copied into the object, loosing the
+    // meaning of the address. TODO: store the address of the gl_id in the
+    // object so it can be properly destroyed here, or handle destruction
+    // elsewhere somehow.
+    //if (object->gl_id > 0) {
+    //    vrms_gl_delete_buffer(&object->gl_id);
+    //}
 
     switch (object->type) {
         case VRMS_OBJECT_MEMORY:
@@ -166,10 +189,7 @@ void vrms_scene_destroy_object(vrms_scene_t* scene, uint32_t object_id) {
             vrms_scene_destroy_object_data(object->object.object_data);
             break;
         case VRMS_OBJECT_TEXTURE:
-            vrms_scene_destroy_object_texture(object->object.object_texture);
-            break;
-        case VRMS_OBJECT_SKYBOX:
-            vrms_scene_destroy_object_skybox(object->object.object_skybox);
+            vrms_object_texture_destroy(object->object.object_texture);
             break;
         case VRMS_OBJECT_SCENE:
             // Not done here
@@ -189,18 +209,46 @@ void vrms_scene_destroy_objects(vrms_scene_t* scene) {
     free(scene->objects);
 }
 
-void vrms_scene_empty_outbound_queue(vrms_scene_t* scene) {
-/*
-    uint32_t idx;
-
-    if (!pthread_mutex_lock(scene->outbound_queue_lock)) {
-        for (idx = 0; idx < scene->outbound_queue_index; idx++) {
-            queue_item = scene->outbound_queue[idx];
-            free(queue_item);
-        }
-        pthread_mutex_unlock(scene->outbound_queue_lock);
+void vrms_scene_queue_item_gl_load_process(vrms_scene_t* scene, vrms_scene_queue_item_gl_load_t* gl_load) {
+    vrms_object_t* object;
+    switch (gl_load->type) {
+        case VRMS_OBJECT_DATA:
+            object = vrms_scene_get_object_by_id(scene, gl_load->object_id);
+            object->gl_id = gl_load->gl_id;
+            break;
+        case VRMS_OBJECT_TEXTURE:
+            object = vrms_scene_get_object_by_id(scene, gl_load->object_id);
+            object->gl_id = gl_load->gl_id;
+            break;
+        default:
+            debug_print("vrms_scene_queue_item_gl_load_process(): unknown object type!!\n");
+            break;
     }
-*/
+}
+
+void vrms_scene_queue_item_process(vrms_scene_t* scene, vrms_scene_queue_item_t* queue_item) {
+    switch (queue_item->type) {
+        case VRMS_SCENE_QUEUE_GL_LOAD:
+            vrms_scene_queue_item_gl_load_process(scene, queue_item->item.gl_load);
+            break;
+        default:
+            debug_print("vrms_scene_queue_item_process(): unknown type!!\n");
+            break;
+    }
+}
+
+void vrms_scene_process_queue(vrms_scene_t* scene) {
+    if (!pthread_mutex_trylock(&scene->outbound_queue_lock)) {
+        uint8_t idx;
+        for (idx = 0; idx < scene->outbound_queue_index; idx++) {
+            vrms_scene_queue_item_process(scene, &scene->outbound_queue[idx]);
+        }
+        scene->outbound_queue_index = 0;
+        pthread_mutex_unlock(&scene->outbound_queue_lock);
+    }
+    else {
+        debug_print("vrms_scene_process_queue(): lock on queue\n");
+    }
 }
 
 void vrms_scene_add_object(vrms_scene_t* scene, vrms_object_t* object) {
@@ -212,7 +260,7 @@ void vrms_scene_add_object(vrms_scene_t* scene, vrms_object_t* object) {
 }
 
 void vrms_scene_destroy(vrms_scene_t* scene) {
-    if (!pthread_mutex_lock(scene->scene_lock)) {
+    if (!pthread_mutex_lock(&scene->scene_lock)) {
         debug_print("vrms_scene_destroy(): locked scene\n");
         vrms_scene_destroy_objects(scene);
         /*
@@ -221,13 +269,10 @@ void vrms_scene_destroy(vrms_scene_t* scene) {
         free(scene->outbound_queue_lock);
         */
         rendervm_destroy(scene->vm);
-
-        pthread_mutex_t* scene_lock = scene->scene_lock;
-        free(scene);
-
+        pthread_mutex_unlock(&scene->scene_lock);
         debug_print("vrms_scene_destroy(): unlocked scene\n");
-        pthread_mutex_unlock(scene_lock);
-        free(scene_lock);
+
+        free(scene);
     }
 }
 
@@ -280,7 +325,7 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
     if (!object->realized) {
         uint8_t* buffer_ref = (uint8_t*)memory->address;
         void* buffer = &buffer_ref[memory_offset];
-        uint32_t idx = vrms_server_queue_add_data_load(scene->server, memory_length, &object->object.object_data->gl_id, type, buffer);
+        uint32_t idx = vrms_server_queue_add_data_load(scene->server, memory_length, scene->id, object->id, type, buffer);
         debug_print("    queue_idx[%d]\n", idx);
     }
 
@@ -317,7 +362,7 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
     if (!object->realized) {
         uint8_t* buffer_ref = (uint8_t*)memory->address;
         void* buffer = &buffer_ref[data->memory_offset];
-        uint32_t idx = vrms_server_queue_add_texture_load(scene->server, data->memory_length, &object->object.object_texture->gl_id, width, height, format, type, buffer);
+        uint32_t idx = vrms_server_queue_add_texture_load(scene->server, data->memory_length, scene->id, object->id, width, height, format, type, buffer);
         debug_print("    queue_idx[%d]\n", idx);
     }
     debug_print("\n");
@@ -344,52 +389,6 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, 
     vrms_server_queue_update_system_matrix(scene->server, matrix_type, update_type, (uint8_t*)matrix);
 
     return 1;
-}
-
-uint32_t vrms_scene_create_object_skybox(vrms_scene_t* scene, uint32_t texture_id) {
-    vrms_object_skybox_t* skybox;
-
-    float vertex_data[] = {
-         100.0f, -100.0f,  100.0f,
-         100.0f, -100.0f, -100.0f,
-         100.0f,  100.0f,  100.0f,
-         100.0f,  100.0f, -100.0f,
-        -100.0f, -100.0f, -100.0f,
-        -100.0f, -100.0f,  100.0f,
-        -100.0f,  100.0f, -100.0f,
-        -100.0f,  100.0f,  100.0f
-    };
-
-    uint16_t index_data[] = {
-        0, 1, 2, 2, 1, 3,
-        4, 5, 6, 6, 5, 7,
-        7, 2, 6, 6, 2, 3,
-        4, 1, 5, 5, 1, 0,
-        5, 0, 7, 7, 0, 2,
-        1, 4, 3, 3, 4, 6
-    };
-
-    vrms_object_t* object = vrms_object_skybox_create(texture_id);
-    vrms_scene_add_object(scene, object);
-    skybox = object->object.object_skybox;
-
-    debug_print("created skybox object[%d]:\n", object->id);
-    debug_print("    texture_id[%d]\n", texture_id);
-    debug_print("\n");
-
-    uint32_t vertex_length = 8 * 3 * sizeof(float);
-    skybox->vertex_data = SAFEMALLOC(vertex_length);
-    memcpy(skybox->vertex_data, (uint8_t*)vertex_data, vertex_length);
-
-    vrms_server_queue_add_data_load(scene->server, vertex_length, &skybox->vertex_gl_id, VRMS_VERTEX, (uint8_t*)skybox->vertex_data);
-
-    uint32_t index_length = 36 * sizeof(uint16_t);
-    skybox->index_data = SAFEMALLOC(index_length);
-    memcpy(skybox->index_data, (uint8_t*)index_data, index_length);
-
-    vrms_server_queue_add_data_load(scene->server, index_length, &skybox->index_gl_id, VRMS_INDEX, (uint8_t*)skybox->index_data);
-
-    return object->id;
 }
 
 uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32_t register_id) {
@@ -436,10 +435,10 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
 
     debug_print("copying program of length[%d] to render buffer\n", prg_count);
 
-    pthread_mutex_lock(scene->scene_lock);
+    pthread_mutex_lock(&scene->scene_lock);
     scene->render_buffer = program;
     scene->render_buffer_size = prg_count;
-    pthread_mutex_unlock(scene->scene_lock);
+    pthread_mutex_unlock(&scene->scene_lock);
 
     debug_print("program: ");
     for (i = 0; i < prg_count; i++) {
@@ -450,16 +449,22 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     return 1;
 }
 
+uint32_t vrms_scene_set_skybox(vrms_scene_t* scene, uint32_t texture_id) {
+    // TODO: This needs to be done differently
+    scene->server->skybox.texture_id = texture_id;
+    return 1;
+}
+
 uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     uint32_t usec_elapsed;
 
     scene->matrix.p = projection_matrix;
     scene->matrix.v = view_matrix;
 
-    if (!pthread_mutex_trylock(scene->scene_lock)) {
+    if (!pthread_mutex_trylock(&scene->scene_lock)) {
         debug_render_print("vrms_scene_draw(): locked scene\n");
         if ((!scene->render_buffer) || (0 == scene->render_buffer_size)) {
-            pthread_mutex_unlock(scene->scene_lock);
+            pthread_mutex_unlock(&scene->scene_lock);
             return 0;
         }
 
@@ -496,7 +501,7 @@ uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* v
             debug_print("vrms_scene_draw(): VM has exception: 0x%02x\n", vm->exception);
         }
 
-        pthread_mutex_unlock(scene->scene_lock);
+        pthread_mutex_unlock(&scene->scene_lock);
         debug_render_print("vrms_scene_draw(): unlocked scene\n");
     }
     else {
@@ -551,15 +556,14 @@ void vrms_scene_attach_matrix(vrms_scene_t* scene) {
 // TODO: add gpu_attempted flag to data object, pass vertex_id as reference and
 // return code of vrms_scene_data_get_gl_id indicates if we should try again
 // later or give up due to error.
-uint32_t vrms_scene_data_get_gl_id(vrms_scene_t* scene, uint32_t object_id, uint8_t* found) {
+uint32_t vrms_scene_object_get_gl_id(vrms_scene_t* scene, uint32_t object_id, uint8_t* found) {
     vrms_object_t* object = vrms_scene_get_object_by_id(scene, object_id);
     if (!object) {
         return 0;
     }
-    vrms_object_data_t* object_data = object->object.object_data;
-    if (0 != object_data->gl_id) {
+    if (0 != object->gl_id) {
         (*found)++;
-        return object_data->gl_id;
+        return object->gl_id;
     }
     return 0;
 }
@@ -577,17 +581,17 @@ void vrms_scene_render_realize_color(vrms_scene_t* scene) {
     rendervm_t* vm = scene->vm;
     uint8_t found = 0;
     if (vm->draw_reg[0]) {
-        scene->render.vertex_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[0], &found);
+        scene->render.vertex_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[0], &found);
     }
     if (vm->draw_reg[1]) {
-        scene->render.normal_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[1], &found);
+        scene->render.normal_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[1], &found);
     }
     if (vm->draw_reg[2]) {
-        scene->render.index_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[2], &found);
+        scene->render.index_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[2], &found);
         scene->render.nr_indicies = vrms_scene_data_get_nr_indicies(scene, vm->draw_reg[2]);
     }
     if (vm->draw_reg[3]) {
-        scene->render.color_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[3], &found);
+        scene->render.color_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[3], &found);
     }
     if (found == 4) {
         scene->render.realized = 1;
@@ -598,20 +602,20 @@ void vrms_scene_render_realize_texture(vrms_scene_t* scene) {
     rendervm_t* vm = scene->vm;
     uint8_t found = 0;
     if (vm->draw_reg[0]) {
-        scene->render.vertex_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[1], &found);
+        scene->render.vertex_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[1], &found);
     }
     if (vm->draw_reg[1]) {
-        scene->render.normal_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[1], &found);
+        scene->render.normal_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[1], &found);
     }
     if (vm->draw_reg[2]) {
-        scene->render.index_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[2], &found);
+        scene->render.index_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[2], &found);
         scene->render.nr_indicies = vrms_scene_data_get_nr_indicies(scene, vm->draw_reg[2]);
     }
     if (vm->draw_reg[6]) {
-        scene->render.uv_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[6], &found);
+        scene->render.uv_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[6], &found);
     }
     if (vm->draw_reg[7]) {
-        scene->render.texture_id = vrms_scene_data_get_gl_id(scene, vm->draw_reg[7], &found);
+        scene->render.texture_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[7], &found);
     }
     if (found == 5) {
         scene->render.realized = 1;
@@ -660,8 +664,6 @@ vrms_scene_t* vrms_scene_create(char* name) {
     scene->next_object_id = 1;
 
     scene->render_buffer_size = 0;
-    scene->scene_lock = SAFEMALLOC(sizeof(pthread_mutex_t));
-    memset(scene->scene_lock, 0, sizeof(pthread_mutex_t));
 
     scene->vm = rendervm_create();
     rendervm_attach_callback(scene->vm, &vrms_scene_vm_callback, (void*)scene);

@@ -22,9 +22,9 @@ typedef struct _CreateMemory CreateMemory;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _CreateTextureObject CreateTextureObject;
 typedef struct _RunProgram RunProgram;
+typedef struct _SetSkybox SetSkybox;
 typedef struct _UpdateSystemMatrix UpdateSystemMatrix;
 typedef struct _DestroyObject DestroyObject;
-typedef struct _CreateSkybox CreateSkybox;
 
 
 /* --- enums --- */
@@ -153,6 +153,17 @@ struct  _RunProgram
     , 0, 0, 0 }
 
 
+struct  _SetSkybox
+{
+  ProtobufCMessage base;
+  int32_t scene_id;
+  int32_t texture_id;
+};
+#define SET_SKYBOX__INIT \
+ { PROTOBUF_C_MESSAGE_INIT (&set_skybox__descriptor) \
+    , 0, 0 }
+
+
 struct  _UpdateSystemMatrix
 {
   ProtobufCMessage base;
@@ -176,18 +187,6 @@ struct  _DestroyObject
 #define DESTROY_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&destroy_object__descriptor) \
     , 0, 0 }
-
-
-struct  _CreateSkybox
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  int32_t texture_id;
-  int32_t size;
-};
-#define CREATE_SKYBOX__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&create_skybox__descriptor) \
-    , 0, 0, 0 }
 
 
 /* Reply methods */
@@ -323,6 +322,25 @@ RunProgram *
 void   run_program__free_unpacked
                      (RunProgram *message,
                       ProtobufCAllocator *allocator);
+/* SetSkybox methods */
+void   set_skybox__init
+                     (SetSkybox         *message);
+size_t set_skybox__get_packed_size
+                     (const SetSkybox   *message);
+size_t set_skybox__pack
+                     (const SetSkybox   *message,
+                      uint8_t             *out);
+size_t set_skybox__pack_to_buffer
+                     (const SetSkybox   *message,
+                      ProtobufCBuffer     *buffer);
+SetSkybox *
+       set_skybox__unpack
+                     (ProtobufCAllocator  *allocator,
+                      size_t               len,
+                      const uint8_t       *data);
+void   set_skybox__free_unpacked
+                     (SetSkybox *message,
+                      ProtobufCAllocator *allocator);
 /* UpdateSystemMatrix methods */
 void   update_system_matrix__init
                      (UpdateSystemMatrix         *message);
@@ -361,25 +379,6 @@ DestroyObject *
 void   destroy_object__free_unpacked
                      (DestroyObject *message,
                       ProtobufCAllocator *allocator);
-/* CreateSkybox methods */
-void   create_skybox__init
-                     (CreateSkybox         *message);
-size_t create_skybox__get_packed_size
-                     (const CreateSkybox   *message);
-size_t create_skybox__pack
-                     (const CreateSkybox   *message,
-                      uint8_t             *out);
-size_t create_skybox__pack_to_buffer
-                     (const CreateSkybox   *message,
-                      ProtobufCBuffer     *buffer);
-CreateSkybox *
-       create_skybox__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   create_skybox__free_unpacked
-                     (CreateSkybox *message,
-                      ProtobufCAllocator *allocator);
 /* --- per-message closures --- */
 
 typedef void (*Reply_Closure)
@@ -403,14 +402,14 @@ typedef void (*CreateTextureObject_Closure)
 typedef void (*RunProgram_Closure)
                  (const RunProgram *message,
                   void *closure_data);
+typedef void (*SetSkybox_Closure)
+                 (const SetSkybox *message,
+                  void *closure_data);
 typedef void (*UpdateSystemMatrix_Closure)
                  (const UpdateSystemMatrix *message,
                   void *closure_data);
 typedef void (*DestroyObject_Closure)
                  (const DestroyObject *message,
-                  void *closure_data);
-typedef void (*CreateSkybox_Closure)
-                 (const CreateSkybox *message,
                   void *closure_data);
 
 /* --- services --- */
@@ -428,11 +427,11 @@ extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__type__descriptor;
 extern const ProtobufCMessageDescriptor run_program__descriptor;
+extern const ProtobufCMessageDescriptor set_skybox__descriptor;
 extern const ProtobufCMessageDescriptor update_system_matrix__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__matrix_type__descriptor;
 extern const ProtobufCEnumDescriptor    update_system_matrix__update_type__descriptor;
 extern const ProtobufCMessageDescriptor destroy_object__descriptor;
-extern const ProtobufCMessageDescriptor create_skybox__descriptor;
 
 PROTOBUF_C__END_DECLS
 

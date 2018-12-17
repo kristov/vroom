@@ -66,6 +66,11 @@ message RunProgram {
     required int32 register_id = 3;
 }
 
+message SetSkybox {
+    required int32 scene_id = 1;
+    required int32 texture_id = 2;
+}
+
 message UpdateSystemMatrix {
     enum MatrixType {
         HEAD = 0;
@@ -85,10 +90,4 @@ message UpdateSystemMatrix {
 message DestroyObject {
     required int32 scene_id = 1;
     required int32 id = 2;
-}
-
-message CreateSkybox {
-    required int32 scene_id = 1;
-    required int32 texture_id = 3;
-    required int32 size = 4;
 }

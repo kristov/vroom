@@ -6,8 +6,7 @@ typedef enum vrms_object_type {
     VRMS_OBJECT_SCENE,
     VRMS_OBJECT_MEMORY,
     VRMS_OBJECT_DATA,
-    VRMS_OBJECT_TEXTURE,
-    VRMS_OBJECT_SKYBOX
+    VRMS_OBJECT_TEXTURE
 } vrms_object_type_t;
 
 typedef enum vrms_data_type {
@@ -46,8 +45,8 @@ typedef enum vrms_type {
     VRMS_CREATEPROGRAM,
     VRMS_DESTROYOBJECT,
     VRMS_RUNPROGRAM,
-    VRMS_UPDATESYSTEMMATRIX,
-    VRMS_CREATESKYBOX
+    VRMS_SETSKYBOX,
+    VRMS_UPDATESYSTEMMATRIX
 } vrms_type_t;
 
 typedef enum vrms_matrix_type {

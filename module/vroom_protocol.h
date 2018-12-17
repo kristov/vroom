@@ -12,8 +12,8 @@ typedef enum vroom_protocol_type {
     VRMS_CREATEMESHTEXTURE,
     VRMS_CREATEPROGRAM,
     VRMS_RUNPROGRAM,
-    VRMS_UPDATESYSTEMMATRIX,
-    VRMS_CREATESKYBOX
+    VRMS_SETSKYBOX,
+    VRMS_UPDATESYSTEMMATRIX
 } vroom_protocol_type_t;
 
 typedef enum vroom_protocol_error {

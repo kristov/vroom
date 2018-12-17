@@ -283,9 +283,9 @@ uint32_t receive_update_system_matrix(vrms_runtime_t* vrms_runtime, uint8_t* in_
     return ok;
 }
 
-uint32_t receive_create_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+uint32_t receive_set_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
-    CreateSkybox* msg;
+    SetSkybox* msg;
 
     if (!vrms_runtime) {
         *error = VRMS_INVALIDREQUEST;
@@ -293,14 +293,14 @@ uint32_t receive_create_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
         return 0;
     }
 
-    msg = create_skybox__unpack(NULL, length, in_buf);
+    msg = set_skybox__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "unpacking incoming message\n");
         return 0;
     }
 
-    id = vrms_runtime->interface->create_object_skybox(vrms_runtime, msg->scene_id, msg->texture_id);
+    id = vrms_runtime->interface->set_skybox(vrms_runtime, msg->scene_id, msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create skybox: out of memory\n");
@@ -485,13 +485,13 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_CREATETEXTUREOBJECT:
             id = receive_create_texture_object(vrms_runtime, in_buf, length_r, &error);
             break;
-        case VRMS_CREATESKYBOX:
-            id = receive_create_skybox(vrms_runtime, in_buf, length_r, &error);
-            break;
         case VRMS_DESTROYOBJECT:
             break;
         case VRMS_RUNPROGRAM:
             id = receive_run_program(vrms_runtime, in_buf, length_r, &error);
+            break;
+        case VRMS_SETSKYBOX:
+            id = receive_set_skybox(vrms_runtime, in_buf, length_r, &error);
             break;
         case VRMS_UPDATESYSTEMMATRIX:
             id = receive_update_system_matrix(vrms_runtime, in_buf, length_r, &error);
@@ -499,7 +499,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         default:
             id = 0;
             error = VRMS_INVALIDREQUEST;
-            fprintf(stderr, "unknown error\n");
+            fprintf(stderr, "unknown reqeust type\n");
             break;
     }
 
