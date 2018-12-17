@@ -23,7 +23,7 @@
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-#define DEBUG_RENDER 1
+#define DEBUG_RENDER 0
 #define debug_render_print(fmt, ...) do { if (DEBUG_RENDER) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
 #define ALLOCATION_US_30FPS 33000
@@ -219,6 +219,10 @@ void vrms_scene_queue_item_gl_load_process(vrms_scene_t* scene, vrms_scene_queue
         case VRMS_OBJECT_TEXTURE:
             object = vrms_scene_get_object_by_id(scene, gl_load->object_id);
             object->gl_id = gl_load->gl_id;
+            if (scene->skybox_texture_id) {
+                debug_print("vrms_scene_queue_item_gl_load_process(): setting skybox.texture_gl_id\n");
+                scene->server->skybox.texture_gl_id = gl_load->gl_id;
+            }
             break;
         default:
             debug_print("vrms_scene_queue_item_gl_load_process(): unknown object type!!\n");
@@ -449,17 +453,13 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
     return 1;
 }
 
-uint32_t vrms_scene_set_skybox(vrms_scene_t* scene, uint32_t texture_id) {
-    // TODO: This needs to be done differently
-    scene->server->skybox.texture_id = texture_id;
-    return 1;
-}
-
 uint32_t vrms_scene_draw(vrms_scene_t* scene, float* projection_matrix, float* view_matrix, float* model_matrix, float* skybox_projection_matrix) {
     uint32_t usec_elapsed;
 
     scene->matrix.p = projection_matrix;
     scene->matrix.v = view_matrix;
+
+    vrms_scene_process_queue(scene);
 
     if (!pthread_mutex_trylock(&scene->scene_lock)) {
         debug_render_print("vrms_scene_draw(): locked scene\n");
@@ -653,6 +653,11 @@ void vrms_scene_vm_callback(rendervm_t* vm, rendervm_opcode_t opcode, void* user
         default:
             break;
     }
+}
+
+uint32_t vrms_scene_set_skybox(vrms_scene_t* scene, uint32_t texture_id) {
+    scene->skybox_texture_id = texture_id;
+    return 1;
 }
 
 vrms_scene_t* vrms_scene_create(char* name) {

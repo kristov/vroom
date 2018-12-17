@@ -1,42 +1,63 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vrms_client.h"
-#include "vrms_geometry.h"
-#include "esm.h"
-#include <time.h>
+#include "client.h"
+#include "geometry2.h"
+#include "texture.h"
+
+void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->item_length, item->data_length, item->type);
+}
+
+void realize_layout(memory_layout_t* layout, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    layout->id = client->interface->create_memory(client, layout->fd, layout->total_size);
+}
 
 int main(void) {
-    uint32_t scene_id;
-    uint32_t skybox_id;
-    vrms_client_t* client;
-
-    client = vrms_connect();
+    vrms_client_t* client = vrms_connect();
     if (NULL == client) {
         fprintf(stderr, "Unable to connect\n");
         exit(1);
     }
 
-    scene_id = vrms_create_scene(client, "Test scene");
+    uint32_t scene_id = client->interface->create_scene(client, "Test scene");
     if (scene_id == 0) {
         fprintf(stderr, "Unable to create scene\n");
-        vrms_destroy_scene(client);
+        client->interface->destroy_scene(client);
         exit(1);
     }
 
-    skybox_id = vrms_geometry_skybox(client, "temp/miramar_large_o.png");
-    if (skybox_id == 0) {
-        fprintf(stderr, "Unable to create skybox\n");
-        vrms_destroy_scene(client);
-        exit(1);
-    }
+    texture_cubemap_t cubemap;
+    texture_cubemap_init(&cubemap, "../temp/miramar_large_o.png");
+    fprintf(stderr, "cubemap: square_width: %d total_size: %d\n", cubemap.square_width, cubemap.total_size);
 
-    vrms_geometry_render_buffer_basic(client, skybox_id, 0.0f, 0.0f, 0.0f);
+    memory_layout_t* layout = vrms_geometry_layout_create(1);
+    vrms_geometry_layout_realizer(layout, realize_layout, (void*)client);
+    vrms_geometry_layout_item_realizer(layout, realize_layout_item, (void*)client);
+
+    vrms_geometry_layout_add_item(layout, 0, VRMS_TEXTURE, cubemap.total_size, cubemap.texture.bytes_per_pixel, sizeof(uint8_t));
+    vrms_geometry_layout_realize(layout);
+
+    uint8_t* cubemap_data = vrms_geometry_get_uint8_pointer(layout, 0);
+    texture_cubemap_build_data(&cubemap, cubemap_data);
+
+    vrms_geometry_layout_item_realize(layout, 0);
+
+    uint32_t texture_id = client->interface->create_object_texture(client, layout->items[0].id, cubemap.square_width, cubemap.square_width, VRMS_FORMAT_BGR888, VRMS_TEXTURE_CUBE_MAP);
+
+    fprintf(stderr, "created texture_id: %d\n", texture_id);
+
+    uint32_t ok = client->interface->set_skybox(client, texture_id);
+    if (!ok) {
+        fprintf(stderr, "skybox creation failed\n");
+    }
 
     while (1) {
-        sleep(60);
+        sleep(10);
     }
 
-    vrms_destroy_scene(client);
+    client->interface->destroy_scene(client);
     return 0;
 }

@@ -143,8 +143,7 @@ void vrms_server_draw_skybox(vrms_server_t* server, float view_matrix[16], float
 void vrms_server_draw_scenes(vrms_server_t* server, float projection_matrix[16], float view_matrix[16], float model_matrix[16], float skybox_projection_matrix[16]) {
     vrms_scene_t* scene;
 
-    if (server->skybox.texture_id) {
-        
+    if (server->skybox.texture_gl_id) {
         vrms_server_draw_skybox(server, view_matrix, skybox_projection_matrix);
     }
 

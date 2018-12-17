@@ -54,5 +54,20 @@ void vrms_geometry_layout_realizer(memory_layout_t* layout, realize_layout_t cal
 
 void vrms_geometry_layout_plane_color(memory_layout_t* layout, float xmin, float ymin, float xmax, float ymax);
 
+uint8_t* vrms_geometry_get_uint8_pointer(memory_layout_t* layout, uint32_t idx);
+
+uint16_t* vrms_geometry_get_uint16_pointer(memory_layout_t* layout, uint32_t idx);
+
+uint32_t* vrms_geometry_get_uint32_pointer(memory_layout_t* layout, uint32_t idx);
+
+float* vrms_geometry_get_float_pointer(memory_layout_t* layout, uint32_t idx);
+
 uint32_t vrms_geometry_layout_get_id(memory_layout_t* layout, uint32_t idx);
+
+void vrms_geometry_layout_realize(memory_layout_t* layout);
+
+void vrms_geometry_layout_item_realize(memory_layout_t* layout, uint32_t idx);
+
+void vrms_geometry_layout_add_item(memory_layout_t* layout, uint32_t idx, vrms_data_type_t type, uint32_t size, uint32_t item_length, uint32_t data_length);
+
 #endif

@@ -39,8 +39,8 @@ typedef struct vrms_client_interface {
     uint32_t (*create_memory)(vrms_client_t* client, int32_t fd, uint32_t size);
     uint32_t (*create_object_data)(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
     uint32_t (*create_object_texture)(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
-    uint32_t (*create_program)(vrms_client_t* client, uint32_t data_id);
     uint32_t (*run_program)(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
+    uint32_t (*set_skybox)(vrms_client_t* client, uint32_t texture_id);
     uint32_t (*destroy_scene)(vrms_client_t* client);
     uint32_t (*destroy_object)(vrms_client_t* client, uint32_t object_id);
 } vrms_client_interface_t;
@@ -143,19 +143,6 @@ uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_i
 uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
 
 /**
- * @brief Create a new program
- *
- * Loads a program from a memory object.
- *
- * @code{.c}
- * uint32_t program_id = vrms_client_create_program(client, data_id);
- * @endcode
- * @param data_id
- * @return A new object id
- */
-uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t data_id);
-
-/**
  * @brief Run a program
  *
  * This does two things: a) loads the program referred to by program_id into
@@ -174,6 +161,17 @@ uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t data_id);
  * @return A status
  */
 uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
+
+/**
+ * @brief Set the skybox
+ *
+ * @code{.c}
+ * uint32_t ok = vrms_client_set_skybox(client, texture_id);
+ * @endcode
+ * @param texture_id Object id of a cubemap texture
+ * @return A status
+ */
+uint32_t vrms_client_set_skybox(vrms_client_t* client, uint32_t texture_id);
 
 /**
  * @brief Destroy an object

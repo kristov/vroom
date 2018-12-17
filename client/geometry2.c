@@ -234,6 +234,17 @@ void vrms_geometry_layout_init_memory(memory_layout_t* layout) {
     }
 }
 
+void vrms_geometry_layout_item_realize(memory_layout_t* layout, uint32_t idx) {
+    layout->item_realizer(layout, &layout->items[idx], layout->item_realizer_data);
+}
+
+void vrms_geometry_layout_realize(memory_layout_t* layout) {
+    vrms_geometry_layout_calculate_offsets(layout);
+    vrms_geometry_layout_init_memory(layout);
+    layout->realizer(layout, layout->realizer_data);
+    vrms_geometry_layout_link_mem(layout);
+}
+
 void vrms_geometry_layout_plane(memory_layout_t* layout) {
     vrms_geometry_layout_add_vertex(layout, LAYOUT_DEFAULT_VERTEX, 4);
     vrms_geometry_layout_add_normal(layout, LAYOUT_DEFAULT_NORMAL, 4);
@@ -246,11 +257,7 @@ void vrms_geometry_layout_plane_color(memory_layout_t* layout, float xmin, float
     vrms_geometry_layout_add_register(layout, LAYOUT_DEFAULT_REGISTER);
     vrms_geometry_layout_add_program(layout, LAYOUT_DEFAULT_PROGRAM, 1);
     vrms_geometry_layout_add_matrix(layout, LAYOUT_DEFAULT_MATRIX, 1);
-
-    vrms_geometry_layout_calculate_offsets(layout);
-    vrms_geometry_layout_init_memory(layout);
-    layout->realizer(layout, layout->realizer_data);
-    vrms_geometry_layout_link_mem(layout);
+    vrms_geometry_layout_realize(layout);
 
     float* verts = vrms_geometry_get_float_pointer(layout, LAYOUT_DEFAULT_VERTEX);
     float* norms = vrms_geometry_get_float_pointer(layout, LAYOUT_DEFAULT_NORMAL);
@@ -264,10 +271,11 @@ void vrms_geometry_layout_plane_color(memory_layout_t* layout, float xmin, float
     std_plane_generate_normals(norms);
     std_plane_generate_indicies(indicies);
     std_plane_generate_color(colors);
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_VERTEX], layout->item_realizer_data);
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_NORMAL], layout->item_realizer_data);
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_INDEX], layout->item_realizer_data);
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_COLOR], layout->item_realizer_data);
+
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_VERTEX);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_NORMAL);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_INDEX);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_COLOR);
     
     registers[0] = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_VERTEX);
     registers[1] = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_NORMAL);
@@ -276,14 +284,14 @@ void vrms_geometry_layout_plane_color(memory_layout_t* layout, float xmin, float
 
     mat4_identity(matrix);
     mat4_translatef(matrix, 0.0f, 0.0f, -10.0f);
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_MATRIX], layout->item_realizer_data);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_MATRIX);
     registers[4] = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_MATRIX);
     registers[5] = 0;
 
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_REGISTER], layout->item_realizer_data);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_REGISTER);
 
     program[0] = 0xc8;
-    layout->item_realizer(layout, &layout->items[LAYOUT_DEFAULT_PROGRAM], layout->item_realizer_data);
+    vrms_geometry_layout_item_realize(layout, LAYOUT_DEFAULT_PROGRAM);
 }
 
 void vrms_geometry_layout_item_realizer(memory_layout_t* layout, realize_layout_item_t callback, void* user_data) {

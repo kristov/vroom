@@ -39,6 +39,7 @@ typedef struct vrms_scene {
     rendervm_t* vm;
     pthread_mutex_t scene_lock;
     uint32_t render_allocation_usec;
+    uint32_t skybox_texture_id;
     vrms_gl_render_t render;
     vrms_gl_matrix_t matrix;
 } vrms_scene_t;

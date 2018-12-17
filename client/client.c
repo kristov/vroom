@@ -30,8 +30,8 @@ void fill_interface() {
     client_interface.create_memory = vrms_client_create_memory;
     client_interface.create_object_data = vrms_client_create_object_data;
     client_interface.create_object_texture = vrms_client_create_object_texture;
-    client_interface.create_program = vrms_client_create_program;
     client_interface.run_program = vrms_client_run_program;
+    client_interface.set_skybox = vrms_client_set_skybox;
     client_interface.destroy_scene = vrms_client_destroy_scene;
     //client_interface.destroy_object = vrms_client_destroy_object;
 }
@@ -255,26 +255,6 @@ uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_
     return id;
 }
 
-uint32_t vrms_client_create_program(vrms_client_t* client, uint32_t data_id) {
-    uint32_t ret;
-    CreateProgram msg = CREATE_PROGRAM__INIT;
-    void* buf;
-    uint32_t length;
-
-    msg.scene_id = client->scene_id;
-    msg.data_id = data_id;
-
-    length = create_program__get_packed_size(&msg);
-
-    buf = SAFEMALLOC(length);
-    create_program__pack(&msg, buf);
-
-    ret = vrms_client_send_message(client, VRMS_CREATEPROGRAM, buf, length, 0);
-
-    free(buf);
-    return ret;
-}
-
 uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uint32_t register_id) {
     uint32_t ret;
     RunProgram msg = RUN_PROGRAM__INIT;
@@ -291,6 +271,26 @@ uint32_t vrms_client_run_program(vrms_client_t* client, uint32_t program_id, uin
     run_program__pack(&msg, buf);
 
     ret = vrms_client_send_message(client, VRMS_RUNPROGRAM, buf, length, 0);
+
+    free(buf);
+    return ret;
+}
+
+uint32_t vrms_client_set_skybox(vrms_client_t* client, uint32_t texture_id) {
+    uint32_t ret;
+    SetSkybox msg = SET_SKYBOX__INIT;
+    void* buf;
+    uint32_t length;
+
+    msg.scene_id = client->scene_id;
+    msg.texture_id = texture_id;
+
+    length = set_skybox__get_packed_size(&msg);
+
+    buf = SAFEMALLOC(length);
+    set_skybox__pack(&msg, buf);
+
+    ret = vrms_client_send_message(client, VRMS_SETSKYBOX, buf, length, 0);
 
     free(buf);
     return ret;
