@@ -2,6 +2,22 @@
 #include "epsilon.h"
 #include <math.h>
 #include <float.h>
+#include <stdio.h>
+
+void mat4_dump(float dst[16]) {
+    if (!dst) {
+        fprintf(stderr, "mat4_dump(): undefined matrix\n");
+        return;
+    }
+    fprintf(stderr, "+----------+----------+----------+----------+\n");
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", dst[0], dst[1], dst[2], dst[3]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", dst[4], dst[5], dst[6], dst[7]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", dst[8], dst[9], dst[10], dst[11]);
+    fprintf(stderr, "| %8.4f | %8.4f | %8.4f | %8.4f |\n", dst[12], dst[13], dst[14], dst[15]);
+    fprintf(stderr, "+----------+----------+----------+----------+\n");
+    fprintf(stderr, "   trans1     trans2     trans3\n");
+    fprintf(stderr, "\n");
+}
 
 void mat4_identity(float dst[16]) {
     dst[0] = 1;

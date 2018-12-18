@@ -62,7 +62,6 @@ typedef struct vrms_skybox {
     uint32_t vertex_gl_id;
     uint32_t index_gl_id;
     uint32_t texture_gl_id;
-    uint32_t shader_id;
     uint8_t realized;
 } vrms_skybox_t;
 

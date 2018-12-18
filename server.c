@@ -132,7 +132,7 @@ void vrms_server_draw_skybox(vrms_server_t* server, float view_matrix[16], float
     mat4_copy(matrix.mvp, projection_matrix);
     mat4_multiply(matrix.mvp, view_matrix);
 
-    render.shader_id = server->skybox.shader_id;
+    render.shader_id = server->cubemap_shader_id;
     render.vertex_id = server->skybox.vertex_gl_id;
     render.texture_id = server->skybox.texture_gl_id;
     render.index_id = server->skybox.index_gl_id;
@@ -261,8 +261,6 @@ void vrms_server_setup_skybox(vrms_server_t* server) {
 
     vrms_gl_load_buffer((uint8_t*)vertex_data, &server->skybox.vertex_gl_id, (24 * sizeof(float)), VRMS_VERTEX);
     vrms_gl_load_buffer((uint8_t*)index_data, &server->skybox.index_gl_id, (36 * sizeof(uint16_t)), VRMS_INDEX);
-
-    server->skybox.shader_id = server->cubemap_shader_id;
 }
 
 vrms_server_t* vrms_server_create() {

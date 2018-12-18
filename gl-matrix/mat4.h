@@ -4,6 +4,13 @@
 #include <stdint.h>
 
 /**
+ * Print a mat4 matrix to stderr
+ *
+ * @param {mat4} the matrix to dump
+ */
+void mat4_dump(float dst[16]);
+
+/**
  * Set a mat4 to the identity matrix
  *
  * @param {mat4} out the receiving matrix
