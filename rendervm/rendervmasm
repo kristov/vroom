@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Data::Dumper;
+use List::Util qw(sum);
 my $opts = {};
 GetOptions(
     $opts,
@@ -12,7 +13,7 @@ GetOptions(
     'carray',
     'cenum',
     'cswitch',
-    'copcode2str',
+    'copcodeinfo',
     'ctests',
 );
 
@@ -223,24 +224,27 @@ sub print_ctests {
     printf("}\n");
 }
 
-sub print_copcode2str {
+sub print_copcodeinfo {
     my @array;
     for my $ins (sorted_keys()) {
         my $idx = $INS_ARG_LENGTH{$ins}->[0];
         $array[$idx] = $ins;
     }
 
-    print "const char *opcode2str[] = {\n";
+    print "const rendervm_opcode_info_t opcode_info[] = {\n";
     for my $ins (@array) {
         if (defined $ins) {
-            print "    \"$ins\",\n";
+            my @types = @{$INS_ARG_LENGTH{$ins}->[1]};
+            my @lengths = map {$TYPEDEF{$_}->{len}} @types;
+            my $total = sum(@lengths) // 0;
+            printf("    {\"%s\", 0x%02x},\n", $ins, $total);
         }
         else {
-            print "    \"[unused]\",\n";
+            printf("    {\"[unused]\", 0x00},\n");
         }
     }
-    print "    \"[unused]\"\n";
-    print "};\n";
+    printf("    {\"[unused]\", 0x00}\n");
+    printf("};\n");
 }
 
 sub print_cenum {
@@ -558,8 +562,8 @@ sub main {
     elsif ($opts->{cswitch}) {
         print_cswitch();
     }
-    elsif ($opts->{copcode2str}) {
-        print_copcode2str();
+    elsif ($opts->{copcodeinfo}) {
+        print_copcodeinfo();
     }
     elsif ($opts->{ctests}) {
         print_ctests();

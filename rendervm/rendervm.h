@@ -263,15 +263,27 @@ typedef enum rendervm_opcode {
 } rendervm_opcode_t;
 
 rendervm_t* rendervm_create();
+
 void rendervm_destroy(rendervm_t* vm);
+
 //uint8_t rendervm_last_opcode(rendervm_t* vm);
+
 //uint8_t rendervm_resume(rendervm_t* vm);
+
 void rendervm_reset(rendervm_t* vm);
+
 uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length);
+
+uint8_t rendervm_opcode2arglen(rendervm_opcode_t opcode);
+
 const char* rendervm_opcode2str(rendervm_opcode_t opcode);
+
 //void rendervm_interrupt(rendervm_t* vm);
+
 uint8_t rendervm_has_exception(rendervm_t* vm);
+
 void rendervm_exception(rendervm_t* vm, rendervm_exception_t exception);
+
 void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data);
 
 #endif

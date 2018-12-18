@@ -18,9 +18,9 @@ To generate an empty switch statement for rendervm.c:
 
   ./rendervmasm --cswitch
 
-To generate the string array for debugging for rendervm.c:
+To generate the array for opcode information rendervm.c:
 
-  ./rendervmasm --copcode2str
+  ./rendervmasm --copcodeinfo
 
 To generate a list of test functions and the main calling function for test.c:
 
