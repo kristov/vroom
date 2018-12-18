@@ -1026,8 +1026,17 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             break;
     }
     vm->last_opcode = opcode;
+    vm->next_opcode = program[vm->pc];
 
     return vm->running;
+}
+
+uint8_t rendervm_last_opcode(rendervm_t* vm) {
+    return vm->last_opcode;
+}
+
+uint8_t rendervm_next_opcode(rendervm_t* vm) {
+    return vm->next_opcode;
 }
 
 uint8_t rendervm_has_exception(rendervm_t* vm) {

@@ -93,6 +93,7 @@ typedef struct rendervm {
     rendervm_exception_t exception;
     uint8_t running;
     uint8_t last_opcode;
+    uint8_t next_opcode;
 
     void* user_data;
     rendervm_callback_t callback;
@@ -266,7 +267,9 @@ rendervm_t* rendervm_create();
 
 void rendervm_destroy(rendervm_t* vm);
 
-//uint8_t rendervm_last_opcode(rendervm_t* vm);
+uint8_t rendervm_last_opcode(rendervm_t* vm);
+
+uint8_t rendervm_next_opcode(rendervm_t* vm);
 
 //uint8_t rendervm_resume(rendervm_t* vm);
 
