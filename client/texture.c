@@ -68,11 +68,11 @@ void texture_cubemap_build_data(texture_cubemap_t* cubemap, uint8_t* destination
     dest_off += bytes_sq;
 
     // YPOS
-    texture_copy_square(destination, data, square_px, bytes_pl, bytes_pp, 1, 2, dest_off);
+    texture_copy_square(destination, data, square_px, bytes_pl, bytes_pp, 1, 0, dest_off);
     dest_off += bytes_sq;
 
     // YNEG
-    texture_copy_square(destination, data, square_px, bytes_pl, bytes_pp, 1, 0, dest_off);
+    texture_copy_square(destination, data, square_px, bytes_pl, bytes_pp, 1, 2, dest_off);
     dest_off += bytes_sq;
 
     // ZPOS
