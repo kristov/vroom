@@ -30,7 +30,8 @@ int main(void) {
     }
 
     texture_cubemap_t cubemap;
-    texture_cubemap_init(&cubemap, "../temp/miramar_large_o.png");
+    texture_cubemap_init(&cubemap, "assets/miramar_large_o.png");
+    //texture_cubemap_init(&cubemap, "assets/skybox_desert.png");
     fprintf(stderr, "cubemap: square_width: %d total_size: %d\n", cubemap.square_width, cubemap.total_size);
 
     memory_layout_t* layout = vrms_geometry_layout_create(1);
