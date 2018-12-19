@@ -115,44 +115,50 @@ void std_plane_generate_uvs(float* uvs) {
     off += 2;
 }
 
-void vrms_geometry_layout_add_item(memory_layout_t* layout, uint32_t idx, vrms_data_type_t type, uint32_t size, uint32_t item_length, uint32_t data_length) {
+void vrms_geometry_layout_add_item(memory_layout_t* layout, uint32_t idx, vrms_data_type_t type, uint32_t size) {
     memory_layout_item_t* item = &layout->items[idx];
     item->memory_size = size;
-    item->item_length = item_length;
-    item->data_length = data_length;
     item->type = type;
 }
 
-void vrms_geometry_layout_add_vertex(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_VERTEX, (SIZEOF_VEC3 * count), SIZEOF_VEC3, SIZEOF_FL);
+void vrms_geometry_layout_add_uint8(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_UINT8, (sizeof(uint8_t) * count));
 }
 
-void vrms_geometry_layout_add_normal(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_VERTEX, (SIZEOF_VEC3 * count), SIZEOF_VEC3, SIZEOF_FL);
+void vrms_geometry_layout_add_uint16(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_UINT16, (sizeof(uint16_t) * count));
 }
 
-void vrms_geometry_layout_add_index(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_INDEX, (sizeof(uint16_t) * count), sizeof(uint16_t), sizeof(uint16_t));
+void vrms_geometry_layout_add_uint32(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_UINT32, (sizeof(uint32_t) * count));
 }
 
-void vrms_geometry_layout_add_color(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_COLOR, (SIZEOF_VEC4 * count), SIZEOF_VEC4, SIZEOF_FL);
+void vrms_geometry_layout_add_float(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_FLOAT, (SIZEOF_FLOAT * count));
 }
 
-void vrms_geometry_layout_add_uv(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_UV, (SIZEOF_VEC2 * count), SIZEOF_VEC2, SIZEOF_FL);
+void vrms_geometry_layout_add_vec2(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_VEC2, (SIZEOF_VEC2 * count));
 }
 
-void vrms_geometry_layout_add_register(memory_layout_t* layout, uint32_t idx) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_REGISTER, (sizeof(uint32_t) * 10), sizeof(uint32_t), sizeof(uint32_t));
+void vrms_geometry_layout_add_vec3(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_VEC3, (SIZEOF_VEC3 * count));
 }
 
-void vrms_geometry_layout_add_program(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_PROGRAM, (sizeof(uint8_t) * count), sizeof(uint8_t), sizeof(uint8_t));
+void vrms_geometry_layout_add_vec4(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_VEC4, (SIZEOF_VEC4 * count));
 }
 
-void vrms_geometry_layout_add_matrix(memory_layout_t* layout, uint32_t idx, uint32_t count) {
-    vrms_geometry_layout_add_item(layout, idx, VRMS_MATRIX, (SIZEOF_MAT4 * count), SIZEOF_MAT4, SIZEOF_FL);
+void vrms_geometry_layout_add_mat2(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_MAT2, (SIZEOF_MAT2 * count));
+}
+
+void vrms_geometry_layout_add_mat3(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_MAT3, (SIZEOF_MAT3 * count));
+}
+
+void vrms_geometry_layout_add_mat4(memory_layout_t* layout, uint32_t idx, uint32_t count) {
+    vrms_geometry_layout_add_item(layout, idx, VRMS_MAT4, (SIZEOF_MAT4 * count));
 }
 
 uint8_t* vrms_geometry_get_uint8_pointer(memory_layout_t* layout, uint32_t idx) {
@@ -246,17 +252,17 @@ void vrms_geometry_layout_realize(memory_layout_t* layout) {
 }
 
 void vrms_geometry_layout_plane(memory_layout_t* layout) {
-    vrms_geometry_layout_add_vertex(layout, LAYOUT_DEFAULT_VERTEX, 4);
-    vrms_geometry_layout_add_normal(layout, LAYOUT_DEFAULT_NORMAL, 4);
-    vrms_geometry_layout_add_index(layout, LAYOUT_DEFAULT_INDEX, 6);
+    vrms_geometry_layout_add_vec3(layout, LAYOUT_DEFAULT_VERTEX, 4);
+    vrms_geometry_layout_add_vec3(layout, LAYOUT_DEFAULT_NORMAL, 4);
+    vrms_geometry_layout_add_uint16(layout, LAYOUT_DEFAULT_INDEX, 6);
 }
 
 void vrms_geometry_layout_plane_color(memory_layout_t* layout, float xmin, float ymin, float xmax, float ymax) {
     vrms_geometry_layout_plane(layout);
-    vrms_geometry_layout_add_color(layout, LAYOUT_DEFAULT_COLOR, 4);
-    vrms_geometry_layout_add_register(layout, LAYOUT_DEFAULT_REGISTER);
-    vrms_geometry_layout_add_program(layout, LAYOUT_DEFAULT_PROGRAM, 1);
-    vrms_geometry_layout_add_matrix(layout, LAYOUT_DEFAULT_MATRIX, 1);
+    vrms_geometry_layout_add_vec4(layout, LAYOUT_DEFAULT_COLOR, 4);
+    vrms_geometry_layout_add_uint32(layout, LAYOUT_DEFAULT_REGISTER, 10);
+    vrms_geometry_layout_add_uint8(layout, LAYOUT_DEFAULT_PROGRAM, 1);
+    vrms_geometry_layout_add_mat4(layout, LAYOUT_DEFAULT_MATRIX, 1);
     vrms_geometry_layout_realize(layout);
 
     float* verts = vrms_geometry_get_float_pointer(layout, LAYOUT_DEFAULT_VERTEX);

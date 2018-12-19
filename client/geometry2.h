@@ -3,11 +3,13 @@
 
 #include "vroom.h"
 
-#define SIZEOF_FL sizeof(float)
-#define SIZEOF_VEC2 (SIZEOF_FL * 2)
-#define SIZEOF_VEC3 (SIZEOF_FL * 3)
-#define SIZEOF_VEC4 (SIZEOF_FL * 4)
-#define SIZEOF_MAT4 (SIZEOF_FL * 16)
+#define SIZEOF_FLOAT sizeof(float)
+#define SIZEOF_VEC2 (SIZEOF_FLOAT * 2)
+#define SIZEOF_VEC3 (SIZEOF_FLOAT * 3)
+#define SIZEOF_VEC4 (SIZEOF_FLOAT * 4)
+#define SIZEOF_MAT2 (SIZEOF_FLOAT * 4)
+#define SIZEOF_MAT3 (SIZEOF_FLOAT * 9)
+#define SIZEOF_MAT4 (SIZEOF_FLOAT * 16)
 
 #define LAYOUT_DEFAULT_VERTEX    0
 #define LAYOUT_DEFAULT_NORMAL    1
@@ -28,8 +30,6 @@ typedef struct memory_layout_item {
     uint8_t* mem;
     uint32_t memory_offset;
     uint32_t memory_size;
-    uint32_t item_length;
-    uint32_t data_length;
     vrms_data_type_t type;
 } memory_layout_item_t;
 
@@ -68,6 +68,6 @@ void vrms_geometry_layout_realize(memory_layout_t* layout);
 
 void vrms_geometry_layout_item_realize(memory_layout_t* layout, uint32_t idx);
 
-void vrms_geometry_layout_add_item(memory_layout_t* layout, uint32_t idx, vrms_data_type_t type, uint32_t size, uint32_t item_length, uint32_t data_length);
+void vrms_geometry_layout_add_item(memory_layout_t* layout, uint32_t idx, vrms_data_type_t type, uint32_t size);
 
 #endif

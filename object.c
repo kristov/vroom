@@ -21,7 +21,7 @@ vrms_object_t* vrms_object_memory_create(uint32_t fd, void* address, uint32_t si
     return object;
 }
 
-vrms_object_t* vrms_object_data_create(uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type) {
+vrms_object_t* vrms_object_data_create(uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
     vrms_object_t* object = vrms_object_create();
     object->type = VRMS_OBJECT_DATA;
     object->realized = 0;
@@ -32,14 +32,8 @@ vrms_object_t* vrms_object_data_create(uint32_t memory_id, uint32_t memory_offse
     object_data->memory_id = memory_id;
     object_data->memory_offset = memory_offset;
     object_data->memory_length = memory_length;
-    object_data->item_length = item_length;
-    object_data->data_length = data_length;
     object_data->type = type;
     object->object.object_data = object_data;
-
-    if ((VRMS_TEXTURE == type) || (VRMS_MATRIX == type) || (VRMS_PROGRAM == type) || (VRMS_REGISTER == type)) {
-        object->realized = 1;
-    }
 
     return object;
 }

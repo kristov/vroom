@@ -37,15 +37,16 @@ void fill_interface() {
 }
 
 uint32_t data_object_type_map[] = {
-    CREATE_DATA_OBJECT__TYPE__VERTEX,   // VRMS_VERTEX
-    CREATE_DATA_OBJECT__TYPE__NORMAL,   // VRMS_NORMAL
-    CREATE_DATA_OBJECT__TYPE__INDEX,    // VRMS_INDEX
-    CREATE_DATA_OBJECT__TYPE__COLOR,    // VRMS_COLOR
-    CREATE_DATA_OBJECT__TYPE__UV,       // VRMS_UV
-    CREATE_DATA_OBJECT__TYPE__TEXTURE,  // VRMS_TEXTURE
-    CREATE_DATA_OBJECT__TYPE__MATRIX,   // VRMS_MATRIX
-    CREATE_DATA_OBJECT__TYPE__PROGRAM,  // VRMS_PROGRAM
-    CREATE_DATA_OBJECT__TYPE__REGISTER  // VRMS_REGISTER
+    CREATE_DATA_OBJECT__TYPE__UINT8,
+    CREATE_DATA_OBJECT__TYPE__UINT16,
+    CREATE_DATA_OBJECT__TYPE__UINT32,
+    CREATE_DATA_OBJECT__TYPE__FLOAT,
+    CREATE_DATA_OBJECT__TYPE__VEC2,
+    CREATE_DATA_OBJECT__TYPE__VEC3,
+    CREATE_DATA_OBJECT__TYPE__VEC4,
+    CREATE_DATA_OBJECT__TYPE__MAT2,
+    CREATE_DATA_OBJECT__TYPE__MAT3,
+    CREATE_DATA_OBJECT__TYPE__MAT4
 };
 
 uint32_t matrix_type_map[] = {
@@ -191,7 +192,7 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, int32_t fd, uint32_t s
     return id;
 }
 
-uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type) {
+uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
 
     uint32_t data_object_type_map_index = (uint32_t)type;
@@ -204,8 +205,6 @@ uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_i
     msg.memory_id = memory_id;
     msg.memory_offset = memory_offset;
     msg.memory_length = memory_length;
-    msg.item_length = item_length;
-    msg.data_length = data_length;
     msg.type = pb_type;
 
     uint32_t length = create_data_object__get_packed_size(&msg);

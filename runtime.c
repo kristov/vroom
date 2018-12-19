@@ -65,7 +65,7 @@ uint32_t vrms_runtime_create_memory(vrms_runtime_t* vrms_runtime, uint32_t scene
     return vrms_scene_create_memory(vrms_scene, fd, size);
 }
 
-uint32_t vrms_runtime_create_object_data(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type) {
+uint32_t vrms_runtime_create_object_data(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
     if (!assert_vrms_server(vrms_runtime)) {
         return 0;
     }
@@ -73,7 +73,7 @@ uint32_t vrms_runtime_create_object_data(vrms_runtime_t* vrms_runtime, uint32_t 
     vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
     if (!vrms_scene)
         return 0;
-    return vrms_scene_create_object_data(vrms_scene, memory_id, memory_offset, memory_length, item_length, data_length, type);
+    return vrms_scene_create_object_data(vrms_scene, memory_id, memory_offset, memory_length, type);
 }
 
 uint32_t vrms_runtime_create_object_texture(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {

@@ -113,47 +113,51 @@ uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_bu
 
     vrms_data_type_t vrms_type;
     switch (msg->type) {
-        case CREATE_DATA_OBJECT__TYPE__UV:
-            debug_print("received data type: VRMS_UV\n");
-            vrms_type = VRMS_UV;
+        case CREATE_DATA_OBJECT__TYPE__UINT8:
+            debug_print("received data type: VRMS_UINT8\n");
+            vrms_type = VRMS_UINT8;
             break;
-        case CREATE_DATA_OBJECT__TYPE__COLOR:
-            debug_print("received data type: VRMS_COLOR\n");
-            vrms_type = VRMS_COLOR;
+        case CREATE_DATA_OBJECT__TYPE__UINT16:
+            debug_print("received data type: VRMS_UINT16\n");
+            vrms_type = VRMS_UINT16;
             break;
-        case CREATE_DATA_OBJECT__TYPE__VERTEX:
-            debug_print("received data type: VRMS_VERTEX\n");
-            vrms_type = VRMS_VERTEX;
+        case CREATE_DATA_OBJECT__TYPE__UINT32:
+            debug_print("received data type: VRMS_UINT32\n");
+            vrms_type = VRMS_UINT32;
             break;
-        case CREATE_DATA_OBJECT__TYPE__NORMAL:
-            debug_print("received data type: VRMS_NORMAL\n");
-            vrms_type = VRMS_NORMAL;
+        case CREATE_DATA_OBJECT__TYPE__FLOAT:
+            debug_print("received data type: VRMS_FLOAT\n");
+            vrms_type = VRMS_FLOAT;
             break;
-        case CREATE_DATA_OBJECT__TYPE__INDEX:
-            debug_print("received data type: VRMS_INDEX\n");
-            vrms_type = VRMS_INDEX;
+        case CREATE_DATA_OBJECT__TYPE__VEC2:
+            debug_print("received data type: VRMS_VEC2\n");
+            vrms_type = VRMS_VEC2;
             break;
-        case CREATE_DATA_OBJECT__TYPE__MATRIX:
-            debug_print("received data type: VRMS_MATRIX\n");
-            vrms_type = VRMS_MATRIX;
+        case CREATE_DATA_OBJECT__TYPE__VEC3:
+            debug_print("received data type: VRMS_VEC3\n");
+            vrms_type = VRMS_VEC3;
             break;
-        case CREATE_DATA_OBJECT__TYPE__TEXTURE:
-            debug_print("received data type: VRMS_TEXTURE\n");
-            vrms_type = VRMS_TEXTURE;
+        case CREATE_DATA_OBJECT__TYPE__VEC4:
+            debug_print("received data type: VRMS_VEC4\n");
+            vrms_type = VRMS_VEC4;
             break;
-        case CREATE_DATA_OBJECT__TYPE__PROGRAM:
-            debug_print("received data type: VRMS_PROGRAM\n");
-            vrms_type = VRMS_PROGRAM;
+        case CREATE_DATA_OBJECT__TYPE__MAT2:
+            debug_print("received data type: VRMS_MAT2\n");
+            vrms_type = VRMS_MAT2;
             break;
-        case CREATE_DATA_OBJECT__TYPE__REGISTER:
-            debug_print("received data type: VRMS_REGISTER\n");
-            vrms_type = VRMS_REGISTER;
+        case CREATE_DATA_OBJECT__TYPE__MAT3:
+            debug_print("received data type: VRMS_MAT3\n");
+            vrms_type = VRMS_MAT3;
+            break;
+        case CREATE_DATA_OBJECT__TYPE__MAT4:
+            debug_print("received data type: VRMS_MAT4\n");
+            vrms_type = VRMS_MAT4;
             break;
         case _CREATE_DATA_OBJECT__TYPE_IS_INT_SIZE:
             break;
     }
 
-    id = vrms_runtime->interface->create_object_data(vrms_runtime, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, msg->item_length, msg->data_length, vrms_type);
+    id = vrms_runtime->interface->create_object_data(vrms_runtime, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, vrms_type);
     if (0 == id) {
         fprintf(stderr, "create object data: out of memory\n");
         *error = VRMS_OUTOFMEMORY;

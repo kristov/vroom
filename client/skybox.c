@@ -7,7 +7,7 @@
 
 void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
     vrms_client_t* client = (vrms_client_t*)user_data;
-    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->item_length, item->data_length, item->type);
+    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->type);
 }
 
 void realize_layout(memory_layout_t* layout, void* user_data) {
@@ -38,7 +38,7 @@ int main(void) {
     vrms_geometry_layout_realizer(layout, realize_layout, (void*)client);
     vrms_geometry_layout_item_realizer(layout, realize_layout_item, (void*)client);
 
-    vrms_geometry_layout_add_item(layout, 0, VRMS_TEXTURE, cubemap.total_size, cubemap.texture.bytes_per_pixel, sizeof(uint8_t));
+    vrms_geometry_layout_add_item(layout, 0, VRMS_UINT8, cubemap.total_size);
     vrms_geometry_layout_realize(layout);
 
     uint8_t* cubemap_data = vrms_geometry_get_uint8_pointer(layout, 0);

@@ -6,7 +6,7 @@
 
 void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
     vrms_client_t* client = (vrms_client_t*)user_data;
-    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->item_length, item->data_length, item->type);
+    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->type);
 }
 
 void realize_layout(memory_layout_t* layout, void* user_data) {

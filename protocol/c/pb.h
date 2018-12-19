@@ -30,15 +30,16 @@ typedef struct _DestroyObject DestroyObject;
 /* --- enums --- */
 
 typedef enum _CreateDataObject__Type {
-  CREATE_DATA_OBJECT__TYPE__VERTEX = 0,
-  CREATE_DATA_OBJECT__TYPE__NORMAL = 1,
-  CREATE_DATA_OBJECT__TYPE__INDEX = 2,
-  CREATE_DATA_OBJECT__TYPE__COLOR = 3,
-  CREATE_DATA_OBJECT__TYPE__UV = 4,
-  CREATE_DATA_OBJECT__TYPE__TEXTURE = 5,
-  CREATE_DATA_OBJECT__TYPE__MATRIX = 6,
-  CREATE_DATA_OBJECT__TYPE__PROGRAM = 7,
-  CREATE_DATA_OBJECT__TYPE__REGISTER = 8
+  CREATE_DATA_OBJECT__TYPE__UINT8 = 0,
+  CREATE_DATA_OBJECT__TYPE__UINT16 = 1,
+  CREATE_DATA_OBJECT__TYPE__UINT32 = 2,
+  CREATE_DATA_OBJECT__TYPE__FLOAT = 3,
+  CREATE_DATA_OBJECT__TYPE__VEC2 = 4,
+  CREATE_DATA_OBJECT__TYPE__VEC3 = 5,
+  CREATE_DATA_OBJECT__TYPE__VEC4 = 6,
+  CREATE_DATA_OBJECT__TYPE__MAT2 = 7,
+  CREATE_DATA_OBJECT__TYPE__MAT3 = 8,
+  CREATE_DATA_OBJECT__TYPE__MAT4 = 9
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_DATA_OBJECT__TYPE)
 } CreateDataObject__Type;
 typedef enum _CreateTextureObject__Format {
@@ -117,13 +118,11 @@ struct  _CreateDataObject
   int32_t memory_id;
   int32_t memory_offset;
   int32_t memory_length;
-  int32_t item_length;
-  int32_t data_length;
   CreateDataObject__Type type;
 };
 #define CREATE_DATA_OBJECT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&create_data_object__descriptor) \
-    , 0, 0, 0, 0, 0, 0, 0 }
+    , 0, 0, 0, 0, 0 }
 
 
 struct  _CreateTextureObject

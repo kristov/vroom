@@ -37,7 +37,7 @@ typedef struct vrms_client {
 typedef struct vrms_client_interface {
     uint32_t (*create_scene)(vrms_client_t* client, char* name);
     uint32_t (*create_memory)(vrms_client_t* client, int32_t fd, uint32_t size);
-    uint32_t (*create_object_data)(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
+    uint32_t (*create_object_data)(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type);
     uint32_t (*create_object_texture)(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
     uint32_t (*run_program)(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
     uint32_t (*set_skybox)(vrms_client_t* client, uint32_t texture_id);
@@ -111,12 +111,10 @@ uint32_t vrms_client_create_memory(vrms_client_t* client, int32_t fd, uint32_t s
  * @param memory_id The memory object this data object is in
  * @param memory_offset The offset into this memory object where the data begins in bytes
  * @param memory_length The total length of this data object in bytes
- * @param item_length The length of each component within the data object in bytes
- * @param data_length The length of each value within a component in bytes
  * @param type
  * @return A new object id
  */
-uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint16_t item_length, uint16_t data_length, vrms_data_type_t type);
+uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type);
 
 /**
  * @brief Create a texture object

@@ -10,15 +10,16 @@ typedef enum vrms_object_type {
 } vrms_object_type_t;
 
 typedef enum vrms_data_type {
-    VRMS_VERTEX,
-    VRMS_NORMAL,
-    VRMS_INDEX,
-    VRMS_COLOR,
-    VRMS_UV,
-    VRMS_TEXTURE,
-    VRMS_MATRIX,
-    VRMS_PROGRAM,
-    VRMS_REGISTER
+    VRMS_UINT8,
+    VRMS_UINT16,
+    VRMS_UINT32,
+    VRMS_FLOAT,
+    VRMS_VEC2,
+    VRMS_VEC3,
+    VRMS_VEC4,
+    VRMS_MAT2,
+    VRMS_MAT3,
+    VRMS_MAT4
 } vrms_data_type_t;
 
 typedef enum vrms_texture_format {

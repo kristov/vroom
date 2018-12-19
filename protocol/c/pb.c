@@ -615,32 +615,34 @@ const ProtobufCMessageDescriptor create_memory__descriptor =
   (ProtobufCMessageInit) create_memory__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue create_data_object__type__enum_values_by_number[9] =
+static const ProtobufCEnumValue create_data_object__type__enum_values_by_number[10] =
 {
-  { "VERTEX", "CREATE_DATA_OBJECT__TYPE__VERTEX", 0 },
-  { "NORMAL", "CREATE_DATA_OBJECT__TYPE__NORMAL", 1 },
-  { "INDEX", "CREATE_DATA_OBJECT__TYPE__INDEX", 2 },
-  { "COLOR", "CREATE_DATA_OBJECT__TYPE__COLOR", 3 },
-  { "UV", "CREATE_DATA_OBJECT__TYPE__UV", 4 },
-  { "TEXTURE", "CREATE_DATA_OBJECT__TYPE__TEXTURE", 5 },
-  { "MATRIX", "CREATE_DATA_OBJECT__TYPE__MATRIX", 6 },
-  { "PROGRAM", "CREATE_DATA_OBJECT__TYPE__PROGRAM", 7 },
-  { "REGISTER", "CREATE_DATA_OBJECT__TYPE__REGISTER", 8 },
+  { "UINT8", "CREATE_DATA_OBJECT__TYPE__UINT8", 0 },
+  { "UINT16", "CREATE_DATA_OBJECT__TYPE__UINT16", 1 },
+  { "UINT32", "CREATE_DATA_OBJECT__TYPE__UINT32", 2 },
+  { "FLOAT", "CREATE_DATA_OBJECT__TYPE__FLOAT", 3 },
+  { "VEC2", "CREATE_DATA_OBJECT__TYPE__VEC2", 4 },
+  { "VEC3", "CREATE_DATA_OBJECT__TYPE__VEC3", 5 },
+  { "VEC4", "CREATE_DATA_OBJECT__TYPE__VEC4", 6 },
+  { "MAT2", "CREATE_DATA_OBJECT__TYPE__MAT2", 7 },
+  { "MAT3", "CREATE_DATA_OBJECT__TYPE__MAT3", 8 },
+  { "MAT4", "CREATE_DATA_OBJECT__TYPE__MAT4", 9 },
 };
 static const ProtobufCIntRange create_data_object__type__value_ranges[] = {
-{0, 0},{0, 9}
+{0, 0},{0, 10}
 };
-static const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[9] =
+static const ProtobufCEnumValueIndex create_data_object__type__enum_values_by_name[10] =
 {
-  { "COLOR", 3 },
-  { "INDEX", 2 },
-  { "MATRIX", 6 },
-  { "NORMAL", 1 },
-  { "PROGRAM", 7 },
-  { "REGISTER", 8 },
-  { "TEXTURE", 5 },
-  { "UV", 4 },
-  { "VERTEX", 0 },
+  { "FLOAT", 3 },
+  { "MAT2", 7 },
+  { "MAT3", 8 },
+  { "MAT4", 9 },
+  { "UINT16", 1 },
+  { "UINT32", 2 },
+  { "UINT8", 0 },
+  { "VEC2", 4 },
+  { "VEC3", 5 },
+  { "VEC4", 6 },
 };
 const ProtobufCEnumDescriptor create_data_object__type__descriptor =
 {
@@ -649,15 +651,15 @@ const ProtobufCEnumDescriptor create_data_object__type__descriptor =
   "Type",
   "CreateDataObject__Type",
   "",
-  9,
+  10,
   create_data_object__type__enum_values_by_number,
-  9,
+  10,
   create_data_object__type__enum_values_by_name,
   1,
   create_data_object__type__value_ranges,
   NULL,NULL,NULL,NULL   /* reserved[1234] */
 };
-static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
+static const ProtobufCFieldDescriptor create_data_object__field_descriptors[5] =
 {
   {
     "scene_id",
@@ -708,32 +710,8 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "item_length",
-    5,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateDataObject, item_length),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "data_length",
-    6,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(CreateDataObject, data_length),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
     "type",
-    7,
+    5,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_ENUM,
     0,   /* quantifier_offset */
@@ -745,18 +723,16 @@ static const ProtobufCFieldDescriptor create_data_object__field_descriptors[7] =
   },
 };
 static const unsigned create_data_object__field_indices_by_name[] = {
-  5,   /* field[5] = data_length */
-  4,   /* field[4] = item_length */
   1,   /* field[1] = memory_id */
   3,   /* field[3] = memory_length */
   2,   /* field[2] = memory_offset */
   0,   /* field[0] = scene_id */
-  6,   /* field[6] = type */
+  4,   /* field[4] = type */
 };
 static const ProtobufCIntRange create_data_object__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 7 }
+  { 0, 5 }
 };
 const ProtobufCMessageDescriptor create_data_object__descriptor =
 {
@@ -766,7 +742,7 @@ const ProtobufCMessageDescriptor create_data_object__descriptor =
   "CreateDataObject",
   "",
   sizeof(CreateDataObject),
-  7,
+  5,
   create_data_object__field_descriptors,
   create_data_object__field_indices_by_name,
   1,  create_data_object__number_ranges,

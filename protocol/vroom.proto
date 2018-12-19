@@ -20,23 +20,22 @@ message CreateMemory {
 
 message CreateDataObject {
     enum Type {
-        VERTEX = 0;
-        NORMAL = 1;
-        INDEX = 2;
-        COLOR = 3;
-        UV = 4;
-        TEXTURE = 5;
-        MATRIX = 6;
-        PROGRAM = 7;
-        REGISTER = 8;
+        UINT8 = 0;
+        UINT16 = 1;
+        UINT32 = 2;
+        FLOAT = 3;
+        VEC2 = 4;
+        VEC3 = 5;
+        VEC4 = 6;
+        MAT2 = 7;
+        MAT3 = 8;
+        MAT4 = 9;
     }
     required int32 scene_id = 1;
     required int32 memory_id = 2;
     required int32 memory_offset = 3;
     required int32 memory_length = 4;
-    required int32 item_length = 5;
-    required int32 data_length = 6;
-    required Type type = 7;
+    required Type type = 5;
 }
 
 message CreateTextureObject {

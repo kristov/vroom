@@ -29,16 +29,23 @@
 #define ALLOCATION_US_30FPS 33000
 #define ALLOCATION_US_60FPS 16666
 
-const char *VRMS_DATA_TYPE_NAMES[] = {
-    "VRMS_VERTEX",
-    "VRMS_NORMAL",
-    "VRMS_INDEX",
-    "VRMS_COLOR",
-    "VRMS_UV",
-    "VRMS_TEXTURE",
-    "VRMS_MATRIX",
-    "VRMS_PROGRAM",
-    "VRMS_REGISTER"
+typedef struct vrms_data_type_def {
+    const char* name;
+    uint8_t item_length;
+    uint8_t data_length;
+} vrms_data_type_def_t;
+
+const vrms_data_type_def_t data_type_info[] = {
+    {"VRMS_UINT8", 0x01, 0x01},
+    {"VRMS_UINT16", 0x01, 0x02},
+    {"VRMS_UINT32", 0x01, 0x04},
+    {"VRMS_FLOAT", 0x01, 0x04},
+    {"VRMS_VEC2", 0x02, 0x04},
+    {"VRMS_VEC3", 0x03, 0x04},
+    {"VRMS_VEC4", 0x04, 0x04},
+    {"VRMS_MAT2", 0x04, 0x04},
+    {"VRMS_MAT3", 0x09, 0x04},
+    {"VRMS_MAT4", 0x10, 0x04}
 };
 
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id) {
@@ -286,7 +293,7 @@ uint32_t vrms_scene_create_memory(vrms_scene_t* scene, uint32_t fd, uint32_t siz
     return object->id;
 }
 
-uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, uint32_t item_length, uint32_t data_length, vrms_data_type_t type) {
+uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
     vrms_object_memory_t* memory;
 
     memory = vrms_scene_get_memory_object_by_id(scene, memory_id);
@@ -298,17 +305,15 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
         debug_print("create_object_data: read beyond memory size!\n");
     }
 
-    vrms_object_t* object = vrms_object_data_create(memory_id, memory_offset, memory_length, item_length, data_length, type);
+    vrms_object_t* object = vrms_object_data_create(memory_id, memory_offset, memory_length, type);
     vrms_scene_add_object(scene, object);
 
     debug_print("created data object[%d]:\n", object->id);
     debug_print("    memory_id[%d]\n", memory_id);
     debug_print("    memory_offset[%d]\n", memory_offset);
     debug_print("    memory_length[%d]\n", memory_length);
-    debug_print("    item_length[%d]\n", item_length);
-    debug_print("    data_length[%d]\n", data_length);
     debug_print("    realized[%d]\n", object->realized);
-    debug_print("    type[%s]\n", VRMS_DATA_TYPE_NAMES[type]);
+    debug_print("    type[%s]\n", data_type_info[type].name);
 
     if (!object->realized) {
         uint8_t* buffer_ref = (uint8_t*)memory->address;
@@ -361,7 +366,11 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
     vrms_object_data_t* data = vrms_scene_get_data_object_by_id(scene, data_id);
     if (!data) {
-        debug_print("unable to find data object\n");
+        debug_print("vrms_scene_update_system_matrix(): unable to find data object\n");
+        return 0;
+    }
+    if (data->type != VRMS_MAT4) {
+        debug_print("vrms_scene_update_system_matrix(): data object is not a VRMS_MAT4\n");
         return 0;
     }
 
@@ -372,7 +381,7 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, 
 
     uint8_t* buffer_ref = (uint8_t*)memory->address;
     float* matrix_array = (float*)&buffer_ref[data->memory_offset];
-    float* matrix = &matrix_array[data_index * data->item_length];
+    float* matrix = &matrix_array[data_index * 16];
 
     vrms_server_queue_update_system_matrix(scene->server, matrix_type, update_type, (uint8_t*)matrix);
 
@@ -386,28 +395,36 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
 
     vrms_object_data_t* reg_data = vrms_scene_get_data_object_by_id(scene, register_id);
     if (!reg_data) {
-        debug_print("unable to find register data object\n");
+        debug_print("vrms_scene_run_program(): unable to find register data object\n");
+        return 0;
+    }
+    if (reg_data->type != VRMS_UINT32) {
+        debug_print("vrms_scene_run_program(): reg_data object is not a VRMS_UINT32\n");
         return 0;
     }
 
     vrms_object_memory_t* reg_memory = vrms_scene_get_memory_object_by_id(scene, reg_data->memory_id);
     if (!reg_memory) {
-        debug_print("unable to find register memory object\n");
+        debug_print("vrms_scene_run_program(): unable to find register memory object\n");
         return 0;
     }
 
-    uint32_t reg_count = reg_data->memory_length / reg_data->data_length;
+    uint32_t reg_count = reg_data->memory_length / 4;
     uint8_t* reg_buffer = (uint8_t*)reg_memory->address;
     uint32_t* registers = (uint32_t*)&reg_buffer[reg_data->memory_offset];
 
     for (i = 0; i < reg_count; i++) {
-        debug_print("setting register %d to %d\n", i, registers[i]);
+        debug_print("vrms_scene_run_program(): setting register %d to %d\n", i, registers[i]);
         scene->vm->draw_reg[i] = registers[i];
     }
 
     vrms_object_data_t* prg_data = vrms_scene_get_data_object_by_id(scene, program_id);
     if (!prg_data) {
-        debug_print("unable to find program data object\n");
+        debug_print("vrms_scene_run_program(): unable to find program data object\n");
+        return 0;
+    }
+    if (prg_data->type != VRMS_UINT8) {
+        debug_print("vrms_scene_run_program(): prg_data object is not a VRMS_UINT8\n");
         return 0;
     }
 
@@ -417,11 +434,11 @@ uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32
         return 0;
     }
 
-    uint32_t prg_count = prg_data->memory_length / prg_data->data_length;
+    uint32_t prg_count = prg_data->memory_length;
     uint8_t* prg_buffer = (uint8_t*)prg_memory->address;
     uint8_t* program = (uint8_t*)&prg_buffer[prg_data->memory_offset];
 
-    debug_print("copying program of length[%d] to render buffer\n", prg_count);
+    debug_print("vrms_scene_run_program(): attaching program of length[%d] to render buffer\n", prg_count);
 
     pthread_mutex_lock(&scene->scene_lock);
     scene->render_buffer = program;
@@ -509,7 +526,12 @@ void vrms_scene_attach_matrix(vrms_scene_t* scene) {
         debug_render_print("vrms_scene_attach_matrix(): no matrix object for id: %d\n", matrix_id);
         return;
     }
+
     vrms_object_data_t* mat_data = mat_object->object.object_data;
+    if (mat_data->type != VRMS_MAT4) {
+        debug_render_print("vrms_scene_attach_matrix(): mat_data object is not a VRMS_MAT4\n");
+        return;
+    }
 
     vrms_object_t* mem_object = vrms_scene_get_object_by_id(scene, mat_data->memory_id);
     if (!mem_object) {
@@ -524,7 +546,7 @@ void vrms_scene_attach_matrix(vrms_scene_t* scene) {
     }
     uint8_t* buffer_ref = (uint8_t*)memory->address;
     float* matrix_array = (float*)&buffer_ref[mat_data->memory_offset];
-    float* model_matrix = &matrix_array[matrix_idx * mat_data->item_length];
+    float* model_matrix = &matrix_array[matrix_idx * 16];
 
     scene->matrix.realized = 1;
     scene->matrix.m = model_matrix;
@@ -558,7 +580,7 @@ uint32_t vrms_scene_data_get_nr_indicies(vrms_scene_t* scene, uint32_t object_id
         return 0;
     }
     vrms_object_data_t* object_data = object->object.object_data;
-    return object_data->memory_length / object_data->data_length;
+    return object_data->memory_length / 2;
 }
 
 void vrms_scene_render_realize_color(vrms_scene_t* scene) {
