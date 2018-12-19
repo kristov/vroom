@@ -185,7 +185,7 @@ printOpenGLError();
 
 void vrms_gl_load_buffer(uint8_t* buffer, uint32_t* destination, uint32_t size, vrms_data_type_t type) {
     glGenBuffers(1, destination);
-    if (VRMS_INDEX == type) {
+    if (VRMS_UINT16 == type) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *destination);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, buffer, GL_STATIC_DRAW);
     }

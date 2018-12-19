@@ -259,8 +259,8 @@ void vrms_server_setup_skybox(vrms_server_t* server) {
         1, 4, 3, 3, 4, 6
     };
 
-    vrms_gl_load_buffer((uint8_t*)vertex_data, &server->skybox.vertex_gl_id, (24 * sizeof(float)), VRMS_VERTEX);
-    vrms_gl_load_buffer((uint8_t*)index_data, &server->skybox.index_gl_id, (36 * sizeof(uint16_t)), VRMS_INDEX);
+    vrms_gl_load_buffer((uint8_t*)vertex_data, &server->skybox.vertex_gl_id, (24 * sizeof(float)), VRMS_VEC3);
+    vrms_gl_load_buffer((uint8_t*)index_data, &server->skybox.index_gl_id, (36 * sizeof(uint16_t)), VRMS_UINT16);
 }
 
 vrms_server_t* vrms_server_create() {
