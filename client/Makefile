@@ -17,7 +17,8 @@ CLIENTS += skybox
 OBJECTS =
 OBJECTS += safemalloc.o
 OBJECTS += client.o
-OBJECTS += geometry2.o
+OBJECTS += memory_layout.o
+OBJECTS += geometry.o
 OBJECTS += texture.o
 
 LINKS := -lprotobuf-c -lm

@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "client.h"
-#include "geometry2.h"
+#include "geometry.h"
+#include "memory_layout.h"
 
 void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
     vrms_client_t* client = (vrms_client_t*)user_data;
@@ -28,13 +29,13 @@ int main(void) {
         exit(1);
     }
 
-    memory_layout_t* layout = vrms_geometry_layout_create(7);
-    vrms_geometry_layout_realizer(layout, realize_layout, (void*)client);
-    vrms_geometry_layout_item_realizer(layout, realize_layout_item, (void*)client);
-    vrms_geometry_layout_plane_color(layout, 0, 0, 2, 2);
+    memory_layout_t* layout = memory_layout_create(7);
+    memory_layout_realizer(layout, realize_layout, (void*)client);
+    memory_layout_item_realizer(layout, realize_layout_item, (void*)client);
+    geometry_plane_color(layout, 0, 0, 2, 2);
 
-    uint32_t register_id = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_REGISTER);
-    uint32_t program_id = vrms_geometry_layout_get_id(layout, LAYOUT_DEFAULT_PROGRAM);
+    uint32_t register_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_REGISTER);
+    uint32_t program_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_PROGRAM);
 
     client->interface->run_program(client, program_id, register_id);
 
