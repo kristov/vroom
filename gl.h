@@ -25,7 +25,7 @@ typedef struct vrms_gl_matrix {
     uint8_t realized;
 } vrms_gl_matrix_t;
 
-void vrms_gl_draw_mesh_color(vrms_gl_render_t render, vrms_gl_matrix_t matrix, float r, float g, float b, float a);
+void vrms_gl_draw_mesh_color(vrms_gl_render_t render, vrms_gl_matrix_t matrix);
 
 void vrms_gl_draw_mesh_texture(vrms_gl_render_t render, vrms_gl_matrix_t matrix);
 

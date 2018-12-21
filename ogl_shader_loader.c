@@ -104,5 +104,6 @@ GLuint ogl_shader_loader_load(char *vert_file, char *frag_file) {
     if (program_id == 0)
         return 0;
 
+    fprintf(stderr, "ogl_shader_loader_load(): loaded program_id: %d (%s)\n", program_id, vert_file);
     return program_id;
 }

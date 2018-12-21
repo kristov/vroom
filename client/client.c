@@ -196,7 +196,7 @@ uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_i
     CreateDataObject msg = CREATE_DATA_OBJECT__INIT;
 
     uint32_t data_object_type_map_index = (uint32_t)type;
-    if (data_object_type_map_index < 0 || data_object_type_map_index > 8) {
+    if (data_object_type_map_index < 0 || data_object_type_map_index > 9) {
         return 0;
     }
     uint32_t pb_type = data_object_type_map[data_object_type_map_index];

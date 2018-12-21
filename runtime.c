@@ -172,7 +172,7 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
     memcpy(full_module_path, vrms_runtime->module_load_path, module_load_path_len);
     memcpy(full_module_path + module_load_path_len, "/", 1);
     memcpy(full_module_path + module_load_path_len + 1, module_name, module_name_len);
-    fprintf(stderr, "loading '%s'\n", full_module_path);
+    fprintf(stderr, "run_module(): loading '%s'\n", full_module_path);
 
     handle = dlopen(full_module_path, RTLD_NOW);
     if (!handle) {

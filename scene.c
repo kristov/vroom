@@ -205,6 +205,7 @@ void vrms_scene_queue_item_gl_load_process(vrms_scene_t* scene, vrms_scene_queue
     switch (gl_load->type) {
         case VRMS_OBJECT_DATA:
             object = vrms_scene_get_object_by_id(scene, gl_load->object_id);
+            debug_print("vrms_scene_queue_item_gl_load_process(): setting gl_id on object_id: %d\n", object->id);
             object->gl_id = gl_load->gl_id;
             break;
         case VRMS_OBJECT_TEXTURE:
@@ -643,11 +644,10 @@ void vrms_scene_vm_callback(rendervm_t* vm, rendervm_opcode_t opcode, void* user
     vrms_scene_t* scene = (vrms_scene_t*)user_data;
     switch ((uint8_t)opcode) {
         case 0xc8:
-            vrms_scene_dump_render(scene);
             vrms_scene_render_realize_color(scene);
             vrms_scene_attach_matrix(scene);
             scene->render.shader_id = scene->server->color_shader_id;
-            vrms_gl_draw_mesh_color(scene->render, scene->matrix, 0.0f, 1.0f, 0.0f, 1.0f);
+            vrms_gl_draw_mesh_color(scene->render, scene->matrix);
             break;
         case 0xc9:
             debug_render_print("vrms_scene_vm_callback(): vrms_gl_draw_mesh_texture\n");

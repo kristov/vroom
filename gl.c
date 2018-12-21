@@ -45,40 +45,34 @@ int VprintGlError(char *file, int line) {
 
 #define printOpenGLError() VprintGlError(__FILE__, __LINE__)
 
-void vrms_gl_draw_mesh_color(vrms_gl_render_t render, vrms_gl_matrix_t matrix, float r, float g, float b, float a) {
-    GLuint b_vertex;
-    GLuint b_normal;
-    GLuint u_color;
-    GLuint m_mvp;
-    GLuint m_mv;
-    GLuint shader_id;
-
-    shader_id = (GLuint)render.shader_id;
+void vrms_gl_draw_mesh_color(vrms_gl_render_t render, vrms_gl_matrix_t matrix) {
+    GLuint shader_id = (GLuint)render.shader_id;
     glUseProgram(shader_id);
 printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.vertex_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
+    GLuint b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
 printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.normal_id);
-    b_normal = glGetAttribLocation(shader_id, "b_normal");
+    GLuint b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
 printOpenGLError();
 
-    u_color = glGetUniformLocation(shader_id, "u_color");
-    glUniform4f(u_color, r, g, b, a);
-    glEnableVertexAttribArray(u_color);
+    glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.color_id);
+    GLuint b_color = glGetAttribLocation(shader_id, "b_color");
+    glVertexAttribPointer(b_color, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(b_color);
 printOpenGLError();
 
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
+    GLuint m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, matrix.mvp);
 printOpenGLError();
 
-    m_mv = glGetUniformLocation(shader_id, "m_mv");
+    GLuint m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, matrix.mv);
 printOpenGLError();
 
