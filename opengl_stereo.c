@@ -11,8 +11,8 @@
 #ifdef RASPBERRYPI
 static char screen_vert[] = "shaders/100/screen_vert.glsl";
 static char screen_frag[] = "shaders/100/screen_frag.glsl";
-static char onecolor_vert[] = "shaders/100/model/onecolor_vert.glsl";
-static char onecolor_frag[] = "shaders/100/model/onecolor_frag.glsl";
+static char color_vert[] = "shaders/100/model/color_vert.glsl";
+static char color_frag[] = "shaders/100/model/color_frag.glsl";
 static char texture_vert[] = "shaders/100/model/texture_vert.glsl";
 static char texture_frag[] = "shaders/100/model/texture_frag.glsl";
 static char cubemap_vert[] = "shaders/100/model/cubemap_vert.glsl";
@@ -20,8 +20,8 @@ static char cubemap_frag[] = "shaders/100/model/cubemap_frag.glsl";
 #else /* not RASPBERRYPI */
 static char screen_vert[] = "shaders/120/screen_vert.glsl";
 static char screen_frag[] = "shaders/120/screen_frag.glsl";
-static char onecolor_vert[] = "shaders/120/model/onecolor_vert.glsl";
-static char onecolor_frag[] = "shaders/120/model/onecolor_frag.glsl";
+static char color_vert[] = "shaders/120/model/color_vert.glsl";
+static char color_frag[] = "shaders/120/model/color_frag.glsl";
 static char texture_vert[] = "shaders/120/model/texture_vert.glsl";
 static char texture_frag[] = "shaders/120/model/texture_frag.glsl";
 static char cubemap_vert[] = "shaders/120/model/cubemap_vert.glsl";
@@ -76,7 +76,7 @@ closer than half the convergence distance are avoided in the scene.
 
 void opengl_stereo_load_screen_shader(opengl_stereo* ostereo) {
     ostereo->screen_shader_program_id = ogl_shader_loader_load(screen_vert, screen_frag);
-    ostereo->onecolor_shader_id = ogl_shader_loader_load(onecolor_vert, onecolor_frag);
+    ostereo->color_shader_id = ogl_shader_loader_load(color_vert, color_frag);
     ostereo->texture_shader_id = ogl_shader_loader_load(texture_vert, texture_frag);
     ostereo->cubemap_shader_id = ogl_shader_loader_load(cubemap_vert, cubemap_frag);
 }

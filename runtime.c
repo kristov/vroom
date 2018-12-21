@@ -290,7 +290,7 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     ostereo = opengl_stereo_create(width, height, physical_width);
     opengl_stereo_draw_scene_callback(ostereo, draw_scene, vrms_server);
 
-    vrms_server->color_shader_id = ostereo->onecolor_shader_id;
+    vrms_server->color_shader_id = ostereo->color_shader_id;
     vrms_server->texture_shader_id = ostereo->texture_shader_id;
     vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_runtime_system_matrix_update;
