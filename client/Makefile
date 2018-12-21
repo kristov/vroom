@@ -8,7 +8,7 @@ GLMATRIX := ../gl-matrix
 INCDIRS := -I$(PROTODIR) -I$(COMMON) -I$(GLMATRIX) -I../ -Iexternal
 
 CLIENTS =
-#CLIENTS += green_cube
+CLIENTS += green_cube
 CLIENTS += red_square
 CLIENTS += skybox
 #CLIENTS += textured_cube

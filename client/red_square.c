@@ -32,7 +32,7 @@ int main(void) {
     memory_layout_t* layout = memory_layout_create(7);
     memory_layout_realizer(layout, realize_layout, (void*)client);
     memory_layout_item_realizer(layout, realize_layout_item, (void*)client);
-    geometry_plane_color(layout, 0, 0, 2, 2);
+    geometry_plane_color(layout, 0, 0, 2, 2, 0.8f, 0.0f, 0.2f, 1.0f);
 
     uint32_t register_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_REGISTER);
     uint32_t program_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_PROGRAM);

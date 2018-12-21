@@ -1,44 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "vrms_client.h"
-#include "vrms_geometry.h"
-#include "esm.h"
-#include <time.h>
+#include "client.h"
+#include "geometry.h"
+#include "memory_layout.h"
 
-#define NANO_SECOND_MULTIPLIER 1000000
-const long INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
+void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->type);
+}
+
+void realize_layout(memory_layout_t* layout, void* user_data) {
+    vrms_client_t* client = (vrms_client_t*)user_data;
+    layout->id = client->interface->create_memory(client, layout->fd, layout->total_size);
+}
 
 int main(void) {
-    uint32_t scene_id;
-    uint32_t cube_id;
-    vrms_client_t* client;
-
-    client = vrms_connect();
+    vrms_client_t* client = vrms_connect();
     if (NULL == client) {
         fprintf(stderr, "Unable to connect\n");
         exit(1);
     }
 
-    scene_id = vrms_create_scene(client, "Test scene");
+    uint32_t scene_id = client->interface->create_scene(client, "Test scene");
     if (scene_id == 0) {
         fprintf(stderr, "Unable to create scene\n");
-        vrms_destroy_scene(client);
+        client->interface->destroy_scene(client);
         exit(1);
     }
 
-    cube_id = vrms_geometry_cube(client, 2, 2, 2, 0.7, 1.0, 0.6, 1.0);
-    if (cube_id == 0) {
-        fprintf(stderr, "Unable to create cube\n");
-        vrms_destroy_scene(client);
-        exit(1);
-    }
+    memory_layout_t* layout = memory_layout_create(7);
+    memory_layout_realizer(layout, realize_layout, (void*)client);
+    memory_layout_item_realizer(layout, realize_layout_item, (void*)client);
+    geometry_cube_color(layout, 2, 2, 2, 0.7, 1.0, 0.6, 1.0);
 
-    vrms_geometry_render_buffer_basic(client, cube_id, 0.0f, 0.0f, -10.0f);
+    uint32_t register_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_REGISTER);
+    uint32_t program_id = memory_layout_get_id(layout, LAYOUT_DEFAULT_PROGRAM);
+
+    client->interface->run_program(client, program_id, register_id);
 
     fprintf(stderr, "sleeping 60 sec\n");
-    sleep(60);
+    sleep(10);
 
-    vrms_destroy_scene(client);
+    client->interface->destroy_scene(client);
     return 0;
 }
