@@ -22,6 +22,9 @@ protobuf: vroom.proto
 vroom.proto:
 	cp ../vroom.proto ./
 
+deps:
+	sudo apt-get install protobuf-c-compiler
+
 clean:
 	rm -f $(OBJECTS)
 	rm -f vroom.proto
