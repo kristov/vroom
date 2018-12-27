@@ -58,7 +58,10 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
 
 uint32_t vrms_scene_create_program(vrms_scene_t* scene, uint32_t data_id);
 
+uint32_t vrms_scene_attach_memory(vrms_scene_t* scene, uint32_t data_id);
+
 uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32_t register_id);
+
 vrms_object_t* vrms_scene_get_object_by_id(vrms_scene_t* scene, uint32_t id);
 
 uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type);

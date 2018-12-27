@@ -30,6 +30,7 @@ void fill_interface() {
     client_interface.create_memory = vrms_client_create_memory;
     client_interface.create_object_data = vrms_client_create_object_data;
     client_interface.create_object_texture = vrms_client_create_object_texture;
+    client_interface.attach_memory = vrms_client_attach_memory;
     client_interface.run_program = vrms_client_run_program;
     client_interface.set_skybox = vrms_client_set_skybox;
     client_interface.destroy_scene = vrms_client_destroy_scene;
@@ -105,7 +106,7 @@ uint32_t vrms_client_receive_reply(vrms_client_t* client) {
     return id;
 }
 
-uint32_t vrms_client_send_message(vrms_client_t* client, vrms_type_t type, void* buffer, uint32_t length, int32_t fd) {
+uint32_t vrms_client_send_message(vrms_client_t* client, vroom_protocol_type_t type, void* buffer, uint32_t length, int32_t fd) {
     struct msghdr msgh;
     struct iovec iov;
     union {
@@ -244,12 +245,11 @@ uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_
     return id;
 }
 
-uint32_t vrms_client_attach_memory(vrms_client_t* client, uint32_t data_id, vrms_data_type_t type) {
+uint32_t vrms_client_attach_memory(vrms_client_t* client, uint32_t data_id) {
     AttachMemory msg = ATTACH_MEMORY__INIT;
 
     msg.scene_id = client->scene_id;
     msg.data_id = data_id;
-    msg.type = type;
 
     uint32_t length = attach_memory__get_packed_size(&msg);
 

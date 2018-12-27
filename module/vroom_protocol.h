@@ -10,7 +10,6 @@ typedef enum vroom_protocol_type {
     VRMS_CREATETEXTUREOBJECT,
     VRMS_DESTROYOBJECT,
     VRMS_ATTACHMEMORY,
-    VRMS_DETACHMEMORY,
     VRMS_RUNPROGRAM,
     VRMS_SETSKYBOX
 } vroom_protocol_type_t;

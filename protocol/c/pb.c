@@ -308,49 +308,6 @@ void   attach_memory__free_unpacked
   assert(message->base.descriptor == &attach_memory__descriptor);
   protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
 }
-void   detach_memory__init
-                     (DetachMemory         *message)
-{
-  static DetachMemory init_value = DETACH_MEMORY__INIT;
-  *message = init_value;
-}
-size_t detach_memory__get_packed_size
-                     (const DetachMemory *message)
-{
-  assert(message->base.descriptor == &detach_memory__descriptor);
-  return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
-}
-size_t detach_memory__pack
-                     (const DetachMemory *message,
-                      uint8_t       *out)
-{
-  assert(message->base.descriptor == &detach_memory__descriptor);
-  return protobuf_c_message_pack ((const ProtobufCMessage*)message, out);
-}
-size_t detach_memory__pack_to_buffer
-                     (const DetachMemory *message,
-                      ProtobufCBuffer *buffer)
-{
-  assert(message->base.descriptor == &detach_memory__descriptor);
-  return protobuf_c_message_pack_to_buffer ((const ProtobufCMessage*)message, buffer);
-}
-DetachMemory *
-       detach_memory__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data)
-{
-  return (DetachMemory *)
-     protobuf_c_message_unpack (&detach_memory__descriptor,
-                                allocator, len, data);
-}
-void   detach_memory__free_unpacked
-                     (DetachMemory *message,
-                      ProtobufCAllocator *allocator)
-{
-  assert(message->base.descriptor == &detach_memory__descriptor);
-  protobuf_c_message_free_unpacked ((ProtobufCMessage*)message, allocator);
-}
 void   run_program__init
                      (RunProgram         *message)
 {
@@ -959,51 +916,7 @@ const ProtobufCMessageDescriptor create_texture_object__descriptor =
   (ProtobufCMessageInit) create_texture_object__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCEnumValue attach_memory__type__enum_values_by_number[10] =
-{
-  { "UINT8", "ATTACH_MEMORY__TYPE__UINT8", 0 },
-  { "UINT16", "ATTACH_MEMORY__TYPE__UINT16", 1 },
-  { "UINT32", "ATTACH_MEMORY__TYPE__UINT32", 2 },
-  { "FLOAT", "ATTACH_MEMORY__TYPE__FLOAT", 3 },
-  { "VEC2", "ATTACH_MEMORY__TYPE__VEC2", 4 },
-  { "VEC3", "ATTACH_MEMORY__TYPE__VEC3", 5 },
-  { "VEC4", "ATTACH_MEMORY__TYPE__VEC4", 6 },
-  { "MAT2", "ATTACH_MEMORY__TYPE__MAT2", 7 },
-  { "MAT3", "ATTACH_MEMORY__TYPE__MAT3", 8 },
-  { "MAT4", "ATTACH_MEMORY__TYPE__MAT4", 9 },
-};
-static const ProtobufCIntRange attach_memory__type__value_ranges[] = {
-{0, 0},{0, 10}
-};
-static const ProtobufCEnumValueIndex attach_memory__type__enum_values_by_name[10] =
-{
-  { "FLOAT", 3 },
-  { "MAT2", 7 },
-  { "MAT3", 8 },
-  { "MAT4", 9 },
-  { "UINT16", 1 },
-  { "UINT32", 2 },
-  { "UINT8", 0 },
-  { "VEC2", 4 },
-  { "VEC3", 5 },
-  { "VEC4", 6 },
-};
-const ProtobufCEnumDescriptor attach_memory__type__descriptor =
-{
-  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
-  "AttachMemory.Type",
-  "Type",
-  "AttachMemory__Type",
-  "",
-  10,
-  attach_memory__type__enum_values_by_number,
-  10,
-  attach_memory__type__enum_values_by_name,
-  1,
-  attach_memory__type__value_ranges,
-  NULL,NULL,NULL,NULL   /* reserved[1234] */
-};
-static const ProtobufCFieldDescriptor attach_memory__field_descriptors[3] =
+static const ProtobufCFieldDescriptor attach_memory__field_descriptors[2] =
 {
   {
     "scene_id",
@@ -1029,28 +942,15 @@ static const ProtobufCFieldDescriptor attach_memory__field_descriptors[3] =
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
-  {
-    "type",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_ENUM,
-    0,   /* quantifier_offset */
-    offsetof(AttachMemory, type),
-    &attach_memory__type__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
 };
 static const unsigned attach_memory__field_indices_by_name[] = {
   1,   /* field[1] = data_id */
   0,   /* field[0] = scene_id */
-  2,   /* field[2] = type */
 };
 static const ProtobufCIntRange attach_memory__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 3 }
+  { 0, 2 }
 };
 const ProtobufCMessageDescriptor attach_memory__descriptor =
 {
@@ -1060,107 +960,11 @@ const ProtobufCMessageDescriptor attach_memory__descriptor =
   "AttachMemory",
   "",
   sizeof(AttachMemory),
-  3,
+  2,
   attach_memory__field_descriptors,
   attach_memory__field_indices_by_name,
   1,  attach_memory__number_ranges,
   (ProtobufCMessageInit) attach_memory__init,
-  NULL,NULL,NULL    /* reserved[123] */
-};
-static const ProtobufCEnumValue detach_memory__type__enum_values_by_number[10] =
-{
-  { "UINT8", "DETACH_MEMORY__TYPE__UINT8", 0 },
-  { "UINT16", "DETACH_MEMORY__TYPE__UINT16", 1 },
-  { "UINT32", "DETACH_MEMORY__TYPE__UINT32", 2 },
-  { "FLOAT", "DETACH_MEMORY__TYPE__FLOAT", 3 },
-  { "VEC2", "DETACH_MEMORY__TYPE__VEC2", 4 },
-  { "VEC3", "DETACH_MEMORY__TYPE__VEC3", 5 },
-  { "VEC4", "DETACH_MEMORY__TYPE__VEC4", 6 },
-  { "MAT2", "DETACH_MEMORY__TYPE__MAT2", 7 },
-  { "MAT3", "DETACH_MEMORY__TYPE__MAT3", 8 },
-  { "MAT4", "DETACH_MEMORY__TYPE__MAT4", 9 },
-};
-static const ProtobufCIntRange detach_memory__type__value_ranges[] = {
-{0, 0},{0, 10}
-};
-static const ProtobufCEnumValueIndex detach_memory__type__enum_values_by_name[10] =
-{
-  { "FLOAT", 3 },
-  { "MAT2", 7 },
-  { "MAT3", 8 },
-  { "MAT4", 9 },
-  { "UINT16", 1 },
-  { "UINT32", 2 },
-  { "UINT8", 0 },
-  { "VEC2", 4 },
-  { "VEC3", 5 },
-  { "VEC4", 6 },
-};
-const ProtobufCEnumDescriptor detach_memory__type__descriptor =
-{
-  PROTOBUF_C__ENUM_DESCRIPTOR_MAGIC,
-  "DetachMemory.Type",
-  "Type",
-  "DetachMemory__Type",
-  "",
-  10,
-  detach_memory__type__enum_values_by_number,
-  10,
-  detach_memory__type__enum_values_by_name,
-  1,
-  detach_memory__type__value_ranges,
-  NULL,NULL,NULL,NULL   /* reserved[1234] */
-};
-static const ProtobufCFieldDescriptor detach_memory__field_descriptors[2] =
-{
-  {
-    "scene_id",
-    1,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_INT32,
-    0,   /* quantifier_offset */
-    offsetof(DetachMemory, scene_id),
-    NULL,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-  {
-    "type",
-    3,
-    PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_ENUM,
-    0,   /* quantifier_offset */
-    offsetof(DetachMemory, type),
-    &detach_memory__type__descriptor,
-    NULL,
-    0,             /* flags */
-    0,NULL,NULL    /* reserved1,reserved2, etc */
-  },
-};
-static const unsigned detach_memory__field_indices_by_name[] = {
-  0,   /* field[0] = scene_id */
-  1,   /* field[1] = type */
-};
-static const ProtobufCIntRange detach_memory__number_ranges[2 + 1] =
-{
-  { 1, 0 },
-  { 3, 1 },
-  { 0, 2 }
-};
-const ProtobufCMessageDescriptor detach_memory__descriptor =
-{
-  PROTOBUF_C__MESSAGE_DESCRIPTOR_MAGIC,
-  "DetachMemory",
-  "DetachMemory",
-  "DetachMemory",
-  "",
-  sizeof(DetachMemory),
-  2,
-  detach_memory__field_descriptors,
-  detach_memory__field_indices_by_name,
-  2,  detach_memory__number_ranges,
-  (ProtobufCMessageInit) detach_memory__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
 static const ProtobufCFieldDescriptor run_program__field_descriptors[3] =

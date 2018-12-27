@@ -218,37 +218,10 @@ uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
         return 0;
     }
 
-    uint32_t id = vrms_runtime->interface->attach_memory(vrms_runtime, msg->scene_id, msg->data_id, msg->type);
+    uint32_t id = vrms_runtime->interface->attach_memory(vrms_runtime, msg->scene_id, msg->data_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "receive_attach_memory(): out of memory\n");
-    }
-    else {
-        *error = VRMS_OK;
-    }
-
-    free(msg);
-    return id;
-}
-
-uint32_t receive_detach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
-    if (!vrms_runtime) {
-        *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
-        return 0;
-    }
-
-    DetachMemory* msg = detach_memory__unpack(NULL, length, in_buf);
-    if (!msg) {
-        *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
-        return 0;
-    }
-
-    uint32_t id = vrms_runtime->interface->detach_memory(vrms_runtime, msg->scene_id, msg->type);
-    if (0 == id) {
-        *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "receive_detach_memory(): out of memory\n");
     }
     else {
         *error = VRMS_OK;

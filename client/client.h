@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "vroom.h"
+#include "vroom_protocol.h"
 
 /**
  * @file vrms_client.h
@@ -39,6 +40,7 @@ typedef struct vrms_client_interface {
     uint32_t (*create_memory)(vrms_client_t* client, int32_t fd, uint32_t size);
     uint32_t (*create_object_data)(vrms_client_t* client, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type);
     uint32_t (*create_object_texture)(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
+    uint32_t (*attach_memory)(vrms_client_t* client, uint32_t data_id);
     uint32_t (*run_program)(vrms_client_t* client, uint32_t program_id, uint32_t register_id);
     uint32_t (*set_skybox)(vrms_client_t* client, uint32_t texture_id);
     uint32_t (*destroy_scene)(vrms_client_t* client);
@@ -139,6 +141,21 @@ uint32_t vrms_client_create_object_data(vrms_client_t* client, uint32_t memory_i
  * @return A new object id
  */
 uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type);
+
+/**
+ * @brief Attach a data object to a VM slot
+ *
+ * The VM has memory hooks for attaching data objects to. This allows LOAD and
+ * STORE operations to read and write to the data objects so the contents can
+ * be manipulated by VM code.
+ *
+ * @code{.c}
+ * uint32_t ok = vrms_client_attach_memory(client, data_id);
+ * @endcode
+ * @param data_id The data object to attach
+ * @return A status
+ */
+uint32_t vrms_client_attach_memory(vrms_client_t* client, uint32_t data_id);
 
 /**
  * @brief Run a program

@@ -22,7 +22,6 @@ typedef struct _CreateMemory CreateMemory;
 typedef struct _CreateDataObject CreateDataObject;
 typedef struct _CreateTextureObject CreateTextureObject;
 typedef struct _AttachMemory AttachMemory;
-typedef struct _DetachMemory DetachMemory;
 typedef struct _RunProgram RunProgram;
 typedef struct _SetSkybox SetSkybox;
 typedef struct _DestroyObject DestroyObject;
@@ -57,32 +56,6 @@ typedef enum _CreateTextureObject__Type {
   CREATE_TEXTURE_OBJECT__TYPE__TEXTURE_CUBE_MAP = 1
     PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(CREATE_TEXTURE_OBJECT__TYPE)
 } CreateTextureObject__Type;
-typedef enum _AttachMemory__Type {
-  ATTACH_MEMORY__TYPE__UINT8 = 0,
-  ATTACH_MEMORY__TYPE__UINT16 = 1,
-  ATTACH_MEMORY__TYPE__UINT32 = 2,
-  ATTACH_MEMORY__TYPE__FLOAT = 3,
-  ATTACH_MEMORY__TYPE__VEC2 = 4,
-  ATTACH_MEMORY__TYPE__VEC3 = 5,
-  ATTACH_MEMORY__TYPE__VEC4 = 6,
-  ATTACH_MEMORY__TYPE__MAT2 = 7,
-  ATTACH_MEMORY__TYPE__MAT3 = 8,
-  ATTACH_MEMORY__TYPE__MAT4 = 9
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(ATTACH_MEMORY__TYPE)
-} AttachMemory__Type;
-typedef enum _DetachMemory__Type {
-  DETACH_MEMORY__TYPE__UINT8 = 0,
-  DETACH_MEMORY__TYPE__UINT16 = 1,
-  DETACH_MEMORY__TYPE__UINT32 = 2,
-  DETACH_MEMORY__TYPE__FLOAT = 3,
-  DETACH_MEMORY__TYPE__VEC2 = 4,
-  DETACH_MEMORY__TYPE__VEC3 = 5,
-  DETACH_MEMORY__TYPE__VEC4 = 6,
-  DETACH_MEMORY__TYPE__MAT2 = 7,
-  DETACH_MEMORY__TYPE__MAT3 = 8,
-  DETACH_MEMORY__TYPE__MAT4 = 9
-    PROTOBUF_C__FORCE_ENUM_TO_BE_INT_SIZE(DETACH_MEMORY__TYPE)
-} DetachMemory__Type;
 
 /* --- messages --- */
 
@@ -162,21 +135,9 @@ struct  _AttachMemory
   ProtobufCMessage base;
   int32_t scene_id;
   int32_t data_id;
-  AttachMemory__Type type;
 };
 #define ATTACH_MEMORY__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&attach_memory__descriptor) \
-    , 0, 0, 0 }
-
-
-struct  _DetachMemory
-{
-  ProtobufCMessage base;
-  int32_t scene_id;
-  DetachMemory__Type type;
-};
-#define DETACH_MEMORY__INIT \
- { PROTOBUF_C_MESSAGE_INIT (&detach_memory__descriptor) \
     , 0, 0 }
 
 
@@ -347,25 +308,6 @@ AttachMemory *
 void   attach_memory__free_unpacked
                      (AttachMemory *message,
                       ProtobufCAllocator *allocator);
-/* DetachMemory methods */
-void   detach_memory__init
-                     (DetachMemory         *message);
-size_t detach_memory__get_packed_size
-                     (const DetachMemory   *message);
-size_t detach_memory__pack
-                     (const DetachMemory   *message,
-                      uint8_t             *out);
-size_t detach_memory__pack_to_buffer
-                     (const DetachMemory   *message,
-                      ProtobufCBuffer     *buffer);
-DetachMemory *
-       detach_memory__unpack
-                     (ProtobufCAllocator  *allocator,
-                      size_t               len,
-                      const uint8_t       *data);
-void   detach_memory__free_unpacked
-                     (DetachMemory *message,
-                      ProtobufCAllocator *allocator);
 /* RunProgram methods */
 void   run_program__init
                      (RunProgram         *message);
@@ -446,9 +388,6 @@ typedef void (*CreateTextureObject_Closure)
 typedef void (*AttachMemory_Closure)
                  (const AttachMemory *message,
                   void *closure_data);
-typedef void (*DetachMemory_Closure)
-                 (const DetachMemory *message,
-                  void *closure_data);
 typedef void (*RunProgram_Closure)
                  (const RunProgram *message,
                   void *closure_data);
@@ -474,9 +413,6 @@ extern const ProtobufCMessageDescriptor create_texture_object__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__format__descriptor;
 extern const ProtobufCEnumDescriptor    create_texture_object__type__descriptor;
 extern const ProtobufCMessageDescriptor attach_memory__descriptor;
-extern const ProtobufCEnumDescriptor    attach_memory__type__descriptor;
-extern const ProtobufCMessageDescriptor detach_memory__descriptor;
-extern const ProtobufCEnumDescriptor    detach_memory__type__descriptor;
 extern const ProtobufCMessageDescriptor run_program__descriptor;
 extern const ProtobufCMessageDescriptor set_skybox__descriptor;
 extern const ProtobufCMessageDescriptor destroy_object__descriptor;

@@ -60,38 +60,8 @@ message CreateTextureObject {
 }
 
 message AttachMemory {
-    enum Type {
-        UINT8 = 0;
-        UINT16 = 1;
-        UINT32 = 2;
-        FLOAT = 3;
-        VEC2 = 4;
-        VEC3 = 5;
-        VEC4 = 6;
-        MAT2 = 7;
-        MAT3 = 8;
-        MAT4 = 9;
-    }
     required int32 scene_id = 1;
     required int32 data_id = 2;
-    required Type type = 3;
-}
-
-message DetachMemory {
-    enum Type {
-        UINT8 = 0;
-        UINT16 = 1;
-        UINT32 = 2;
-        FLOAT = 3;
-        VEC2 = 4;
-        VEC3 = 5;
-        VEC4 = 6;
-        MAT2 = 7;
-        MAT3 = 8;
-        MAT4 = 9;
-    }
-    required int32 scene_id = 1;
-    required Type type = 3;
 }
 
 message RunProgram {

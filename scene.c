@@ -389,6 +389,21 @@ uint32_t vrms_scene_update_system_matrix(vrms_scene_t* scene, uint32_t data_id, 
     return 1;
 }
 
+uint32_t vrms_scene_attach_memory(vrms_scene_t* scene, uint32_t data_id) {
+    vrms_object_data_t* data = vrms_scene_get_data_object_by_id(scene, data_id);
+    if (!data) {
+        debug_print("vrms_scene_attach_memory(): unable to find data object\n");
+        return 0;
+    }
+    debug_print("vrms_scene_attach_memory(): attaching type %d from id: %d to VM\n", data->type, data_id);
+    switch (data->type) {
+        default:
+            debug_print("vrms_scene_attach_memory(): unknown data object type\n");
+            break;
+    }
+    return 1;
+}
+
 uint32_t vrms_scene_run_program(vrms_scene_t* scene, uint32_t program_id, uint32_t register_id) {
     uint8_t i = 0;
 

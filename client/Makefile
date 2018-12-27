@@ -5,7 +5,7 @@ EXTDIR := external
 PROTODIR := ../protocol/c
 COMMON := ../common
 GLMATRIX := ../gl-matrix
-INCDIRS := -I$(PROTODIR) -I$(COMMON) -I$(GLMATRIX) -I../ -Iexternal
+INCDIRS := -I$(PROTODIR) -I$(COMMON) -I$(GLMATRIX) -I../ -I../module -Iexternal
 
 CLIENTS =
 CLIENTS += green_cube
