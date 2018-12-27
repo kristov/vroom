@@ -11,6 +11,7 @@
 #include "pb.h"
 #include "runtime.h"
 #include "safemalloc.h"
+#include "vroom_protocol.h"
 
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
@@ -230,6 +231,33 @@ uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
     return id;
 }
 
+uint32_t receive_detach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+    if (!vrms_runtime) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    DetachMemory* msg = detach_memory__unpack(NULL, length, in_buf);
+    if (!msg) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    uint32_t id = vrms_runtime->interface->detach_memory(vrms_runtime, msg->scene_id, msg->type);
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "receive_detach_memory(): out of memory\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(msg);
+    return id;
+}
+
 uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     RunProgram* msg;
@@ -386,7 +414,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         }
         return;
     }
-    vrms_type_t type = (vrms_type_t)type_c;
+    vroom_protocol_type_t type = (vroom_protocol_type_t)type_c;
 
     iov.iov_base = in_buf;
     iov.iov_len = MAX_MSG_SIZE;
