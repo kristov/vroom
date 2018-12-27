@@ -6,6 +6,17 @@
 #define VM_MAX_ADDR      255
 #define VM_STACK_SIZE    256
 
+#define MEMORY_ATTACH_UINT8 0x01;
+#define MEMORY_ATTACH_UINT16 0x02;
+#define MEMORY_ATTACH_UINT32 0x03;
+#define MEMORY_ATTACH_FLOAT 0x04;
+#define MEMORY_ATTACH_VEC2 0x05;
+#define MEMORY_ATTACH_VEC3 0x06;
+#define MEMORY_ATTACH_VEC4 0x07;
+#define MEMORY_ATTACH_MAT2 0x08;
+#define MEMORY_ATTACH_MAT3 0x09;
+#define MEMORY_ATTACH_MAT4 0x0a;
+
 typedef enum rendervm_exception {
     VM_X_ALL_OK         = 0x00,
     VM_X_INV_OPCODE     = 0x01,
@@ -19,6 +30,8 @@ typedef void (*rendervm_callback_t)(rendervm_t* vm, rendervm_opcode_t opcode, vo
 
 typedef struct rendervm {
     uint16_t pc;
+
+    uint8_t flags;
 
     uint32_t draw_reg[10];
 
@@ -288,5 +301,45 @@ uint8_t rendervm_has_exception(rendervm_t* vm);
 void rendervm_exception(rendervm_t* vm, rendervm_exception_t exception);
 
 void rendervm_attach_callback(rendervm_t* vm, rendervm_callback_t callback, void* user_data);
+
+void rendervm_memory_detach_uint8(rendervm_t* vm, uint8_t* mem);
+
+void rendervm_memory_detach_uint16(rendervm_t* vm, uint16_t* mem);
+
+void rendervm_memory_detach_uint32(rendervm_t* vm, uint32_t* mem);
+
+void rendervm_memory_detach_float(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_vec2(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_vec3(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_vec4(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_mat2(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_mat3(rendervm_t* vm, float* mem);
+
+void rendervm_memory_detach_mat4(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_uint8(rendervm_t* vm, uint8_t* mem);
+
+void rendervm_memory_attach_uint16(rendervm_t* vm, uint16_t* mem);
+
+void rendervm_memory_attach_uint32(rendervm_t* vm, uint32_t* mem);
+
+void rendervm_memory_attach_float(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_vec2(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_vec3(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_vec4(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_mat2(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_mat3(rendervm_t* vm, float* mem);
+
+void rendervm_memory_attach_mat4(rendervm_t* vm, float* mem);
 
 #endif

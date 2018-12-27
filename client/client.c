@@ -49,16 +49,6 @@ uint32_t data_object_type_map[] = {
     CREATE_DATA_OBJECT__TYPE__MAT4
 };
 
-uint32_t matrix_type_map[] = {
-    UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD,
-    UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY
-};
-
-uint32_t update_type_map[] = {
-    UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY,
-    UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET
-};
-
 uint32_t format_map[] = {
     CREATE_TEXTURE_OBJECT__FORMAT__BGR888,
     CREATE_TEXTURE_OBJECT__FORMAT__XBGR8888,
@@ -249,6 +239,24 @@ uint32_t vrms_client_create_object_texture(vrms_client_t* client, uint32_t data_
     create_texture_object__pack(&msg, buf);
 
     id = vrms_client_send_message(client, VRMS_CREATETEXTUREOBJECT, buf, length, 0);
+
+    free(buf);
+    return id;
+}
+
+uint32_t vrms_client_attach_memory(vrms_client_t* client, uint32_t data_id, vrms_data_type_t type) {
+    AttachMemory msg = ATTACH_MEMORY__INIT;
+
+    msg.scene_id = client->scene_id;
+    msg.data_id = data_id;
+    msg.type = type;
+
+    uint32_t length = attach_memory__get_packed_size(&msg);
+
+    void* buf = SAFEMALLOC(length);
+    attach_memory__pack(&msg, buf);
+
+    uint32_t id = vrms_client_send_message(client, VRMS_ATTACHMEMORY, buf, length, 0);
 
     free(buf);
     return id;

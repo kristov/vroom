@@ -203,6 +203,33 @@ uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in
     return id;
 }
 
+uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+    if (!vrms_runtime) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "server not initialized\n");
+        return 0;
+    }
+
+    AttachMemory* msg = attach_memory__unpack(NULL, length, in_buf);
+    if (!msg) {
+        *error = VRMS_INVALIDREQUEST;
+        fprintf(stderr, "unpacking incoming message\n");
+        return 0;
+    }
+
+    uint32_t id = vrms_runtime->interface->attach_memory(vrms_runtime, msg->scene_id, msg->data_id, msg->type);
+    if (0 == id) {
+        *error = VRMS_OUTOFMEMORY;
+        fprintf(stderr, "receive_attach_memory(): out of memory\n");
+    }
+    else {
+        *error = VRMS_OK;
+    }
+
+    free(msg);
+    return id;
+}
+
 uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     RunProgram* msg;
@@ -231,60 +258,6 @@ uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint
 
     free(msg);
     return id;
-}
-
-uint32_t receive_update_system_matrix(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
-    uint32_t ok;
-    UpdateSystemMatrix* msg;
-    vrms_matrix_type_t matrix_type;
-    vrms_update_type_t update_type;
-
-    if (!vrms_runtime) {
-        *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
-        return 0;
-    }
-
-    msg = update_system_matrix__unpack(NULL, length, in_buf);
-    if (!msg) {
-        *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
-        return 0;
-    }
-
-    switch (msg->matrix_type) {
-        case UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__HEAD:
-            matrix_type = VRMS_MATRIX_HEAD;
-            break;
-        case UPDATE_SYSTEM_MATRIX__MATRIX_TYPE__BODY:
-            matrix_type = VRMS_MATRIX_BODY;
-            break;
-        case _UPDATE_SYSTEM_MATRIX__MATRIX_TYPE_IS_INT_SIZE:
-            break;
-    }
-
-    switch (msg->update_type) {
-        case UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__MULTIPLY:
-            update_type = VRMS_UPDATE_MULTIPLY;
-            break;
-        case UPDATE_SYSTEM_MATRIX__UPDATE_TYPE__SET:
-            update_type = VRMS_UPDATE_SET;
-            break;
-        case _UPDATE_SYSTEM_MATRIX__UPDATE_TYPE_IS_INT_SIZE:
-            break;
-    }
-
-    ok = vrms_runtime->interface->update_system_matrix(vrms_runtime, msg->scene_id, msg->data_id, msg->data_index, matrix_type, update_type);
-    if (0 == ok) {
-        *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "set system matrix error\n");
-    }
-    else {
-        *error = VRMS_OK;
-    }
-
-    free(msg);
-    return ok;
 }
 
 uint32_t receive_set_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
@@ -496,9 +469,6 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             break;
         case VRMS_SETSKYBOX:
             id = receive_set_skybox(vrms_runtime, in_buf, length_r, &error);
-            break;
-        case VRMS_UPDATESYSTEMMATRIX:
-            id = receive_update_system_matrix(vrms_runtime, in_buf, length_r, &error);
             break;
         default:
             id = 0;
