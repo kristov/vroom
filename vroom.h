@@ -1,6 +1,17 @@
 #ifndef VRMS_H
 #define VRMS_H
 
+#define SIZEOF_UINT8 sizeof(uint8_t);
+#define SIZEOF_UINT16 sizeof(uint16_t);
+#define SIZEOF_UINT32 sizeof(uint32_t);
+#define SIZEOF_FLOAT sizeof(float)
+#define SIZEOF_VEC2 (SIZEOF_FLOAT * 2)
+#define SIZEOF_VEC3 (SIZEOF_FLOAT * 3)
+#define SIZEOF_VEC4 (SIZEOF_FLOAT * 4)
+#define SIZEOF_MAT2 (SIZEOF_FLOAT * 4)
+#define SIZEOF_MAT3 (SIZEOF_FLOAT * 9)
+#define SIZEOF_MAT4 (SIZEOF_FLOAT * 16)
+
 typedef enum vrms_object_type {
     VRMS_OBJECT_INVALID,
     VRMS_OBJECT_SCENE,

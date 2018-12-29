@@ -3,14 +3,6 @@
 
 #include "vroom.h"
 
-#define SIZEOF_FLOAT sizeof(float)
-#define SIZEOF_VEC2 (SIZEOF_FLOAT * 2)
-#define SIZEOF_VEC3 (SIZEOF_FLOAT * 3)
-#define SIZEOF_VEC4 (SIZEOF_FLOAT * 4)
-#define SIZEOF_MAT2 (SIZEOF_FLOAT * 4)
-#define SIZEOF_MAT3 (SIZEOF_FLOAT * 9)
-#define SIZEOF_MAT4 (SIZEOF_FLOAT * 16)
-
 #define LAYOUT_DEFAULT_VERTEX    0
 #define LAYOUT_DEFAULT_NORMAL    1
 #define LAYOUT_DEFAULT_INDEX     2
