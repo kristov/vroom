@@ -8,3 +8,4 @@ gl-matrix/*.o
 *.o
 protocol/c/vroom.proto
 doc/dox
+gl-matrix/gl-matrix.h
