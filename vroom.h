@@ -1,9 +1,9 @@
 #ifndef VRMS_H
 #define VRMS_H
 
-#define SIZEOF_UINT8 sizeof(uint8_t);
-#define SIZEOF_UINT16 sizeof(uint16_t);
-#define SIZEOF_UINT32 sizeof(uint32_t);
+#define SIZEOF_UINT8 sizeof(uint8_t)
+#define SIZEOF_UINT16 sizeof(uint16_t)
+#define SIZEOF_UINT32 sizeof(uint32_t)
 #define SIZEOF_FLOAT sizeof(float)
 #define SIZEOF_VEC2 (SIZEOF_FLOAT * 2)
 #define SIZEOF_VEC3 (SIZEOF_FLOAT * 3)

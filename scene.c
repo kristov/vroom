@@ -406,44 +406,34 @@ uint32_t vrms_scene_attach_memory(vrms_scene_t* scene, uint32_t data_id) {
 
     switch (data->type) {
         case VRMS_UINT8:
-            scene->vm->uint8_memory = (uint8_t*)&buffer[data->memory_offset];
-            scene->vm->uint8_memory_size = data->memory_length;
+            rendervm_memory_attach_uint8(scene->vm, (uint8_t*)&buffer[data->memory_offset], data->memory_length);
             break;
         case VRMS_UINT16:
-            scene->vm->uint16_memory = (uint16_t*)&buffer[data->memory_offset];
-            scene->vm->uint16_memory_size = data->memory_length / SIZEOF_UINT16;
+            rendervm_memory_attach_uint16(scene->vm, (uint16_t*)&buffer[data->memory_offset], data->memory_length / SIZEOF_UINT16);
             break;
         case VRMS_UINT32:
-            scene->vm->uint32_memory = (uint32_t*)&buffer[data->memory_offset];
-            scene->vm->uint32_memory_size = data->memory_length / SIZEOF_UINT32;
+            rendervm_memory_attach_uint32(scene->vm, (uint32_t*)&buffer[data->memory_offset], data->memory_length / SIZEOF_UINT32);
             break;
         case VRMS_FLOAT:
-            scene->vm->float_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->float_memory_size = data->memory_length / SIZEOF_FLOAT;
+            rendervm_memory_attach_float(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_FLOAT);
             break;
         case VRMS_VEC2:
-            scene->vm->vec2_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->vec2_memory_size = data->memory_length / SIZEOF_VEC2;
+            rendervm_memory_attach_vec2(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_VEC2);
             break;
         case VRMS_VEC3:
-            scene->vm->vec3_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->vec3_memory_size = data->memory_length / SIZEOF_VEC3;
+            rendervm_memory_attach_vec3(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_VEC3);
             break;
         case VRMS_VEC4:
-            scene->vm->vec4_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->vec4_memory_size = data->memory_length / SIZEOF_VEC4;
+            rendervm_memory_attach_vec4(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_VEC4);
             break;
         case VRMS_MAT2:
-            scene->vm->mat2_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->mat2_memory_size = data->memory_length / SIZEOF_MAT2;
+            rendervm_memory_attach_mat2(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_MAT2);
             break;
         case VRMS_MAT3:
-            scene->vm->mat3_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->mat3_memory_size = data->memory_length / SIZEOF_MAT3;
+            rendervm_memory_attach_mat3(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_MAT3);
             break;
         case VRMS_MAT4:
-            scene->vm->mat4_memory = (float*)&buffer[data->memory_offset];
-            scene->vm->mat4_memory_size = data->memory_length / SIZEOF_MAT4;
+            rendervm_memory_attach_mat4(scene->vm, (float*)&buffer[data->memory_offset], data->memory_length / SIZEOF_MAT4);
             break;
         default:
             debug_print("vrms_scene_attach_memory(): unknown data object type\n");

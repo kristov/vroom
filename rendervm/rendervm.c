@@ -1031,103 +1031,63 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
     return vm->running;
 }
 
-void rendervm_memory_detach_uint8(rendervm_t* vm, uint8_t* mem) {
-    vm->uint8_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_UINT8;
-}
-
-void rendervm_memory_detach_uint16(rendervm_t* vm, uint16_t* mem) {
-    vm->uint16_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_UINT16;
-}
-
-void rendervm_memory_detach_uint32(rendervm_t* vm, uint32_t* mem) {
-    vm->uint32_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_UINT32;
-}
-
-void rendervm_memory_detach_float(rendervm_t* vm, float* mem) {
-    vm->float_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_FLOAT;
-}
-
-void rendervm_memory_detach_vec2(rendervm_t* vm, float* mem) {
-    vm->vec2_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_VEC2;
-}
-
-void rendervm_memory_detach_vec3(rendervm_t* vm, float* mem) {
-    vm->vec3_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_VEC3;
-}
-
-void rendervm_memory_detach_vec4(rendervm_t* vm, float* mem) {
-    vm->vec4_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_VEC4;
-}
-
-void rendervm_memory_detach_mat2(rendervm_t* vm, float* mem) {
-    vm->mat2_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_MAT2;
-}
-
-void rendervm_memory_detach_mat3(rendervm_t* vm, float* mem) {
-    vm->mat3_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_MAT3;
-}
-
-void rendervm_memory_detach_mat4(rendervm_t* vm, float* mem) {
-    vm->mat4_memory = NULL;
-    vm->flags &= !MEMORY_ATTACH_MAT4;
-}
-
-void rendervm_memory_attach_uint8(rendervm_t* vm, uint8_t* mem) {
+void rendervm_memory_attach_uint8(rendervm_t* vm, uint8_t* mem, uint32_t size) {
     vm->uint8_memory = mem;
+    vm->uint8_memory_size = size;
     vm->flags |= MEMORY_ATTACH_UINT8;
 }
 
-void rendervm_memory_attach_uint16(rendervm_t* vm, uint16_t* mem) {
+void rendervm_memory_attach_uint16(rendervm_t* vm, uint16_t* mem, uint32_t size) {
     vm->uint16_memory = mem;
+    vm->uint16_memory_size = size;
     vm->flags |= MEMORY_ATTACH_UINT16;
 }
 
-void rendervm_memory_attach_uint32(rendervm_t* vm, uint32_t* mem) {
+void rendervm_memory_attach_uint32(rendervm_t* vm, uint32_t* mem, uint32_t size) {
     vm->uint32_memory = mem;
+    vm->uint32_memory_size = size;
     vm->flags |= MEMORY_ATTACH_UINT32;
 }
 
-void rendervm_memory_attach_float(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_float(rendervm_t* vm, float* mem, uint32_t size) {
     vm->float_memory = mem;
+    vm->float_memory_size = size;
     vm->flags |= MEMORY_ATTACH_FLOAT;
 }
 
-void rendervm_memory_attach_vec2(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_vec2(rendervm_t* vm, float* mem, uint32_t size) {
     vm->vec2_memory = mem;
+    vm->vec2_memory_size = size;
     vm->flags |= MEMORY_ATTACH_VEC2;
 }
 
-void rendervm_memory_attach_vec3(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_vec3(rendervm_t* vm, float* mem, uint32_t size) {
     vm->vec3_memory = mem;
+    vm->vec3_memory_size = size;
     vm->flags |= MEMORY_ATTACH_VEC3;
 }
 
-void rendervm_memory_attach_vec4(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_vec4(rendervm_t* vm, float* mem, uint32_t size) {
     vm->vec4_memory = mem;
+    vm->vec4_memory_size = size;
     vm->flags |= MEMORY_ATTACH_VEC4;
 }
 
-void rendervm_memory_attach_mat2(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_mat2(rendervm_t* vm, float* mem, uint32_t size) {
     vm->mat2_memory = mem;
+    vm->mat2_memory_size = size;
     vm->flags |= MEMORY_ATTACH_MAT2;
 }
 
-void rendervm_memory_attach_mat3(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_mat3(rendervm_t* vm, float* mem, uint32_t size) {
     vm->mat3_memory = mem;
+    vm->mat3_memory_size = size;
     vm->flags |= MEMORY_ATTACH_MAT3;
 }
 
-void rendervm_memory_attach_mat4(rendervm_t* vm, float* mem) {
+void rendervm_memory_attach_mat4(rendervm_t* vm, float* mem, uint32_t size) {
     vm->mat4_memory = mem;
+    vm->mat4_memory_size = size;
     vm->flags |= MEMORY_ATTACH_MAT4;
 }
 
