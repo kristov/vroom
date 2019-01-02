@@ -24,6 +24,9 @@
 #define VEC2_PUSH1(vm, v)   vm->vec2_stack[++vm->vec2_sp] = v
 #define VEC2_POP1(vm)       vm->vec2_stack[vm->vec2_sp--]
 #define VEC2_PEEK1(vm, v)   vm->vec2_stack[v]
+#define MAT4_PUSH1(vm, v)   vm->vec2_stack[++vm->vec2_sp] = v
+#define MAT4_POP1(vm)       vm->vec2_stack[vm->vec2_sp--]
+#define MAT4_PEEK1(vm, v)   vm->vec2_stack[v]
 
 typedef union {
     float f;
@@ -211,6 +214,7 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
     uint16_t u160, u161;
     uint32_t u320, u321;
     float fl0, fl1;
+    float* flp0;
 
     if (!vm->running) {
         return vm->running;
@@ -288,9 +292,12 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->uint8_memory[u160] = u80;
             break;
         case VM_UINT8_LOAD:
-            u160 = UINT16_POP(vm);
-            u80 = vm->uint8_memory[u160];
-            UINT8_PUSH(vm, u80);
+            if (vm->flags & MEMORY_ATTACH_UINT8) {
+                u160 = UINT16_POP(vm);
+                u80 = vm->uint8_memory[u160];
+                UINT8_PUSH(vm, u80);
+            }
+            // else raise exception
             break;
         case VM_UINT8_ADD:
             u80 = UINT8_POP(vm);
@@ -374,9 +381,11 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->uint16_memory[u161] = u160;
             break;
         case VM_UINT16_LOAD:
-            u160 = UINT16_POP(vm);
-            u161 = vm->uint16_memory[u160];
-            UINT16_PUSH(vm, u161);
+            if (vm->flags & MEMORY_ATTACH_UINT16) {
+                u160 = UINT16_POP(vm);
+                u161 = vm->uint16_memory[u160];
+                UINT16_PUSH(vm, u161);
+            }
             break;
         case VM_UINT16_ADD:
             u160 = UINT16_POP(vm);
@@ -467,9 +476,11 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->uint32_memory[u161] = u320;
             break;
         case VM_UINT32_LOAD:
-            u160 = UINT16_POP(vm);
-            u320 = vm->uint32_memory[u160];
-            UINT32_PUSH(vm, u320);
+            if (vm->flags & MEMORY_ATTACH_UINT32) {
+                u160 = UINT16_POP(vm);
+                u320 = vm->uint32_memory[u160];
+                UINT32_PUSH(vm, u320);
+            }
             break;
         case VM_UINT32_ADD:
             u320 = UINT32_POP(vm);
@@ -575,9 +586,16 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->float_memory[u161] = fl0;
             break;
         case VM_FLOAT_LOAD:
-            u160 = UINT16_POP(vm);
-            fl0 = vm->float_memory[u160];
-            FLOAT_PUSH(vm, fl0);
+            if (vm->flags & MEMORY_ATTACH_FLOAT) {
+                u160 = UINT16_POP(vm);
+                if (u160 > vm->float_memory_size) {
+                    printf("FLOAT_LOAD: address exceeds size");
+                    vm->running = 0;
+                    break;
+                }
+                fl0 = vm->float_memory[u160];
+                FLOAT_PUSH(vm, fl0);
+            }
             break;
         case VM_FLOAT_ADD:
             fl0 = FLOAT_POP(vm);
@@ -664,8 +682,8 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->running = 0;
             break;
         case VM_VEC2_LOAD:
-            printf("VEC2_LOAD: UNIMPLEMENTED\n");
-            vm->running = 0;
+            if (vm->flags & MEMORY_ATTACH_VEC2) {
+            }
             break;
         case VM_VEC2_ADD:
             printf("VEC2_ADD: UNIMPLEMENTED\n");
@@ -964,8 +982,20 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             vm->running = 0;
             break;
         case VM_MAT4_LOAD:
-            printf("MAT4_LOAD: UNIMPLEMENTED\n");
-            vm->running = 0;
+            if (vm->flags & MEMORY_ATTACH_MAT4) {
+                u160 = UINT16_POP(vm);
+                if (u160 > vm->mat4_memory_size) {
+                    printf("MAT4_LOAD: address exceeds size");
+                    vm->running = 0;
+                    break;
+                }
+                u161 = u160 * 16;
+                flp0 = &vm->mat4_memory[u161];
+                MAT4_PUSH(vm, flp0);
+            }
+            else {
+                printf("MAT4_LOAD: memory not attached\n");
+            }
             break;
         case VM_MAT4_ADD:
             printf("MAT4_ADD: UNIMPLEMENTED\n");
