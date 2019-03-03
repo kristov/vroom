@@ -17,24 +17,50 @@ typedef struct hmd {
 } hmd_t;
 
 int8_t hmd_init(vrms_module_t* module, hmd_t* hmd) {
-    hmd->ohmd_ctx = ohmd_ctx_create();
+    ohmd_context* ohmd_ctx = ohmd_ctx_create();
 
-    int num_devices = ohmd_ctx_probe(hmd->ohmd_ctx);
-    if (num_devices < 0) {
-        module->interface.log(module, "failed to probe devices: %s", ohmd_ctx_get_error(hmd->ohmd_ctx));
+    if (!ohmd_ctx) {
+        module->interface.error(module, "unable to create OHMD context");
         return 0;
     }
-    module->interface.log(module, "found %d active devices", num_devices);
+    hmd->ohmd_ctx = ohmd_ctx;
+
+    int num_devices = ohmd_ctx_probe(ohmd_ctx);
+    if (num_devices < 0) {
+        module->interface.error(module, "failed to probe devices: %s", ohmd_ctx_get_error(ohmd_ctx));
+        return 0;
+    }
+    module->interface.debug(module, "found %d active devices", num_devices);
 
     if (num_devices == 0) {
-        module->interface.log(module, "no devices found");
+        module->interface.debug(module, "no devices found");
         return 0;
     }
 
-    hmd->ohmd_active_hmd = ohmd_list_open_device(hmd->ohmd_ctx, 0);
+    for (int i = 0; i < num_devices; i++) {
+        int device_class = 0, device_flags = 0;
+        const char* device_class_s[] = {"HMD", "Controller", "Generic Tracker", "Unknown"};
+
+        ohmd_list_geti(ohmd_ctx, i, OHMD_DEVICE_CLASS, &device_class);
+        ohmd_list_geti(ohmd_ctx, i, OHMD_DEVICE_FLAGS, &device_flags);
+
+        printf("device %d\n", i);
+        printf("  vendor:  %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_VENDOR));
+        printf("  product: %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_PRODUCT));
+        printf("  path:    %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_PATH));
+        printf("  class:   %s\n", device_class_s[device_class > OHMD_DEVICE_CLASS_GENERIC_TRACKER ? 4 : device_class]);
+        printf("  flags:   %02x\n",  device_flags);
+        printf("    null device:         %s\n", device_flags & OHMD_DEVICE_FLAGS_NULL_DEVICE ? "yes" : "no");
+        printf("    rotational tracking: %s\n", device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING ? "yes" : "no");
+        printf("    positional tracking: %s\n", device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING ? "yes" : "no");
+        printf("    left controller:     %s\n", device_flags & OHMD_DEVICE_FLAGS_LEFT_CONTROLLER ? "yes" : "no");
+        printf("    right controller:    %s\n\n", device_flags & OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER ? "yes" : "no");
+    }
+
+    hmd->ohmd_active_hmd = ohmd_list_open_device(ohmd_ctx, 0);
 
     if(!hmd->ohmd_active_hmd){
-        module->interface.log(module, "failed to open device: %s", ohmd_ctx_get_error(hmd->ohmd_ctx));
+        module->interface.error(module, "failed to open device: %s", ohmd_ctx_get_error(ohmd_ctx));
         return 0;
     }
 

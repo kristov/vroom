@@ -32,11 +32,24 @@ uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
     return 1;
 }
 
-int vrms_module_log(vrms_module_t* module, const char *format, ...) {
+int vrms_module_debug(vrms_module_t* module, const char *format, ...) {
     va_list arg;
     int done;
 
-    fprintf(stderr, "[M]%s: ", module->name);
+    fprintf(stderr, "M|DEBUG|%s|", module->name);
+    va_start(arg, format);
+    done = vfprintf(stderr, format, arg);
+    va_end(arg);
+    fprintf(stderr, "\n");
+
+    return done;
+}
+
+int vrms_module_error(vrms_module_t* module, const char *format, ...) {
+    va_list arg;
+    int done;
+
+    fprintf(stderr, "M|ERROR|%s|", module->name);
     va_start(arg, format);
     done = vfprintf(stderr, format, arg);
     va_end(arg);
@@ -212,7 +225,8 @@ vrms_module_t* vrms_runtime_module_create(char* module_name) {
     module->name = SAFEMALLOC(strlen(module_name) + 1);
     strcpy(module->name, module_name);
 
-    module->interface.log = vrms_module_log;
+    module->interface.debug = vrms_module_debug;
+    module->interface.error = vrms_module_error;
     module->interface.create_scene = vrms_module_create_scene;
     module->interface.create_memory = vrms_module_create_memory;
     module->interface.create_object_data = vrms_module_create_object_data;

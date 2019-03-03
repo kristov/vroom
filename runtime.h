@@ -18,7 +18,8 @@ typedef struct vrms_runtime {
 } vrms_runtime_t;
 
 typedef struct vrms_module_interface {
-    int (*log)(vrms_module_t* module, const char *format, ...);
+    int (*debug)(vrms_module_t* module, const char *format, ...);
+    int (*error)(vrms_module_t* module, const char *format, ...);
     uint32_t (*create_scene)(vrms_module_t* module, char* name);
     uint32_t (*create_memory)(vrms_module_t* module, uint32_t scene_id, uint32_t fd, uint32_t size);
     uint32_t (*create_object_data)(vrms_module_t* module, uint32_t scene_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type);
@@ -48,7 +49,9 @@ void vrms_runtime_process(vrms_runtime_t* vrms_runtime);
 
 void vrms_runtime_end(vrms_runtime_t* vrms_runtime);
 
-int vrms_module_log(vrms_module_t* module, const char *format, ...);
+int vrms_module_debug(vrms_module_t* module, const char *format, ...);
+
+int vrms_module_error(vrms_module_t* module, const char *format, ...);
 
 uint32_t vrms_module_create_scene(vrms_module_t* module, char* name);
 
