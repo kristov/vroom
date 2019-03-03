@@ -502,17 +502,16 @@ inline static struct sock_ev_client* client_new(int fd) {
 }
 
 static void server_cb(EV_P_ ev_io *w, int revents) {
-    fprintf(stderr, "unix stream socket has become readable\n");
-
     int client_fd;
     struct sock_ev_client* client;
     struct sock_ev_serv* server = (struct sock_ev_serv*) w;
+    server->module->interface.debug(server->module, "unix stream socket has become readable");
 
     while (1) {
         client_fd = accept(server->fd, NULL, NULL);
         if( client_fd == -1 ) {
             if( errno != EAGAIN && errno != EWOULDBLOCK ) {
-                fprintf(stderr, "accept() failed errno=%i (%s)\n",  errno, strerror(errno));
+                server->module->interface.debug(server->module, "accept() failed errno=%i (%s)\n",  errno, strerror(errno));
                 exit(1);
             }
             break;
