@@ -65,7 +65,7 @@ typedef struct rendervm {
     float* mat3_stack;
     uint8_t mat3_sp;
 
-    float* mat4_stack;
+    float** mat4_stack;
     uint8_t mat4_sp;
 
     uint8_t b0;

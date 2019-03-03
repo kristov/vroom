@@ -24,7 +24,7 @@ struct sock_ev_serv {
     struct sockaddr_un socket;
     int socket_len;
     array clients;
-    vrms_runtime_t* vrms_runtime;
+    vrms_module_t* module;
 };
 
 struct sock_ev_client {
@@ -35,11 +35,11 @@ struct sock_ev_client {
     uint32_t vrms_scene_id;
 };
 
-uint32_t receive_create_scene(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int32_t length, uint32_t* error) {
+uint32_t receive_create_scene(vrms_module_t* module, uint8_t* in_buf, int32_t length, uint32_t* error) {
     uint32_t id;
     CreateScene* cs_msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -52,7 +52,7 @@ uint32_t receive_create_scene(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int
         return 0;
     }
 
-    id = vrms_runtime->interface->create_scene(vrms_runtime, cs_msg->name);
+    id = module->interface.create_scene(module, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create scene: out of memory\n");
@@ -65,11 +65,11 @@ uint32_t receive_create_scene(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int
     return id;
 }
 
-uint32_t receive_create_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, int32_t length, uint32_t* error, int shm_fd) {
+uint32_t receive_create_memory(vrms_module_t* module, uint8_t* in_buf, int32_t length, uint32_t* error, int shm_fd) {
     uint32_t id;
     CreateMemory* cs_msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -82,7 +82,7 @@ uint32_t receive_create_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, in
         return 0;
     }
 
-    id = vrms_runtime->interface->create_memory(vrms_runtime, cs_msg->scene_id, shm_fd, cs_msg->size);
+    id = module->interface.create_memory(module, cs_msg->scene_id, shm_fd, cs_msg->size);
     if (0 == id) {
         fprintf(stderr, "create memory: out of memory\n");
         *error = VRMS_OUTOFMEMORY;
@@ -95,11 +95,11 @@ uint32_t receive_create_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, in
     return id;
 }
 
-uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+uint32_t receive_create_data_object(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     CreateDataObject* msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -158,7 +158,7 @@ uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_bu
             break;
     }
 
-    id = vrms_runtime->interface->create_object_data(vrms_runtime, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, vrms_type);
+    id = module->interface.create_object_data(module, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, vrms_type);
     if (0 == id) {
         fprintf(stderr, "create object data: out of memory\n");
         *error = VRMS_OUTOFMEMORY;
@@ -171,11 +171,11 @@ uint32_t receive_create_data_object(vrms_runtime_t* vrms_runtime, uint8_t* in_bu
     return id;
 }
 
-uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+uint32_t receive_create_texture_object(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     CreateTextureObject* msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -191,7 +191,7 @@ uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in
     vrms_texture_format_t format = msg->format;
     vrms_texture_type_t type = msg->type;
 
-    id = vrms_runtime->interface->create_object_texture(vrms_runtime, msg->scene_id, msg->data_id, msg->width, msg->height, format, type);
+    id = module->interface.create_object_texture(module, msg->scene_id, msg->data_id, msg->width, msg->height, format, type);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create object texture: out of memory\n");
@@ -204,8 +204,8 @@ uint32_t receive_create_texture_object(vrms_runtime_t* vrms_runtime, uint8_t* in
     return id;
 }
 
-uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
-    if (!vrms_runtime) {
+uint32_t receive_attach_memory(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -218,7 +218,7 @@ uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
         return 0;
     }
 
-    uint32_t id = vrms_runtime->interface->attach_memory(vrms_runtime, msg->scene_id, msg->data_id);
+    uint32_t id = module->interface.attach_memory(module, msg->scene_id, msg->data_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "receive_attach_memory(): out of memory\n");
@@ -231,11 +231,11 @@ uint32_t receive_attach_memory(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, ui
     return id;
 }
 
-uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+uint32_t receive_run_program(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     RunProgram* msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -248,7 +248,7 @@ uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint
         return 0;
     }
 
-    id = vrms_runtime->interface->run_program(vrms_runtime, msg->scene_id, msg->program_id, msg->register_id);
+    id = module->interface.run_program(module, msg->scene_id, msg->program_id, msg->register_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "run program: out of memory\n");
@@ -261,11 +261,11 @@ uint32_t receive_run_program(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint
     return id;
 }
 
-uint32_t receive_set_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+uint32_t receive_set_skybox(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     uint32_t id;
     SetSkybox* msg;
 
-    if (!vrms_runtime) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "server not initialized\n");
         return 0;
@@ -278,7 +278,7 @@ uint32_t receive_set_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint3
         return 0;
     }
 
-    id = vrms_runtime->interface->set_skybox(vrms_runtime, msg->scene_id, msg->texture_id);
+    id = module->interface.set_skybox(module, msg->scene_id, msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
         fprintf(stderr, "create skybox: out of memory\n");
@@ -291,8 +291,8 @@ uint32_t receive_set_skybox(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint3
     return id;
 }
 
-uint32_t receive_destroy_object(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, uint32_t length, uint32_t* error) {
-    if (!vrms_runtime) {
+uint32_t receive_destroy_object(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
+    if (!module) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "vroom_protocol: server not initialized\n");
         return 0;
@@ -305,7 +305,7 @@ uint32_t receive_destroy_object(vrms_runtime_t* vrms_runtime, uint8_t* in_buf, u
         return 0;
     }
 
-    uint8_t ok = vrms_runtime->interface->destroy_object(vrms_runtime, msg->scene_id, msg->id);
+    uint8_t ok = module->interface.destroy_object(module, msg->scene_id, msg->id);
     if (0 == ok) {
         *error = VRMS_INVALIDREQUEST;
         fprintf(stderr, "vroom_protocol: destroy object some error\n");
@@ -354,18 +354,18 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     int32_t length_r;
     char type_c;
-    vrms_runtime_t* vrms_runtime;
+    vrms_module_t* module;
 
     if (!client->server) {
         fprintf(stderr, "vroom_protocol: no server initialized\n");
         send_reply(client->fd, id, &error);
         return;
     }
-    if (!client->server->vrms_runtime) {
+    if (!client->server->module) {
         fprintf(stderr, "vroom_protocol: no VRMS server initialized\n");
         send_reply(client->fd, id, &error);
     }
-    vrms_runtime = client->server->vrms_runtime;
+    module = client->server->module;
 
     length_r = recv(client->fd, &type_c, 1, 0);
     if (length_r <= 0) {
@@ -373,7 +373,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             printf("orderly disconnect\n");
             if (client->vrms_scene_id > 0) {
                 fprintf(stderr, "vroom_protocol: destroying scene: %d\n", client->vrms_scene_id);
-                vrms_runtime->interface->destroy_scene(vrms_runtime, client->vrms_scene_id);
+                module->interface.destroy_scene(module, client->vrms_scene_id);
             }
             ev_io_stop(EV_A_ &client->io);
             close(client->fd);
@@ -445,7 +445,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
                 id = 0;
             }
             else {
-                id = receive_create_scene(vrms_runtime, in_buf, length_r, &error);
+                id = receive_create_scene(module, in_buf, length_r, &error);
                 fprintf(stderr, "scene: %d\n", id);
                 if (id > 0) {
                     client->vrms_scene_id = id;
@@ -455,21 +455,21 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         case VRMS_DESTROYSCENE:
             break;
         case VRMS_CREATEMEMORY:
-            id = receive_create_memory(vrms_runtime, in_buf, length_r, &error, shm_fd);
+            id = receive_create_memory(module, in_buf, length_r, &error, shm_fd);
             break;
         case VRMS_CREATEDATAOBJECT:
-            id = receive_create_data_object(vrms_runtime, in_buf, length_r, &error);
+            id = receive_create_data_object(module, in_buf, length_r, &error);
             break;
         case VRMS_CREATETEXTUREOBJECT:
-            id = receive_create_texture_object(vrms_runtime, in_buf, length_r, &error);
+            id = receive_create_texture_object(module, in_buf, length_r, &error);
             break;
         case VRMS_DESTROYOBJECT:
             break;
         case VRMS_RUNPROGRAM:
-            id = receive_run_program(vrms_runtime, in_buf, length_r, &error);
+            id = receive_run_program(module, in_buf, length_r, &error);
             break;
         case VRMS_SETSKYBOX:
-            id = receive_set_skybox(vrms_runtime, in_buf, length_r, &error);
+            id = receive_set_skybox(module, in_buf, length_r, &error);
             break;
         default:
             id = 0;
@@ -553,8 +553,7 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
 
     array_init(&server->clients, 128);
 
-    if (-1 == bind(server->fd, (struct sockaddr*) &server->socket, server->socket_len))
-    {
+    if (-1 == bind(server->fd, (struct sockaddr*) &server->socket, server->socket_len)) {
       fprintf(stderr, "error server bind\n");
       exit(1);
     }
@@ -566,17 +565,18 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
     return 0;
 }
 
-void* run_module(vrms_runtime_t* vrms_runtime) {
+void* run_module(vrms_module_t* module) {
     int max_queue = 128;
     struct sock_ev_serv server;
     EV_P = ev_default_loop(0);
 
     server_init(&server, "/tmp/libev-echo.sock", max_queue);
-    server.vrms_runtime = vrms_runtime;
+    server.module = module;
 
     ev_io_init(&server.io, server_cb, server.fd, EV_READ);
     ev_io_start(EV_A_ &server.io);
 
+    module->interface.log(module, "initialized\n");
     ev_loop(EV_A_ 0);
 
     close(server.fd);

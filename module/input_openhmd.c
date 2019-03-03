@@ -55,7 +55,7 @@ void hmd_destroy(hmd_t* hmd) {
     free(hmd);
 }
 
-void* run_module(vrms_runtime_t* vrms_runtime) {
+void* run_module(vrms_module_t* module) {
     float matrix[16];
     float rotation_values[4];
     float zero[] = { 0.0, 0.0, 0.0, 1.0 };
@@ -80,7 +80,7 @@ void* run_module(vrms_runtime_t* vrms_runtime) {
         esmQuaternionToMatrix(matrix, rotation_values[0], rotation_values[1], rotation_values[2], rotation_values[3]);
         //esmDump(matrix, "input_openhmd matrix");
 
-        vrms_runtime->interface->update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
+        module->interface.update_system_matrix(module, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, matrix);
         nanosleep(&ts, NULL);
     }
 

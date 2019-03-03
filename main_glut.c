@@ -30,7 +30,7 @@ void motion(int x, int y) {
     mat4_identity(view_matrix);
     mat4_rotateX(view_matrix, yangle);
     mat4_rotateY(view_matrix, xangle);
-    vrms_runtime_update_system_matrix_module(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, view_matrix);
+    vrms_runtime_update_system_matrix(vrms_runtime, VRMS_MATRIX_HEAD, VRMS_UPDATE_SET, view_matrix);
 }
 
 GLvoid display(GLvoid) {

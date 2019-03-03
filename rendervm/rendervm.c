@@ -21,12 +21,12 @@
 #define FLOAT_PUSH(vm, v)   vm->float_stack[++vm->float_sp] = v
 #define FLOAT_POP(vm)       vm->float_stack[vm->float_sp--]
 #define FLOAT_PEEK(vm, v)   vm->float_stack[v]
-#define VEC2_PUSH1(vm, v)   vm->vec2_stack[++vm->vec2_sp] = v
-#define VEC2_POP1(vm)       vm->vec2_stack[vm->vec2_sp--]
-#define VEC2_PEEK1(vm, v)   vm->vec2_stack[v]
-#define MAT4_PUSH1(vm, v)   vm->vec2_stack[++vm->vec2_sp] = v
-#define MAT4_POP1(vm)       vm->vec2_stack[vm->vec2_sp--]
-#define MAT4_PEEK1(vm, v)   vm->vec2_stack[v]
+#define VEC2_PUSH(vm, v)    vm->vec2_stack[++vm->vec2_sp] = v
+#define VEC2_POP(vm)        vm->vec2_stack[vm->vec2_sp--]
+#define VEC2_PEEK(vm, v)    vm->vec2_stack[v]
+#define MAT4_PUSH(vm, v)    vm->mat4_stack[++vm->vec2_sp] = v
+#define MAT4_POP(vm)        vm->mat4_stack[vm->vec2_sp--]
+#define MAT4_PEEK(vm, v)    vm->mat4_stack[v]
 
 typedef union {
     float f;
@@ -665,8 +665,8 @@ uint8_t rendervm_exec(rendervm_t* vm, uint8_t* program, uint16_t length) {
             }
             u81 = vm->vec2_sp;
             for (u82 = u80; u82 > 0; u82--) {
-                fl0 = VEC2_PEEK1(vm, (u81 - (u82 - 1)));
-                VEC2_PUSH1(vm, fl0);
+                fl0 = VEC2_PEEK(vm, (u81 - (u82 - 1)));
+                VEC2_PUSH(vm, fl0);
             }
             break;
         case VM_VEC2_SWAP:

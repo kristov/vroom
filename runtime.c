@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <dirent.h>
+#include <stdarg.h>
 #include "gl.h"
 #include "safemalloc.h"
 #include "object.h"
@@ -19,22 +20,6 @@
 
 opengl_stereo* ostereo;
 
-vrms_runtime_interface_t runtime_interface;
-
-void fill_interface() {
-    runtime_interface.create_scene = vrms_runtime_create_scene;
-    runtime_interface.create_memory = vrms_runtime_create_memory;
-    runtime_interface.create_object_data = vrms_runtime_create_object_data;
-    runtime_interface.create_object_texture = vrms_runtime_create_object_texture;
-    runtime_interface.attach_memory = vrms_runtime_attach_memory;
-    runtime_interface.run_program = vrms_runtime_run_program;
-    runtime_interface.set_skybox = vrms_runtime_set_skybox;
-    runtime_interface.destroy_scene = vrms_runtime_destroy_scene;
-    runtime_interface.destroy_object = vrms_runtime_destroy_object;
-    runtime_interface.update_system_matrix = vrms_runtime_update_system_matrix;
-    runtime_interface.update_system_matrix_module = vrms_runtime_update_system_matrix_module;
-}
-
 uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
     if (!vrms_runtime) {
         fprintf(stderr, "invalid runtime object\n");
@@ -47,66 +32,77 @@ uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
     return 1;
 }
 
-uint32_t vrms_runtime_create_scene(vrms_runtime_t* vrms_runtime, char* name) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-    return vrms_server_create_scene(vrms_runtime->vrms_server, name);
+int vrms_module_log(vrms_module_t* module, const char *format, ...) {
+    va_list arg;
+    int done;
+
+    va_start(arg, format);
+    done = vfprintf(stderr, format, arg);
+    va_end(arg);
+
+    return done;
 }
 
-uint32_t vrms_runtime_create_memory(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t fd, uint32_t size) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_create_scene(vrms_module_t* module, char* name) {
+    if (!assert_vrms_server(module->runtime)) {
+        return 0;
+    }
+    return vrms_server_create_scene(module->runtime->vrms_server, name);
+}
+
+uint32_t vrms_module_create_memory(vrms_module_t* module, uint32_t scene_id, uint32_t fd, uint32_t size) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_memory(vrms_scene, fd, size);
 }
 
-uint32_t vrms_runtime_create_object_data(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_create_object_data(vrms_module_t* module, uint32_t scene_id, uint32_t memory_id, uint32_t memory_offset, uint32_t memory_length, vrms_data_type_t type) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene)
         return 0;
     return vrms_scene_create_object_data(vrms_scene, memory_id, memory_offset, memory_length, type);
 }
 
-uint32_t vrms_runtime_create_object_texture(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_create_object_texture(vrms_module_t* module, uint32_t scene_id, uint32_t data_id, uint32_t width, uint32_t height, vrms_texture_format_t format, vrms_texture_type_t type) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_create_object_texture(vrms_scene, data_id, width, height, format, type);
 }
 
-uint32_t vrms_runtime_attach_memory(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_attach_memory(vrms_module_t* module, uint32_t scene_id, uint32_t data_id) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_attach_memory(vrms_scene, data_id);
 }
 
-uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t program_id, uint32_t register_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_run_program(vrms_module_t* module, uint32_t scene_id, uint32_t program_id, uint32_t register_id) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
@@ -114,50 +110,42 @@ uint32_t vrms_runtime_run_program(vrms_runtime_t* vrms_runtime, uint32_t scene_i
 }
 
 
-uint32_t vrms_runtime_update_system_matrix_module(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
-    vrms_server_queue_update_system_matrix(vrms_runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
+uint32_t vrms_module_update_system_matrix(vrms_module_t* module, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+    if (!assert_vrms_server(module->runtime)) {
+        return 0;
+    }
+
+    vrms_server_queue_update_system_matrix(module->runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
     return 1;
 }
 
-uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t data_id, uint32_t data_index, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_set_skybox(vrms_module_t* module, uint32_t scene_id, uint32_t texture_id) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
-    if (!vrms_scene) {
-        return 0;
-    }
-    return vrms_scene_update_system_matrix(vrms_scene, data_id, data_index, matrix_type, update_type);
-}
-
-uint32_t vrms_runtime_set_skybox(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t texture_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
-        return 0;
-    }
-
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
     return vrms_scene_set_skybox(vrms_scene, texture_id);
 }
 
-uint32_t vrms_runtime_destroy_scene(vrms_runtime_t* vrms_runtime, uint32_t scene_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_destroy_scene(vrms_module_t* module, uint32_t scene_id) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_server_destroy_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_server_destroy_scene(module->runtime->vrms_server, scene_id);
     return 1;
 }
 
-uint32_t vrms_runtime_destroy_object(vrms_runtime_t* vrms_runtime, uint32_t scene_id, uint32_t object_id) {
-    if (!assert_vrms_server(vrms_runtime)) {
+uint32_t vrms_module_destroy_object(vrms_module_t* module, uint32_t scene_id, uint32_t object_id) {
+    if (!assert_vrms_server(module->runtime)) {
         return 0;
     }
 
-    vrms_scene_t* vrms_scene = vrms_server_get_scene(vrms_runtime->vrms_server, scene_id);
+    vrms_scene_t* vrms_scene = vrms_server_get_scene(module->runtime->vrms_server, scene_id);
     if (!vrms_scene) {
         return 0;
     }
@@ -166,7 +154,7 @@ uint32_t vrms_runtime_destroy_object(vrms_runtime_t* vrms_runtime, uint32_t scen
     return 1;
 }
 
-void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
+void run_module(vrms_module_t* module) {
     void* (*run_module)(void*);
     void* handle = NULL;
     char* full_module_path;
@@ -175,16 +163,16 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
     uint32_t module_load_path_len;
     const char* error_message = NULL;
 
-    module_name_len = strlen(module_name);
-    module_load_path_len = strlen(vrms_runtime->module_load_path);
+    module_name_len = strlen(module->name);
+    module_load_path_len = strlen(module->runtime->module_load_path);
     full_module_path_len = (module_name_len + module_load_path_len + 2) * sizeof(char);
 
     full_module_path = SAFEMALLOC(full_module_path_len);
     memset(full_module_path, 0, full_module_path_len);
 
-    memcpy(full_module_path, vrms_runtime->module_load_path, module_load_path_len);
+    memcpy(full_module_path, module->runtime->module_load_path, module_load_path_len);
     memcpy(full_module_path + module_load_path_len, "/", 1);
-    memcpy(full_module_path + module_load_path_len + 1, module_name, module_name_len);
+    memcpy(full_module_path + module_load_path_len + 1, module->name, module_name_len);
     fprintf(stderr, "run_module(): loading '%s'\n", full_module_path);
 
     handle = dlopen(full_module_path, RTLD_NOW);
@@ -201,7 +189,7 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
         dlclose(handle);
     }
 
-    (*run_module)(vrms_runtime);
+    (*run_module)(module);
 
     dlclose(handle);
 
@@ -209,32 +197,42 @@ void run_module(vrms_runtime_t* vrms_runtime, char* module_name) {
 }
 
 void* start_module_thread(void* data) {
-    vrms_runtime_module_thread_t* module_thread;
+    vrms_module_t* module;
 
-    module_thread = (vrms_runtime_module_thread_t*)data;
-    run_module(module_thread->vrms_runtime, module_thread->module_name);
+    module = (vrms_module_t*)data;
+    run_module(module);
 
     return NULL;
 }
 
-vrms_runtime_module_thread_t* vrms_runtime_module_thread_create(char* module_name) {
-    vrms_runtime_module_thread_t* module_thread;
+vrms_module_t* vrms_runtime_module_create(char* module_name) {
+    vrms_module_t* module = SAFEMALLOC(sizeof(vrms_module_t));
+    module->name = SAFEMALLOC(strlen(module_name) + 1);
+    strcpy(module->name, module_name);
 
-   module_thread = SAFEMALLOC(sizeof(vrms_runtime_module_thread_t));
-   module_thread->module_name = SAFEMALLOC(strlen(module_name) + 1);
-   strcpy(module_thread->module_name, module_name);
+    module->interface.log = vrms_module_log;
+    module->interface.create_scene = vrms_module_create_scene;
+    module->interface.create_memory = vrms_module_create_memory;
+    module->interface.create_object_data = vrms_module_create_object_data;
+    module->interface.create_object_texture = vrms_module_create_object_texture;
+    module->interface.attach_memory = vrms_module_attach_memory;
+    module->interface.run_program = vrms_module_run_program;
+    module->interface.set_skybox = vrms_module_set_skybox;
+    module->interface.destroy_scene = vrms_module_destroy_scene;
+    module->interface.destroy_object = vrms_module_destroy_object;
+    module->interface.update_system_matrix = vrms_module_update_system_matrix;
 
-   return module_thread;
+    return module;
 }
 
-void vrms_runtime_module_thread_destroy(vrms_runtime_module_thread_t* module_thread) {
-    if (!module_thread) {
+void vrms_module_destroy(vrms_module_t* module) {
+    if (!module) {
         return;
     }
-    if (module_thread->module_name) {
-        free(module_thread->module_name);
+    if (module->name) {
+        free(module->name);
     }
-    free(module_thread);
+    free(module);
 }
 
 void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
@@ -244,7 +242,7 @@ void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
         return;
     }
 
-    vrms_runtime_module_thread_t* module_thread;
+    vrms_module_t* module;
     int32_t thread_ret;
     struct dirent* entry;
     uint8_t index = 0;
@@ -260,19 +258,19 @@ void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
             continue;
         }
 
-        module_thread = vrms_runtime_module_thread_create(entry->d_name);
-        module_thread->vrms_runtime = vrms_runtime;
-        thread_ret = pthread_create(&module_thread->pthread, NULL, start_module_thread, module_thread);
+        module = vrms_runtime_module_create(entry->d_name);
+        module->runtime = vrms_runtime;
+        thread_ret = pthread_create(&module->pthread, NULL, start_module_thread, module);
         if (thread_ret != 0) {
-            vrms_runtime_module_thread_destroy(module_thread);
-            free(module_thread);
+            vrms_module_destroy(module);
+            free(module);
             fprintf(stderr, "unable to start thread for module\n");
             exit(1);
         }
-        vrms_runtime->module_threads[index] = module_thread;
+        vrms_runtime->modules[index] = module;
         index++;
     }
-    vrms_runtime->nr_module_threads = index;
+    vrms_runtime->nr_modules = index;
     closedir(dir);
 }
 
@@ -282,6 +280,11 @@ void draw_scene(opengl_stereo* ostereo, void* data) {
     }
 }
 
+uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
+    vrms_server_queue_update_system_matrix(vrms_runtime->vrms_server, matrix_type, update_type, (uint8_t*)matrix);
+    return 1;
+}
+
 void vrms_runtime_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
     memcpy(ostereo->hmd_matrix, matrix, sizeof(float) * 16);
 }
@@ -289,9 +292,6 @@ void vrms_runtime_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_upda
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) {
     vrms_runtime_t* vrms_runtime = malloc(sizeof(vrms_runtime_t));
     memset(vrms_runtime, 0, sizeof(vrms_runtime_t));
-
-    fill_interface();
-    vrms_runtime->interface = &runtime_interface;
 
     vrms_runtime->w = width;
     vrms_runtime->h = height;
@@ -329,12 +329,12 @@ void vrms_runtime_process(vrms_runtime_t* vrms_runtime) {
 
 void vrms_runtime_end(vrms_runtime_t* vrms_runtime) {
     uint8_t index;
-    vrms_runtime_module_thread_t* module_thread;
+    vrms_module_t* module;
 
     index = 0;
-    for (index = 0; index < vrms_runtime->nr_module_threads; index++) {
-        module_thread = vrms_runtime->module_threads[index];
-        if (!module_thread) {
+    for (index = 0; index < vrms_runtime->nr_modules; index++) {
+        module = vrms_runtime->modules[index];
+        if (!module) {
             continue;
         }
         // pthread_join(module_thread->pthread);

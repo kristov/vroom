@@ -71,7 +71,7 @@ static int handle_and_print_events(struct libinput *li) {
     return rc;
 }
 
-void* run_module(vrms_runtime_t* vrms_runtime) {
+void* run_module(vrms_module_t* module) {
     struct libinput *li;
     struct pollfd fds;
 
@@ -82,7 +82,7 @@ void* run_module(vrms_runtime_t* vrms_runtime) {
     fds.revents = 0;
 
     if (handle_and_print_events(li)) {
-        fprintf(stderr, "unable to initialise input_libinput module (perms)\n");
+        module->interface.log(module, "unable to initialise input_libinput module (perms)\n");
         return NULL;
     }
 
