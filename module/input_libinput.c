@@ -82,7 +82,7 @@ void* run_module(vrms_module_t* module) {
     fds.revents = 0;
 
     if (handle_and_print_events(li)) {
-        module->interface.log(module, "unable to initialise input_libinput module (perms)\n");
+        module->interface.log(module, "unable to initialise input_libinput module (perms)");
         return NULL;
     }
 

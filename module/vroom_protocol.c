@@ -41,21 +41,21 @@ uint32_t receive_create_scene(vrms_module_t* module, uint8_t* in_buf, int32_t le
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_create_scene(): server not initialized");
         return 0;
     }
 
     cs_msg = create_scene__unpack(NULL, length, in_buf);
     if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_create_scene(): error unpacking incoming message");
         return 0;
     }
 
     id = module->interface.create_scene(module, cs_msg->name);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "create scene: out of memory\n");
+        module->interface.log(module, "receive_create_scene(): out of memory");
     }
     else {
         *error = VRMS_OK;
@@ -71,20 +71,20 @@ uint32_t receive_create_memory(vrms_module_t* module, uint8_t* in_buf, int32_t l
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_create_memory(): server not initialized");
         return 0;
     }
 
     cs_msg = create_memory__unpack(NULL, length, in_buf);
     if (!cs_msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_create_memory(): error unpacking incoming message");
         return 0;
     }
 
     id = module->interface.create_memory(module, cs_msg->scene_id, shm_fd, cs_msg->size);
     if (0 == id) {
-        fprintf(stderr, "create memory: out of memory\n");
+        module->interface.log(module, "receive_create_memory(): out of memory");
         *error = VRMS_OUTOFMEMORY;
     }
     else {
@@ -101,14 +101,14 @@ uint32_t receive_create_data_object(vrms_module_t* module, uint8_t* in_buf, uint
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_create_data_object(): server not initialized");
         return 0;
     }
 
     msg = create_data_object__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_create_data_object(): unpacking incoming message");
         return 0;
     }
 
@@ -160,7 +160,7 @@ uint32_t receive_create_data_object(vrms_module_t* module, uint8_t* in_buf, uint
 
     id = module->interface.create_object_data(module, msg->scene_id, msg->memory_id, msg->memory_offset, msg->memory_length, vrms_type);
     if (0 == id) {
-        fprintf(stderr, "create object data: out of memory\n");
+        module->interface.log(module, "receive_create_data_object(): out of memory");
         *error = VRMS_OUTOFMEMORY;
     }
     else {
@@ -177,13 +177,13 @@ uint32_t receive_create_texture_object(vrms_module_t* module, uint8_t* in_buf, u
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_create_texture_object(): server not initialized");
         return 0;
     }
 
     msg = create_texture_object__unpack(NULL, length, in_buf);
     if (!msg) {
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_create_texture_object(): error unpacking incoming message");
         *error = VRMS_INVALIDREQUEST;
         return 0;
     }
@@ -194,7 +194,7 @@ uint32_t receive_create_texture_object(vrms_module_t* module, uint8_t* in_buf, u
     id = module->interface.create_object_texture(module, msg->scene_id, msg->data_id, msg->width, msg->height, format, type);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "create object texture: out of memory\n");
+        module->interface.log(module, "receive_create_texture_object(): out of memory");
     }
     else {
         *error = VRMS_OK;
@@ -207,21 +207,21 @@ uint32_t receive_create_texture_object(vrms_module_t* module, uint8_t* in_buf, u
 uint32_t receive_attach_memory(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_attach_memory(): server not initialized");
         return 0;
     }
 
     AttachMemory* msg = attach_memory__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_attach_memory(): error unpacking incoming message");
         return 0;
     }
 
     uint32_t id = module->interface.attach_memory(module, msg->scene_id, msg->data_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "receive_attach_memory(): out of memory\n");
+        module->interface.log(module, "receive_attach_memory(): out of memory");
     }
     else {
         *error = VRMS_OK;
@@ -237,21 +237,21 @@ uint32_t receive_run_program(vrms_module_t* module, uint8_t* in_buf, uint32_t le
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "server not initialized\n");
+        module->interface.log(module, "receive_run_program(): server not initialized");
         return 0;
     }
 
     msg = run_program__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_run_program(): error unpacking incoming message");
         return 0;
     }
 
     id = module->interface.run_program(module, msg->scene_id, msg->program_id, msg->register_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "run program: out of memory\n");
+        module->interface.log(module, "receive_run_program(): out of memory");
     }
     else {
         *error = VRMS_OK;
@@ -267,6 +267,7 @@ uint32_t receive_set_skybox(vrms_module_t* module, uint8_t* in_buf, uint32_t len
 
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
+        module->interface.log(module, "receive_set_skybox(): server not initialized");
         fprintf(stderr, "server not initialized\n");
         return 0;
     }
@@ -274,14 +275,14 @@ uint32_t receive_set_skybox(vrms_module_t* module, uint8_t* in_buf, uint32_t len
     msg = set_skybox__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "unpacking incoming message\n");
+        module->interface.log(module, "receive_set_skybox(): error unpacking incoming message");
         return 0;
     }
 
     id = module->interface.set_skybox(module, msg->scene_id, msg->texture_id);
     if (0 == id) {
         *error = VRMS_OUTOFMEMORY;
-        fprintf(stderr, "create skybox: out of memory\n");
+        module->interface.log(module, "receive_set_skybox(): out of memory");
     }
     else {
         *error = VRMS_OK;
@@ -294,21 +295,21 @@ uint32_t receive_set_skybox(vrms_module_t* module, uint8_t* in_buf, uint32_t len
 uint32_t receive_destroy_object(vrms_module_t* module, uint8_t* in_buf, uint32_t length, uint32_t* error) {
     if (!module) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "vroom_protocol: server not initialized\n");
+        module->interface.log(module, "receive_destroy_object(): server not initialized");
         return 0;
     }
 
     DestroyObject* msg = destroy_object__unpack(NULL, length, in_buf);
     if (!msg) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "vroom_protocol: unpacking incoming message\n");
+        module->interface.log(module, "receive_destroy_object(): error unpacking incoming message");
         return 0;
     }
 
     uint8_t ok = module->interface.destroy_object(module, msg->scene_id, msg->id);
     if (0 == ok) {
         *error = VRMS_INVALIDREQUEST;
-        fprintf(stderr, "vroom_protocol: destroy object some error\n");
+        module->interface.log(module, "receive_destroy_object(): destroy object some error");
     }
     else {
         *error = VRMS_OK;
@@ -362,7 +363,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         return;
     }
     if (!client->server->module) {
-        fprintf(stderr, "vroom_protocol: no VRMS server initialized\n");
+        fprintf(stderr, "vroom_protocol: no module initialized\n");
         send_reply(client->fd, id, &error);
     }
     module = client->server->module;
@@ -372,7 +373,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         if (0 == length_r) {
             printf("orderly disconnect\n");
             if (client->vrms_scene_id > 0) {
-                fprintf(stderr, "vroom_protocol: destroying scene: %d\n", client->vrms_scene_id);
+                module->interface.log(module, "destroying scene: %d", client->vrms_scene_id);
                 module->interface.destroy_scene(module, client->vrms_scene_id);
             }
             ev_io_stop(EV_A_ &client->io);
@@ -380,7 +381,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
             return;
         }
         else if (EAGAIN == errno) {
-            fprintf(stderr, "vroom_protocol: should never get in this state with libev\n");
+            module->interface.log(module, "should never get in this state with libev");
         }
         else {
             perror("recv\n");
@@ -401,32 +402,32 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
 
     length_r = recvmsg(client->fd, &msgh, 0);
     if (-1 == length_r) {
-        fprintf(stderr, "error receiving control fd\n");
+        module->interface.log(module, "error receiving control fd");
         send_reply(client->fd, id, &error);
         return;
     }
 
     if (MAX_MSG_SIZE == length_r) {
-        fprintf(stderr, "maximum message length exceeded\n");
+        module->interface.log(module, "maximum message length exceeded");
         send_reply(client->fd, id, &error);
         return;
     }
 
     cmsgh = CMSG_FIRSTHDR(&msgh);
     if (!cmsgh) {
-        fprintf(stderr, "expected one recvmsg header with an fd but got zero headers\n");
+        module->interface.log(module, "expected one recvmsg header with an fd but got zero headers");
         send_reply(client->fd, id, &error);
         return;
     }
 
     if (cmsgh->cmsg_level != SOL_SOCKET) {
-        fprintf(stderr, "invalid cmsg_level\n");
+        module->interface.log(module, "invalid cmsg_level");
         send_reply(client->fd, id, &error);
         return;
     }
 
     if (cmsgh->cmsg_type != SCM_RIGHTS) {
-        fprintf(stderr, "invalid cmsg_type\n");
+        module->interface.log(module, "invalid cmsg_type");
         send_reply(client->fd, id, &error);
         return;
     }
@@ -436,17 +437,17 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
     switch (type) {
         case VRMS_REPLY:
             error = VRMS_INVALIDREQUEST;
-            fprintf(stderr, "received a reply message as a request\n");
+            module->interface.log(module, "received a reply message as a request");
             break;
         case VRMS_CREATESCENE:
             if (client->vrms_scene_id > 0) {
                 error = VRMS_INVALIDREQUEST;
-                fprintf(stderr, "connection already associated with a scene\n");
+                module->interface.log(module, "connection already associated with a scene");
                 id = 0;
             }
             else {
                 id = receive_create_scene(module, in_buf, length_r, &error);
-                fprintf(stderr, "scene: %d\n", id);
+                module->interface.log(module, "scene: %d", id);
                 if (id > 0) {
                     client->vrms_scene_id = id;
                 }
@@ -474,7 +475,7 @@ static void client_cb(EV_P_ ev_io *w, int revents) {
         default:
             id = 0;
             error = VRMS_INVALIDREQUEST;
-            fprintf(stderr, "unknown reqeust type\n");
+            module->interface.log(module, "unknown reqeust type");
             break;
     }
 
@@ -516,7 +517,7 @@ static void server_cb(EV_P_ ev_io *w, int revents) {
             }
             break;
         }
-        printf("accepted a client\n");
+        server->module->interface.log(server->module, "accepted a client");
         client = client_new(client_fd);
         client->vrms_scene_id = 0;
         client->server = server;
@@ -554,13 +555,13 @@ int server_init(struct sock_ev_serv* server, char* sock_path, int max_queue) {
     array_init(&server->clients, 128);
 
     if (-1 == bind(server->fd, (struct sockaddr*) &server->socket, server->socket_len)) {
-      fprintf(stderr, "error server bind\n");
-      exit(1);
+        server->module->interface.log(server->module, "error server bind");
+        exit(1);
     }
 
     if (-1 == listen(server->fd, max_queue)) {
-      fprintf(stderr, "error listen\n");
-      exit(1);
+        server->module->interface.log(server->module, "error listen");
+        exit(1);
     }
     return 0;
 }
@@ -576,7 +577,7 @@ void* run_module(vrms_module_t* module) {
     ev_io_init(&server.io, server_cb, server.fd, EV_READ);
     ev_io_start(EV_A_ &server.io);
 
-    module->interface.log(module, "initialized\n");
+    module->interface.log(module, "initialized");
     ev_loop(EV_A_ 0);
 
     close(server.fd);

@@ -36,9 +36,11 @@ int vrms_module_log(vrms_module_t* module, const char *format, ...) {
     va_list arg;
     int done;
 
+    fprintf(stderr, "[M]%s: ", module->name);
     va_start(arg, format);
     done = vfprintf(stderr, format, arg);
     va_end(arg);
+    fprintf(stderr, "\n");
 
     return done;
 }

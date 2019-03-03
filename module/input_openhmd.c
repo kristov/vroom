@@ -16,43 +16,33 @@ typedef struct hmd {
     ohmd_device* ohmd_active_hmd;
 } hmd_t;
 
-hmd_t* hmd_create() {
-    hmd_t* hmd = malloc(sizeof(hmd_t));
-    if (!hmd) {
-        fprintf(stderr, "openhmd: out of memory!\n");
-        exit(1);
+int8_t hmd_init(vrms_module_t* module, hmd_t* hmd) {
+    hmd->ohmd_ctx = ohmd_ctx_create();
+
+    int num_devices = ohmd_ctx_probe(hmd->ohmd_ctx);
+    if (num_devices < 0) {
+        module->interface.log(module, "failed to probe devices: %s", ohmd_ctx_get_error(hmd->ohmd_ctx));
+        return 0;
     }
-    memset(hmd, 0, sizeof(hmd_t));
-    return hmd;
-}
-
-int8_t hmd_init(hmd_t* hmd) {
-	hmd->ohmd_ctx = ohmd_ctx_create();
-
-	int num_devices = ohmd_ctx_probe(hmd->ohmd_ctx);
-	if(num_devices < 0){
-		fprintf(stderr, "openhmd: failed to probe devices: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
-		return 0;
-	}
+    module->interface.log(module, "found %d active devices", num_devices);
 
     if (num_devices == 0) {
-        fprintf(stderr, "openhmd: no devices found\n");
+        module->interface.log(module, "no devices found");
         return 0;
     }
 
-	hmd->ohmd_active_hmd = ohmd_list_open_device(hmd->ohmd_ctx, 0);
+    hmd->ohmd_active_hmd = ohmd_list_open_device(hmd->ohmd_ctx, 0);
 
-	if(!hmd->ohmd_active_hmd){
-		fprintf(stderr, "openhmd: failed to open device: %s\n", ohmd_ctx_get_error(hmd->ohmd_ctx));
-		return 0;
-	}
+    if(!hmd->ohmd_active_hmd){
+        module->interface.log(module, "failed to open device: %s", ohmd_ctx_get_error(hmd->ohmd_ctx));
+        return 0;
+    }
 
     return 1;
 }
 
 void hmd_destroy(hmd_t* hmd) {
     ohmd_ctx_destroy(hmd->ohmd_ctx);
-    free(hmd);
 }
 
 void* run_module(vrms_module_t* module) {
@@ -60,11 +50,10 @@ void* run_module(vrms_module_t* module) {
     float rotation_values[4];
     float zero[] = { 0.0, 0.0, 0.0, 1.0 };
     struct timespec ts;
-    hmd_t* hmd;
+    hmd_t hmd;
 
-    hmd = hmd_create();
-    if (!hmd_init(hmd)) {
-        hmd_destroy(hmd);
+    if (!hmd_init(module, &hmd)) {
+        hmd_destroy(&hmd);
         return NULL;
     }
 
@@ -72,10 +61,10 @@ void* run_module(vrms_module_t* module) {
     ts.tv_nsec = INTERVAL_MS;
 
     while (1) {
-		ohmd_ctx_update(hmd->ohmd_ctx);
-		ohmd_device_setf(hmd->ohmd_active_hmd, OHMD_ROTATION_QUAT, zero);
-		ohmd_device_setf(hmd->ohmd_active_hmd, OHMD_POSITION_VECTOR, zero);
-	    ohmd_device_getf(hmd->ohmd_active_hmd, OHMD_ROTATION_QUAT, rotation_values);
+        ohmd_ctx_update(hmd.ohmd_ctx);
+        ohmd_device_setf(hmd.ohmd_active_hmd, OHMD_ROTATION_QUAT, zero);
+        ohmd_device_setf(hmd.ohmd_active_hmd, OHMD_POSITION_VECTOR, zero);
+        ohmd_device_getf(hmd.ohmd_active_hmd, OHMD_ROTATION_QUAT, rotation_values);
 
         esmQuaternionToMatrix(matrix, rotation_values[0], rotation_values[1], rotation_values[2], rotation_values[3]);
         //esmDump(matrix, "input_openhmd matrix");
