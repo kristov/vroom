@@ -44,17 +44,17 @@ int8_t hmd_init(vrms_module_t* module, hmd_t* hmd) {
         ohmd_list_geti(ohmd_ctx, i, OHMD_DEVICE_CLASS, &device_class);
         ohmd_list_geti(ohmd_ctx, i, OHMD_DEVICE_FLAGS, &device_flags);
 
-        printf("device %d\n", i);
-        printf("  vendor:  %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_VENDOR));
-        printf("  product: %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_PRODUCT));
-        printf("  path:    %s\n", ohmd_list_gets(ohmd_ctx, i, OHMD_PATH));
-        printf("  class:   %s\n", device_class_s[device_class > OHMD_DEVICE_CLASS_GENERIC_TRACKER ? 4 : device_class]);
-        printf("  flags:   %02x\n",  device_flags);
-        printf("    null device:         %s\n", device_flags & OHMD_DEVICE_FLAGS_NULL_DEVICE ? "yes" : "no");
-        printf("    rotational tracking: %s\n", device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING ? "yes" : "no");
-        printf("    positional tracking: %s\n", device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING ? "yes" : "no");
-        printf("    left controller:     %s\n", device_flags & OHMD_DEVICE_FLAGS_LEFT_CONTROLLER ? "yes" : "no");
-        printf("    right controller:    %s\n\n", device_flags & OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER ? "yes" : "no");
+        module->interface.debug(module, "device %d", i);
+        module->interface.debug(module, "  vendor:  %s", ohmd_list_gets(ohmd_ctx, i, OHMD_VENDOR));
+        module->interface.debug(module, "  product: %s", ohmd_list_gets(ohmd_ctx, i, OHMD_PRODUCT));
+        module->interface.debug(module, "  path:    %s", ohmd_list_gets(ohmd_ctx, i, OHMD_PATH));
+        module->interface.debug(module, "  class:   %s", device_class_s[device_class > OHMD_DEVICE_CLASS_GENERIC_TRACKER ? 4 : device_class]);
+        module->interface.debug(module, "  flags:   %02x",  device_flags);
+        module->interface.debug(module, "    null device:         %s", device_flags & OHMD_DEVICE_FLAGS_NULL_DEVICE ? "yes" : "no");
+        module->interface.debug(module, "    rotational tracking: %s", device_flags & OHMD_DEVICE_FLAGS_ROTATIONAL_TRACKING ? "yes" : "no");
+        module->interface.debug(module, "    positional tracking: %s", device_flags & OHMD_DEVICE_FLAGS_POSITIONAL_TRACKING ? "yes" : "no");
+        module->interface.debug(module, "    left controller:     %s", device_flags & OHMD_DEVICE_FLAGS_LEFT_CONTROLLER ? "yes" : "no");
+        module->interface.debug(module, "    right controller:    %s", device_flags & OHMD_DEVICE_FLAGS_RIGHT_CONTROLLER ? "yes" : "no");
     }
 
     hmd->ohmd_active_hmd = ohmd_list_open_device(ohmd_ctx, 0);
