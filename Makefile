@@ -50,9 +50,9 @@ eglkms-server : MAINSRC = main_eglkms.c
 
 all: x11-server
 
-x11-server: deps vroom-server
-eglbcm-server: deps vroom-server
-eglkms-server: deps vroom-server
+x11-server: deps $(MAINSRC) vroom-server
+eglbcm-server: deps $(MAINSRC) vroom-server
+eglkms-server: deps $(MAINSRC) vroom-server
 
 vroom-server: $(MAINSRC) $(OBJECTS)
 	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(EXTRAOBJECTS) $(MAINSRC)
