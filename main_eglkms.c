@@ -21,8 +21,8 @@ const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-// Hack to render to Oculus rift (0 width, 0 height reported by DRM connector)
-#define MAX_WIDTH_MM_NON_HMS 200
+// Hack to render to Oculus rift (0 width, 0 height reported by DRM connector, 290 reported by my test screen)
+#define MAX_WIDTH_MM_NON_HMS 300
 
 typedef struct eglkms_context {
     int fd;
@@ -162,6 +162,7 @@ void kms_drm(eglkms_context_t* context) {
             continue;
         }
 
+        fprintf(stderr, "connector->mmWidth: %d\n", connector->mmWidth);
         if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
             drmModeFreeConnector(connector);
             continue;
@@ -175,6 +176,7 @@ void kms_drm(eglkms_context_t* context) {
         fprintf(stderr, "           mmHeight: %d\n", connector->mmHeight);
         if (!context->kms_connector) {
             context->kms_connector = connector;
+            break;
         }
         else {
             drmModeFreeConnector(connector);
