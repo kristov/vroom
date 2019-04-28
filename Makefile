@@ -36,23 +36,23 @@ x11-server : DEFS = -DX11GLUT
 x11-server : MAINSRC = main_glut.c
 
 # Raspberry Pi
-eglbcm-server : EXTGL := -lbcm_host -lEGL -lGLESv2
+eglbcm-server : EXTGL = -lbcm_host -lEGL -lGLESv2
 eglbcm-server : INCD += -I/opt/vc/include
-eglbcm-server : LINKD := -L/opt/vc/lib
-eglbcm-server : DEFS := -DRASPBERRYPI
-eglbcm-server : MAINSRC := main_eglbcm.c
+eglbcm-server : LINKD = -L/opt/vc/lib
+eglbcm-server : DEFS = -DRASPBERRYPI
+eglbcm-server : MAINSRC = main_eglbcm.c
 
 # Linux without X
-eglkms-server : EXTGL := -lgbm -ldrm -lEGL -lGLESv2
+eglkms-server : EXTGL = -lgbm -ldrm -lEGL -lGLESv2
 eglkms-server : INCD += -I/usr/include/libdrm
-eglkms-server : DEFS := -DEGLGBM
-eglbcm-server : MAINSRC := main_eglkms.c
+eglkms-server : DEFS = -DEGLGBM
+eglkms-server : MAINSRC = main_eglkms.c
 
-all: deps x11-server
+all: x11-server
 
-x11-server: vroom-server
-eglbcm-server: vroom-server
-eglkms-server: vroom-server
+x11-server: deps vroom-server
+eglbcm-server: deps vroom-server
+eglkms-server: deps vroom-server
 
 vroom-server: $(MAINSRC) $(OBJECTS)
 	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(EXTRAOBJECTS) $(MAINSRC)

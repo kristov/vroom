@@ -220,11 +220,11 @@ void vrms_gl_load_texture_buffer(uint8_t* buffer, uint32_t* destination, uint32_
             dfmt = GL_RGBA;
             bfmt = GL_UNSIGNED_BYTE;
             break;
-        case VRMS_FORMAT_RGB888:
-            ifmt = GL_RGB8;
-            dfmt = GL_BGR;
-            bfmt = GL_UNSIGNED_BYTE;
-            break;
+        //case VRMS_FORMAT_RGB888:
+        //    ifmt = GL_RGB8;
+        //    dfmt = GL_BGR;
+        //    bfmt = GL_UNSIGNED_BYTE;
+        //    break;
         case VRMS_FORMAT_XRGB8888:
             ifmt = GL_RGBA8;
             dfmt = GL_BGRA;
