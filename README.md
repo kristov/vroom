@@ -1,4 +1,5 @@
 # vroom
+
 Virtual Reality OpenGL geometry server.
 
 Vroom is a virtual reality environment where multiple programs can run and share a space in the VR world. The goal is to create a system similar to the client/server model of X11 or Wayland, but instead of exchanging window or 2D buffer information between the client and the server, 3D geometry information is exchanged. The clients load and transfer data objects representing 3D geometry to the server, and the server composes this into a unified VR environment.

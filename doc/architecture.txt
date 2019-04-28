@@ -1,0 +1,29 @@
+# Vroom architecture
+
+Vroom consists of a core extendable via modules. The primary purpose of the core is to perform OpenGL operations and render to the screen. Everything else is implemented as a module. The core modules are:
+
+* vroom_protocol - The main vroom protocol that clients use to communicate with the server.
+* input_openhmd - Handles head mounted display devices, for example setting head rotation on the server.
+* input_libinput - Manages input devices such as keyboards and mice, and communicates events to the server.
+
+There are also a couple of work-in-progress modules:
+
+* dri_manager - Informs the server of graphics card events such as new screens being added.
+* wayvroom - A Wayland compositor for allowing 2d clients to run on vroom.
+
+The core is comprised of several subsystems:
+
+* Runtime - Loads modules and lets them communicate with the rendering core.
+* OpenGL stereo renderer - Renders scenes in stereo with lens distortion correction.
+* Scene manager - Stores information about the running scenes.
+* Render VM - A virtual machine for running frame render code.
+
+## Typical client operation
+
+A client connects to the vroom server via the vroom_protocol module. A scene is created for the client via the runtime interface between the core and the vroom_protocol module. The client then loads objects (vertex data, texture data) which are stored in the scene manager context in the core. The client then loads frame rendering bytecode, which is used by the core to render the scene, using the loaded object data.
+
+## Pros and cons
+
+* Clients do not have access to shaders and can not implement custom shader code. This makes writing clients simpler but does not give flexibility.
+* Clients are not in control of head rotation. This reduces rendering lag but makes it more difficult for clients to optimize geometry loading based on what is visible.
+
