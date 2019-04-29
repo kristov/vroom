@@ -44,16 +44,16 @@ typedef struct opengl_stereo {
     ostereo_draw_scene_callback_t draw_scene_callback;
     void* draw_scene_callback_data;
     GLuint barrel_power_id;
-    opengl_stereo_camera* left_camera;
-    opengl_stereo_camera* right_camera;
-    opengl_stereo_camera* skybox_camera;
+    opengl_stereo_camera left_camera;
+    opengl_stereo_camera right_camera;
+    opengl_stereo_camera skybox_camera;
     opengl_stereo_buffer_store* screen_buffers;
 } opengl_stereo;
 
 void opengl_stereo_draw_scene_callback(opengl_stereo* ostereo, ostereo_draw_scene_callback_t callback, void* callback_data);
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h);
 void opengl_stereo_display(opengl_stereo* ostereo);
-opengl_stereo* opengl_stereo_create(int width, int height, double physical_width);
+void opengl_stereo_init(opengl_stereo* ostereo, int width, int height, double physical_width);
 
 double opengl_stereo_get_config_value(opengl_stereo* ostereo, char* name);
 void opengl_stereo_set_config_value(opengl_stereo* ostereo, char* name, double value);

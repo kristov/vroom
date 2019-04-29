@@ -166,10 +166,10 @@ void kms_drm(eglkms_context_t* context) {
         fprintf(stderr, "            mmWidth: %d\n", connector->mmWidth);
         fprintf(stderr, "           mmHeight: %d\n", connector->mmHeight);
 
-        if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS) {
-            drmModeFreeConnector(connector);
-            continue;
-        }
+        //if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS) {
+        //    drmModeFreeConnector(connector);
+        //    continue;
+        //}
 
         if (!context->kms_connector) {
             context->kms_connector = connector;

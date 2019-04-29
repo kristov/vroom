@@ -18,7 +18,7 @@
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-opengl_stereo* ostereo;
+opengl_stereo ostereo;
 
 uint8_t assert_vrms_server(vrms_runtime_t* vrms_runtime) {
     if (!vrms_runtime) {
@@ -292,7 +292,7 @@ void vrms_runtime_load_modules(vrms_runtime_t* vrms_runtime) {
 
 void draw_scene(opengl_stereo* ostereo, void* data) {
     if (NULL != data) {
-        vrms_server_draw_scenes((vrms_server_t*)data, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix, ostereo->skybox_camera->projection_matrix);
+        vrms_server_draw_scenes((vrms_server_t*)data, ostereo->projection_matrix, ostereo->view_matrix, ostereo->model_matrix, ostereo->skybox_camera.projection_matrix);
     }
 }
 
@@ -302,7 +302,7 @@ uint32_t vrms_runtime_update_system_matrix(vrms_runtime_t* vrms_runtime, vrms_ma
 }
 
 void vrms_runtime_system_matrix_update(vrms_matrix_type_t matrix_type, vrms_update_type_t update_type, float* matrix) {
-    memcpy(ostereo->hmd_matrix, matrix, sizeof(float) * 16);
+    memcpy(ostereo.hmd_matrix, matrix, sizeof(float) * 16);
 }
 
 vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) {
@@ -316,12 +316,12 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_server_t* vrms_server = vrms_server_create();
     vrms_runtime->vrms_server = vrms_server;
 
-    ostereo = opengl_stereo_create(width, height, physical_width);
-    opengl_stereo_draw_scene_callback(ostereo, draw_scene, vrms_server);
+    opengl_stereo_init(&ostereo, width, height, physical_width);
+    opengl_stereo_draw_scene_callback(&ostereo, draw_scene, vrms_server);
 
-    vrms_server->color_shader_id = ostereo->color_shader_id;
-    vrms_server->texture_shader_id = ostereo->texture_shader_id;
-    vrms_server->cubemap_shader_id = ostereo->cubemap_shader_id;
+    vrms_server->color_shader_id = ostereo.color_shader_id;
+    vrms_server->texture_shader_id = ostereo.texture_shader_id;
+    vrms_server->cubemap_shader_id = ostereo.cubemap_shader_id;
     vrms_server->system_matrix_update = vrms_runtime_system_matrix_update;
 
     vrms_runtime_load_modules(vrms_runtime);
@@ -330,13 +330,13 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
 }
 
 void vrms_runtime_display(vrms_runtime_t* vrms_runtime) {
-    opengl_stereo_display(ostereo);
+    opengl_stereo_display(&ostereo);
 }
 
 void vrms_runtime_reshape(vrms_runtime_t* vrms_runtime, int w, int h) {
     vrms_runtime->w = w;
     vrms_runtime->h = h;
-    opengl_stereo_reshape(ostereo, w, h);
+    opengl_stereo_reshape(&ostereo, w, h);
 }
 
 void vrms_runtime_process(vrms_runtime_t* vrms_runtime) {

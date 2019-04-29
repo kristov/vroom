@@ -250,9 +250,9 @@ void opengl_stereo_set_frustum(opengl_stereo* ostereo) {
     right = ostereo->aspect * top;
     frustumshift = IODh * ostereo->nearZ / ostereo->screenZ;
 
-    opengl_stereo_camera_frustrum_L(ostereo->left_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
-    opengl_stereo_camera_frustrum_R(ostereo->right_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
-    opengl_stereo_camera_frustrum_I(ostereo->skybox_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
+    opengl_stereo_camera_frustrum_L(&ostereo->left_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
+    opengl_stereo_camera_frustrum_R(&ostereo->right_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
+    opengl_stereo_camera_frustrum_I(&ostereo->skybox_camera, IODh, top, right, frustumshift, ostereo->nearZ, ostereo->farZ);
 }
 
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h) {
@@ -278,9 +278,9 @@ void opengl_stereo_render_left_scene(opengl_stereo* ostereo) {
     mat4_identity(ostereo->view_matrix);
     mat4_identity(ostereo->model_matrix);
 
-    mat4_copy(ostereo->projection_matrix, ostereo->left_camera->projection_matrix);
+    mat4_copy(ostereo->projection_matrix, ostereo->left_camera.projection_matrix);
     mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    mat4_translatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_translatef(ostereo->view_matrix, ostereo->left_camera.model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 
@@ -322,9 +322,9 @@ void opengl_stereo_render_right_scene(opengl_stereo* ostereo) {
     mat4_identity(ostereo->view_matrix);
     mat4_identity(ostereo->model_matrix);
 
-    mat4_copy(ostereo->projection_matrix, ostereo->right_camera->projection_matrix);
+    mat4_copy(ostereo->projection_matrix, ostereo->right_camera.projection_matrix);
     mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    mat4_translatef(ostereo->view_matrix, ostereo->right_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_translatef(ostereo->view_matrix, ostereo->right_camera.model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 
@@ -365,7 +365,7 @@ void opengl_stereo_render_mono_scene(opengl_stereo* ostereo) {
     mat4_identity(ostereo->model_matrix);
 
     mat4_multiply(ostereo->view_matrix, ostereo->hmd_matrix);
-    mat4_translatef(ostereo->view_matrix, ostereo->left_camera->model_translation, 0.0, ostereo->depthZ);
+    mat4_translatef(ostereo->view_matrix, ostereo->left_camera.model_translation, 0.0, ostereo->depthZ);
 
     ostereo->draw_scene_callback(ostereo, ostereo->draw_scene_callback_data);
 }
@@ -381,17 +381,7 @@ void opengl_stereo_render_scene(opengl_stereo* ostereo) {
 }
 
 /*
-    display():
-        opengl_stereo_render_scene_to_buffers():
-            glUseProgram(buffer) <-- Rendering a 3d scene
-            opengl_stereo_render_scene_to_left_buffer()
-            opengl_stereo_render_scene_to_right_buffer()
-        opengl_stereo_render_buffers_to_window():
-            glUseProgram(screen) <-- Rendering a texture
-            opengl_stereo_render_left_buffer_to_window()
-            opengl_stereo_render_right_buffer_to_window()
-
-    alt_display(): (one buffer)
+    display(): (one buffer)
         opengl_stereo_render_left_scene():
             glUseProgram(buffer) <-- Rendering a 3d scene
             opengl_stereo_render_left_scene_to_buffer()
@@ -430,13 +420,15 @@ void initGL(opengl_stereo* ostereo) {
     //glLoadIdentity();
 }
 
-void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
-    ostereo->IOD = 0.6;
-    ostereo->depthZ = 0.0;
-    ostereo->fovy = 45;
-    ostereo->nearZ = 0.1;
-    ostereo->farZ = 300.0;
-    ostereo->screenZ = 100.0;
+void opengl_stereo_camera_init(opengl_stereo_camera* camera) {
+    memset(camera, 0, sizeof(opengl_stereo_camera));
+    camera->model_translation = 0.0f;
+}
+
+opengl_stereo_buffer_store* opengl_stereo_buffer_store_new() {
+    opengl_stereo_buffer_store* buffer = SAFEMALLOC(sizeof(opengl_stereo_buffer_store));
+    memset(buffer, 0, sizeof(opengl_stereo_buffer_store));
+    return buffer;
 }
 
 void opengl_stereo_init_system(opengl_stereo* ostereo) {
@@ -459,43 +451,28 @@ void opengl_stereo_init_system(opengl_stereo* ostereo) {
     opengl_stereo_store_screen_plane(ostereo);
 }
 
-void opengl_stereo_init(opengl_stereo* ostereo) {
-    opengl_stereo_load_defaults(ostereo);
-    opengl_stereo_init_system(ostereo);
+void opengl_stereo_load_defaults(opengl_stereo* ostereo) {
+    ostereo->IOD = 0.6;
+    ostereo->depthZ = 0.0;
+    ostereo->fovy = 45;
+    ostereo->nearZ = 0.1;
+    ostereo->farZ = 300.0;
+    ostereo->screenZ = 100.0;
 }
 
-opengl_stereo_camera* opengl_stereo_camera_new() {
-    opengl_stereo_camera* camera = SAFEMALLOC(sizeof(opengl_stereo_camera));
-    memset(camera, 0, sizeof(opengl_stereo_camera));
-    camera->model_translation = 0.0f;
-    return camera;
-}
-
-opengl_stereo_buffer_store* opengl_stereo_buffer_store_new() {
-    opengl_stereo_buffer_store* buffer = SAFEMALLOC(sizeof(opengl_stereo_buffer_store));
-    memset(buffer, 0, sizeof(opengl_stereo_buffer_store));
-    return buffer;
-}
-
-opengl_stereo* opengl_stereo_new() {
-    opengl_stereo* ostereo = SAFEMALLOC(sizeof(opengl_stereo));
+void opengl_stereo_init(opengl_stereo* ostereo, int width, int height, double physical_width) {
     memset(ostereo, 0, sizeof(opengl_stereo));
-    return ostereo;
-}
-
-opengl_stereo* opengl_stereo_create(int width, int height, double physical_width) {
-    opengl_stereo* ostereo = opengl_stereo_new();
     ostereo->width = width;
     ostereo->height = height;
     ostereo->physical_width = physical_width;
-    ostereo->left_camera = opengl_stereo_camera_new();
-    ostereo->right_camera = opengl_stereo_camera_new();
-    ostereo->skybox_camera = opengl_stereo_camera_new();
+    opengl_stereo_camera_init(&ostereo->left_camera);
+    opengl_stereo_camera_init(&ostereo->right_camera);
+    opengl_stereo_camera_init(&ostereo->skybox_camera);
     ostereo->screen_buffers = opengl_stereo_buffer_store_new();
     mat4_identity(ostereo->screen_matrix);
     mat4_identity(ostereo->model_matrix);
     mat4_identity(ostereo->view_matrix);
     mat4_identity(ostereo->hmd_matrix);
-    opengl_stereo_init(ostereo);
-    return ostereo;
+    opengl_stereo_load_defaults(ostereo);
+    opengl_stereo_init_system(ostereo);
 }
