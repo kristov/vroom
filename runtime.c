@@ -316,7 +316,7 @@ vrms_runtime_t* vrms_runtime_init(int width, int height, double physical_width) 
     vrms_server_t* vrms_server = vrms_server_create();
     vrms_runtime->vrms_server = vrms_server;
 
-    opengl_stereo_init(&ostereo, width, height, physical_width);
+    opengl_stereo_init(&ostereo, width, height, physical_width, OSTEREO_MODE_STEREO);
     opengl_stereo_draw_scene_callback(&ostereo, draw_scene, vrms_server);
 
     vrms_server->color_shader_id = ostereo.color_shader_id;

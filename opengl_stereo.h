@@ -12,7 +12,13 @@ typedef struct opengl_stereo opengl_stereo;
 
 typedef void (*ostereo_draw_scene_callback_t)(opengl_stereo* ostereo, void* data);
 
+typedef enum opengl_stereo_mode {
+    OSTEREO_MODE_STEREO = 0x00,
+    OSTEREO_MODE_MONO = 0x01
+} opengl_stereo_mode_t;
+
 typedef struct opengl_stereo {
+    opengl_stereo_mode_t mode;
     double width;
     double height;
     double depthZ;
@@ -37,6 +43,7 @@ typedef struct opengl_stereo {
     float hmd_matrix[16];
     float projection_matrix[16];
     ostereo_draw_scene_callback_t draw_scene_callback;
+    void (*scene_renderer)(opengl_stereo* ostereo);
     void* draw_scene_callback_data;
     GLuint barrel_power_id;
     opengl_stereo_camera left_camera;
@@ -49,7 +56,7 @@ typedef struct opengl_stereo {
 void opengl_stereo_draw_scene_callback(opengl_stereo* ostereo, ostereo_draw_scene_callback_t callback, void* callback_data);
 void opengl_stereo_reshape(opengl_stereo* ostereo, int w, int h);
 void opengl_stereo_display(opengl_stereo* ostereo);
-void opengl_stereo_init(opengl_stereo* ostereo, int width, int height, double physical_width);
+void opengl_stereo_init(opengl_stereo* ostereo, int width, int height, double physical_width, opengl_stereo_mode_t mode);
 
 double opengl_stereo_get_config_value(opengl_stereo* ostereo, char* name);
 void opengl_stereo_set_config_value(opengl_stereo* ostereo, char* name, double value);
