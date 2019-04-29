@@ -21,9 +21,6 @@ const long INNER_LOOP_INTERVAL_MS = 50 * NANO_SECOND_MULTIPLIER;
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-// Hack to render to Oculus rift (0 width, 0 height reported by DRM connector, 290 reported by my test screen)
-#define MAX_WIDTH_MM_NON_HMS 300
-
 typedef struct eglkms_context {
     int fd;
     struct gbm_device* gbm;
@@ -162,18 +159,18 @@ void kms_drm(eglkms_context_t* context) {
             continue;
         }
 
-        fprintf(stderr, "connector->mmWidth: %d\n", connector->mmWidth);
-        if (connector->mmWidth > MAX_WIDTH_MM_NON_HMS) {
-            drmModeFreeConnector(connector);
-            continue;
-        }
-
         fprintf(stderr, "connector: %d\n", i);
         fprintf(stderr, "     connector_type: %d\n", connector->connector_type);
         fprintf(stderr, "         connection: %d\n", connector->connection);
         fprintf(stderr, "        count_modes: %d\n", connector->count_modes);
         fprintf(stderr, "            mmWidth: %d\n", connector->mmWidth);
         fprintf(stderr, "           mmHeight: %d\n", connector->mmHeight);
+
+        if (connector->connector_type == DRM_MODE_CONNECTOR_LVDS) {
+            drmModeFreeConnector(connector);
+            continue;
+        }
+
         if (!context->kms_connector) {
             context->kms_connector = connector;
             break;
