@@ -83,7 +83,7 @@ void render_loop(eglkms_context_t* context) {
     } while (!quit);
 }
 
-void drm_crtc(eglkms_context_t* context) {
+void drm_save_crtc(eglkms_context_t* context) {
     drmModeCrtcPtr saved_crtc;
     int ret;
 
@@ -130,10 +130,46 @@ void egl_context(eglkms_context_t* context) {
         return;
     }
 
-    drm_crtc(context);
+    drm_save_crtc(context);
 
     eglMakeCurrent(context->egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(context->egl_display, context->egl_context);
+}
+
+void egl_initialize(eglkms_context_t* context) {
+    int ret;
+    const char *version;
+    const char *extensions;
+    EGLint major_v;
+    EGLint minor_v;
+
+    context->egl_display = eglGetDisplay(context->gbm);
+
+    ret = eglInitialize(context->egl_display, &major_v, &minor_v);
+    if (ret == EGL_FALSE) {
+        fprintf(stderr, "eglInitialize failed\n");
+        return;
+    }
+
+    version = eglQueryString(context->egl_display, EGL_VERSION);
+    extensions = eglQueryString(context->egl_display, EGL_EXTENSIONS);
+
+    fprintf(stderr, "extensions: %s\n", extensions);
+    fprintf(stderr, "version: %s\n", version);
+
+    egl_context(context);
+
+    eglTerminate(context->egl_display);
+}
+
+void gbm_device(eglkms_context_t* context) {
+    context->gbm = gbm_create_device(context->fd);
+    if (!context->gbm) {
+        fprintf(stderr, "couldn't create gbm device\n");
+        return;
+    }
+    egl_initialize(context);
+    gbm_device_destroy(context->gbm);
 }
 
 void kms_drm(eglkms_context_t* context) {
@@ -209,46 +245,10 @@ void kms_drm(eglkms_context_t* context) {
 
     debug_print("Using mode %dx%d\n", context->width, context->height);
 
-    egl_context(context);
+    gbm_device(context);
 
     drmModeFreeConnector(context->kms_connector);
     drmModeFreeEncoder(encoder);
-}
-
-void egl_root(eglkms_context_t* context) {
-    int ret;
-    const char *version;
-    const char *extensions;
-    EGLint major_v;
-    EGLint minor_v;
-
-    context->egl_display = eglGetDisplay(context->gbm);
-
-    ret = eglInitialize(context->egl_display, &major_v, &minor_v);
-    if (ret == EGL_FALSE) {
-        fprintf(stderr, "eglInitialize failed\n");
-        return;
-    }
-
-    version = eglQueryString(context->egl_display, EGL_VERSION);
-    extensions = eglQueryString(context->egl_display, EGL_EXTENSIONS);
-
-    fprintf(stderr, "extensions: %s\n", extensions);
-    fprintf(stderr, "version: %s\n", version);
-
-    kms_drm(context);
-
-    eglTerminate(context->egl_display);
-}
-
-void gbm_device(eglkms_context_t* context) {
-    context->gbm = gbm_create_device(context->fd);
-    if (!context->gbm) {
-        fprintf(stderr, "couldn't create gbm device\n");
-        return;
-    }
-    egl_root(context);
-    gbm_device_destroy(context->gbm);
 }
 
 void device_filehandle(eglkms_context_t* context) {
@@ -259,7 +259,7 @@ void device_filehandle(eglkms_context_t* context) {
         return;
     }
 
-    gbm_device(context);
+    kms_drm(context);
 
     close(context->fd);
 }
