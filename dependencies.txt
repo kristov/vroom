@@ -1,6 +1,11 @@
-protobuf-c-compiler
-libprotobuf-c-dev
-freeglut3-dev
-libconfig8-dev
-libev-dev
-libgles2-mesa-dev
+Common:
+  protobuf-c-compiler
+  libprotobuf-c-dev
+  libev-dev
+
+X11:
+  freeglut3-dev
+
+EGLKMS:
+  libgles2-mesa-dev
+  libgbm-dev
