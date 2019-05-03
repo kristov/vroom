@@ -122,7 +122,7 @@ void egl_context(eglkms_context_t* context) {
         return;
     }
 
-    context->gbm_surface = gbm_surface_create (context->gbm, context->width, context->height, GBM_BO_FORMAT_XRGB8888, GBM_BO_USE_SCANOUT|GBM_BO_USE_RENDERING);
+    context->gbm_surface = gbm_surface_create(context->gbm, context->width, context->height, GBM_BO_FORMAT_XRGB8888, GBM_BO_USE_SCANOUT|GBM_BO_USE_RENDERING);
     context->egl_surface = eglCreateWindowSurface(context->egl_display, config, context->gbm_surface, NULL);
     
     if (!eglMakeCurrent(context->egl_display, context->egl_surface, context->egl_surface, context->egl_context)) {

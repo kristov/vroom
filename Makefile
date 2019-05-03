@@ -54,7 +54,7 @@ x11-server: deps $(MAINSRC) vroom-server
 eglbcm-server: deps $(MAINSRC) vroom-server
 eglkms-server: deps $(MAINSRC) vroom-server
 
-vroom-server: $(MAINSRC) $(OBJECTS)
+vroom-server: $(MAINSRC) $(EXTRAOBJECTS) $(OBJECTS)
 	$(CC) $(CFLAGS) $(DEFS) $(LINKD) $(INCD) $(LINKS) $(EXTGL) -o $@ $(OBJECTS) $(EXTRAOBJECTS) $(MAINSRC)
 
 %.o: %.c %.h
