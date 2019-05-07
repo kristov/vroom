@@ -1,0 +1,14 @@
+# Problem
+
+Multiple DRI devices with multiple screens. Multiple polling of udev for hotplug events.
+
+# Solution
+
+* Runtime in the main thread.
+* One main thread polling the card udev device looking for hotplug events of new cards.
+* Each new card spawns a new thread. That thread polls the device for screen configure events.
+* Should each device thread spawn a new thread for each screen? Is that possible? (egl seems to be per card)
+* Each card (or screen) has it's own OpenGL context.
+* Each thread with an OpenGL context has an inbound queue for data loading.
+* Scenes are tied to a particular OpenGL thread context.
+* Scenes can be shifted to different contexts.

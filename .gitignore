@@ -9,3 +9,4 @@ gl-matrix/*.o
 protocol/c/vroom.proto
 doc/dox
 gl-matrix/gl-matrix.h
+*.odp
