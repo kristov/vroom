@@ -12,3 +12,70 @@ Multiple DRI devices with multiple screens. Multiple polling of udev for hotplug
 * Each thread with an OpenGL context has an inbound queue for data loading.
 * Scenes are tied to a particular OpenGL thread context.
 * Scenes can be shifted to different contexts.
+
+// A view is a location where a camera is bound to some rotation like an HMD
+// sensor.
+//
+typedef struct view {
+} view_t;
+
+typedef enum camera_mode {
+    CAMERA_MODE_CENTER,
+    CAMERA_MODE_STEREO_LEFT,
+    CAMERA_MODE_STEREO_RIGHT
+} camera_mode_t;
+
+// A camera_t represents a particular view or camera. A given scene is rendered
+// nr_camera times. Unless a single camera is rendered to two separate screens
+// on separate cards. Then the scene must be rendered twice on each card (which
+// can be done in paralell).
+//
+typedef struct camera {
+    camera_mode_t mode;
+    double width;
+    double height;
+    double screen_x_offset;
+    double screen_y_offset;
+    shader_id; // the shader used to render the camera buffer to the screen.
+} camera_t;
+
+// A structure containing information needed to manage a screen on a given
+// platform. In this case EGL+KMS+DRI. Could also be a glut window.
+//
+typdef struct platform_screen {
+    drmModeCrtc* crtc;
+    struct gbm_surface* gbm_surface;
+    EGLSurface egl_surface;
+    EGLContext egl_context; // remember to share contexts on the same card
+} platform_screen_t;
+
+// A screen_t represents a physical screen. Screens have lists of cameras and
+// each camera can be rendered on a different part of the screen.
+//
+typedef struct screen {
+    uint16_t pixel_width;
+    uint16_t pixel_height;
+    uint8_t nr_cameras;
+    camera_t cameras[16];
+    platform_screen_t platform;
+} screen_t;
+
+typedef struct platform_card {
+    int fd;
+    struct gbm_device* gbm;
+} platform_card_t;
+
+// Multiple threads per card. Each thread has a queue for loading data to the
+// card. If there are multiple screens on a single card they have shared EGL
+// contexts. Rendering multiple screens on one card is done in serial.
+// Rendering multiple screens on separate cards is done in paralell.
+// https://www.khronos.org/registry/EGL/sdk/docs/man/html/eglCreateContext.xhtml
+//
+typedef struct card {
+    uint8_t nr_screens;
+    dri_screen_t screens[16];
+    queue_item_t queue[256];
+    uint8_t queue_index;
+    pthread_mutex_t queue_lock;
+    platform_card_t platform;
+} card_t;
