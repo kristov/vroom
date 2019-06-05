@@ -11,3 +11,4 @@ doc/dox
 gl-matrix/gl-matrix.h
 *.odp
 client/assets/
+render/glut/render
