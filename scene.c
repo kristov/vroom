@@ -303,27 +303,27 @@ uint32_t vrms_scene_create_object_data(vrms_scene_t* scene, uint32_t memory_id, 
     }
 
     if ((memory_offset + memory_length) > memory->size) {
-        debug_print("create_object_data: read beyond memory size!\n");
+        debug_print("C|DEBUG|scene.c|create_object_data: read beyond memory size!\n");
     }
 
     vrms_object_t* object = vrms_object_data_create(memory_id, memory_offset, memory_length, type);
     vrms_scene_add_object(scene, object);
 
-    debug_print("created data object[%d]:\n", object->id);
-    debug_print("    memory_id[%d]\n", memory_id);
-    debug_print("    memory_offset[%d]\n", memory_offset);
-    debug_print("    memory_length[%d]\n", memory_length);
-    debug_print("    realized[%d]\n", object->realized);
-    debug_print("    type[%s]\n", data_type_info[type].name);
+    debug_print("C|DEBUG|scene.c|created data object[%d]:\n", object->id);
+    debug_print("C|DEBUG|scene.c|    memory_id[%d]\n", memory_id);
+    debug_print("C|DEBUG|scene.c|    memory_offset[%d]\n", memory_offset);
+    debug_print("C|DEBUG|scene.c|    memory_length[%d]\n", memory_length);
+    debug_print("C|DEBUG|scene.c|    realized[%d]\n", object->realized);
+    debug_print("C|DEBUG|scene.c|    type[%s]\n", data_type_info[type].name);
 
     if (!object->realized) {
         uint8_t* buffer_ref = (uint8_t*)memory->address;
         void* buffer = &buffer_ref[memory_offset];
         uint32_t idx = vrms_server_queue_add_data_load(scene->server, memory_length, scene->id, object->id, type, buffer);
-        debug_print("    queue_idx[%d]\n", idx);
+        debug_print("C|DEBUG|scene.c|    queue_idx[%d]\n", idx);
     }
 
-    debug_print("\n");
+    debug_print("C|DEBUG|scene.c|\n");
 
     return object->id;
 }
@@ -332,34 +332,34 @@ uint32_t vrms_scene_create_object_texture(vrms_scene_t* scene, uint32_t data_id,
 
     vrms_object_data_t* data = vrms_scene_get_data_object_by_id(scene, data_id);
     if (!data) {
-        debug_print("unable to find data object\n");
+        debug_print("C|DEBUG|scene.c|unable to find data object\n");
         return 0;
     }
 
     vrms_object_memory_t* memory = vrms_scene_get_memory_object_by_id(scene, data->memory_id);
     if (!memory) {
-        debug_print("unable to find memory object\n");
+        debug_print("C|DEBUG|scene.c|unable to find memory object\n");
         return 0;
     }
 
     vrms_object_t* object = vrms_object_texture_create(data_id, width, height, format, type);
     vrms_scene_add_object(scene, object);
 
-    debug_print("created texture object[%d]:\n", object->id);
-    debug_print("    data_id[%d]\n", data_id);
-    debug_print("    width[%d]\n", width);
-    debug_print("    height[%d]\n", height);
-    debug_print("    format[%d]\n", format);
-    debug_print("    realized[%d]\n", object->realized);
-    debug_print("    type[%d]\n", type);
+    debug_print("C|DEBUG|scene.c|created texture object[%d]:\n", object->id);
+    debug_print("C|DEBUG|scene.c|    data_id[%d]\n", data_id);
+    debug_print("C|DEBUG|scene.c|    width[%d]\n", width);
+    debug_print("C|DEBUG|scene.c|    height[%d]\n", height);
+    debug_print("C|DEBUG|scene.c|    format[%d]\n", format);
+    debug_print("C|DEBUG|scene.c|    realized[%d]\n", object->realized);
+    debug_print("C|DEBUG|scene.c|    type[%d]\n", type);
 
     if (!object->realized) {
         uint8_t* buffer_ref = (uint8_t*)memory->address;
         void* buffer = &buffer_ref[data->memory_offset];
         uint32_t idx = vrms_server_queue_add_texture_load(scene->server, data->memory_length, scene->id, object->id, width, height, format, type, buffer);
-        debug_print("    queue_idx[%d]\n", idx);
+        debug_print("C|DEBUG|scene.c|    queue_idx[%d]\n", idx);
     }
-    debug_print("\n");
+    debug_print("C|DEBUG|scene.c|\n");
 
     return object->id;
 }
