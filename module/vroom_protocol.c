@@ -115,43 +115,43 @@ uint32_t receive_create_data_object(vrms_module_t* module, uint8_t* in_buf, uint
     vrms_data_type_t vrms_type;
     switch (msg->type) {
         case CREATE_DATA_OBJECT__TYPE__UINT8:
-            debug_print("received data type: VRMS_UINT8\n");
+            module->interface.debug(module, "received data type: VRMS_UINT8");
             vrms_type = VRMS_UINT8;
             break;
         case CREATE_DATA_OBJECT__TYPE__UINT16:
-            debug_print("received data type: VRMS_UINT16\n");
+            module->interface.debug(module, "received data type: VRMS_UINT16");
             vrms_type = VRMS_UINT16;
             break;
         case CREATE_DATA_OBJECT__TYPE__UINT32:
-            debug_print("received data type: VRMS_UINT32\n");
+            module->interface.debug(module, "received data type: VRMS_UINT32");
             vrms_type = VRMS_UINT32;
             break;
         case CREATE_DATA_OBJECT__TYPE__FLOAT:
-            debug_print("received data type: VRMS_FLOAT\n");
+            module->interface.debug(module, "received data type: VRMS_FLOAT");
             vrms_type = VRMS_FLOAT;
             break;
         case CREATE_DATA_OBJECT__TYPE__VEC2:
-            debug_print("received data type: VRMS_VEC2\n");
+            module->interface.debug(module, "received data type: VRMS_VEC2");
             vrms_type = VRMS_VEC2;
             break;
         case CREATE_DATA_OBJECT__TYPE__VEC3:
-            debug_print("received data type: VRMS_VEC3\n");
+            module->interface.debug(module, "received data type: VRMS_VEC3");
             vrms_type = VRMS_VEC3;
             break;
         case CREATE_DATA_OBJECT__TYPE__VEC4:
-            debug_print("received data type: VRMS_VEC4\n");
+            module->interface.debug(module, "received data type: VRMS_VEC4");
             vrms_type = VRMS_VEC4;
             break;
         case CREATE_DATA_OBJECT__TYPE__MAT2:
-            debug_print("received data type: VRMS_MAT2\n");
+            module->interface.debug(module, "received data type: VRMS_MAT2");
             vrms_type = VRMS_MAT2;
             break;
         case CREATE_DATA_OBJECT__TYPE__MAT3:
-            debug_print("received data type: VRMS_MAT3\n");
+            module->interface.debug(module, "received data type: VRMS_MAT3");
             vrms_type = VRMS_MAT3;
             break;
         case CREATE_DATA_OBJECT__TYPE__MAT4:
-            debug_print("received data type: VRMS_MAT4\n");
+            module->interface.debug(module, "received data type: VRMS_MAT4");
             vrms_type = VRMS_MAT4;
             break;
         case _CREATE_DATA_OBJECT__TYPE_IS_INT_SIZE:
