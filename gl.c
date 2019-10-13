@@ -11,34 +11,39 @@ int VprintGlError(char *file, int line) {
     int retCode = 0;
     glErr = glGetError();
     switch (glErr) {
+        case 0:
+            break;
         case GL_INVALID_ENUM:
             printf("GL_INVALID_ENUM in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_INVALID_VALUE:
             printf("GL_INVALID_VALUE in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_INVALID_OPERATION:
             printf("GL_INVALID_OPERATION in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_STACK_OVERFLOW:
             printf("GL_STACK_OVERFLOW in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_STACK_UNDERFLOW:
             printf("GL_STACK_UNDERFLOW in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_OUT_OF_MEMORY:
             printf("GL_OUT_OF_MEMORY in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
         case GL_INVALID_FRAMEBUFFER_OPERATION:
             printf("GL_INVALID_FRAMEBUFFER_OPERATION in file %s @ line %d: %d\n", file, line, glErr);
             retCode = 1;
-        break;
+            break;
+        default:
+            printf("unknown GL error in file %s @ line %d: %d\n", file, line, glErr);
+            break;
     }
     return retCode;
 }
@@ -86,47 +91,39 @@ printOpenGLError();
 }
 
 void vrms_gl_draw_mesh_texture(vrms_gl_render_t render, vrms_gl_matrix_t matrix) {
-    GLuint b_vertex;
-    GLuint b_normal;
-    GLuint b_uv;
-    GLuint s_tex;
-    GLuint m_mvp;
-    GLuint m_mv;
-    GLuint shader_id;
-
-    shader_id = (GLuint)render.shader_id;
+    GLuint shader_id = (GLuint)render.shader_id;
     glUseProgram(shader_id);
 printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.vertex_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
+    GLuint b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
 printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.normal_id);
-    b_normal = glGetAttribLocation(shader_id, "b_normal");
+    GLuint b_normal = glGetAttribLocation(shader_id, "b_normal");
     glVertexAttribPointer(b_normal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_normal);
 printOpenGLError();
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.uv_id);
-    b_uv = glGetAttribLocation(shader_id, "b_uv");
+    GLuint b_uv = glGetAttribLocation(shader_id, "b_uv");
     glVertexAttribPointer(b_uv, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_uv);
 printOpenGLError();
 
-    s_tex = glGetUniformLocation(shader_id, "s_tex");
+    GLuint s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_2D, (GLuint)render.texture_id);
 printOpenGLError();
 
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
+    GLuint m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, matrix.mvp);
 printOpenGLError();
 
-    m_mv = glGetUniformLocation(shader_id, "m_mv");
+    GLuint m_mv = glGetUniformLocation(shader_id, "m_mv");
     glUniformMatrix4fv(m_mv, 1, GL_FALSE, matrix.mv);
 printOpenGLError();
 
@@ -137,33 +134,27 @@ printOpenGLError();
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-printOpenGLError();
 }
 
 void vrms_gl_draw_skybox(vrms_gl_render_t render, vrms_gl_matrix_t matrix) {
-    GLuint b_vertex;
-    GLuint s_tex;
-    GLuint m_mvp;
-    GLuint shader_id;
-
-    shader_id = (GLuint)render.shader_id;
+    GLuint shader_id = (GLuint)render.shader_id;
     glUseProgram(shader_id);
 printOpenGLError();
     glDisable(GL_DEPTH_TEST);
 
     glBindBuffer(GL_ARRAY_BUFFER, (GLuint)render.vertex_id);
-    b_vertex = glGetAttribLocation(shader_id, "b_vertex");
+    GLuint b_vertex = glGetAttribLocation(shader_id, "b_vertex");
     glVertexAttribPointer(b_vertex, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(b_vertex);
 printOpenGLError();
 
-    s_tex = glGetUniformLocation(shader_id, "s_tex");
+    GLuint s_tex = glGetUniformLocation(shader_id, "s_tex");
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(s_tex, 1);
     glBindTexture(GL_TEXTURE_CUBE_MAP, (GLuint)render.texture_id);
 printOpenGLError();
 
-    m_mvp = glGetUniformLocation(shader_id, "m_mvp");
+    GLuint m_mvp = glGetUniformLocation(shader_id, "m_mvp");
     glUniformMatrix4fv(m_mvp, 1, GL_FALSE, matrix.mvp);
 printOpenGLError();
 
