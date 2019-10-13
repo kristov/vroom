@@ -95,6 +95,8 @@ int main(void) {
     uint32_t register_id = memory_layout_get_id(layout, 5);
     uint32_t program_id = memory_layout_get_id(layout, 6);
 
+    sleep(2);
+
     client->interface->run_program(client, program_id, register_id);
 
     fprintf(stderr, "sleeping 60 sec\n");
