@@ -192,7 +192,7 @@ void vrms_gl_load_buffer(uint8_t* buffer, uint32_t* destination, uint32_t size, 
         printOpenGLError();
     }
     else {
-        debug_print("vrms_queue_load_gl_buffer() loaded GL id: %d\n", *destination);
+        debug_print("C|DEBUG|gl.c|vrms_queue_load_gl_buffer() loaded GL id: %d\n", *destination);
     }
 }
 
@@ -251,7 +251,7 @@ void vrms_gl_load_texture_buffer(uint8_t* buffer, uint32_t* destination, uint32_
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
             glTexImage2D(GL_TEXTURE_2D, 0, ifmt, width, height, 0, dfmt, bfmt, (void*)buffer);
-            debug_print("vrms_queue_load_gl_texture_buffer(GL_TEXTURE_2D) loaded GL id: %d\n", *destination);
+            debug_print("C|DEBUG|gl.c|vrms_queue_load_gl_texture_buffer(GL_TEXTURE_2D) loaded GL id: %d\n", *destination);
             break;
         case VRMS_TEXTURE_CUBE_MAP:
             off = 0;
@@ -282,7 +282,7 @@ void vrms_gl_load_texture_buffer(uint8_t* buffer, uint32_t* destination, uint32_
             off += part_offset;
             tmp = &buffer[off];
             glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, ifmt, width, height, 0, dfmt, bfmt, tmp);
-            debug_print("vrms_queue_load_gl_texture_buffer(GL_TEXTURE_CUBE_MAP) loaded GL id: %d\n", *destination);
+            debug_print("C|DEBUG|gl.c|vrms_queue_load_gl_texture_buffer(GL_TEXTURE_CUBE_MAP) loaded GL id: %d\n", *destination);
             break;
         default:
             debug_print("unknown texture type: %d\n", type);
