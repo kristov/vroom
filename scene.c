@@ -23,7 +23,7 @@
 #define DEBUG 1
 #define debug_print(fmt, ...) do { if (DEBUG) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-#define DEBUG_RENDER 1
+#define DEBUG_RENDER 0
 #define debug_render_print(fmt, ...) do { if (DEBUG_RENDER) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
 #define ALLOCATION_US_30FPS 33000
@@ -662,7 +662,7 @@ void vrms_scene_render_realize_texture(vrms_scene_t* scene) {
     rendervm_t* vm = scene->vm;
     uint8_t found = 0;
     if (vm->draw_reg[0]) {
-        scene->render.vertex_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[1], &found);
+        scene->render.vertex_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[0], &found);
     }
     if (vm->draw_reg[1]) {
         scene->render.normal_id = vrms_scene_object_get_gl_id(scene, vm->draw_reg[1], &found);
