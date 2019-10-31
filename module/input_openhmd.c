@@ -102,6 +102,7 @@ void* run_module(vrms_module_t* module) {
         ohmd_device_setf(hmd.ohmd_active_hmd, OHMD_POSITION_VECTOR, zero);
         ohmd_device_getf(hmd.ohmd_active_hmd, OHMD_ROTATION_QUAT, rotation_values);
 
+        //mat4_fromQuat(matrix, rotation_values);
         esmQuaternionToMatrix(matrix, rotation_values[0], rotation_values[1], rotation_values[2], rotation_values[3]);
         //esmDump(matrix, "input_openhmd matrix");
 
