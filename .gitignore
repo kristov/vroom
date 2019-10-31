@@ -12,3 +12,4 @@ gl-matrix/gl-matrix.h
 *.odp
 client/assets/
 render/glut/render
+vroom_client/vroom-client.so

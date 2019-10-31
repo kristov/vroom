@@ -6,6 +6,7 @@ MODULE = module
 PROTOCOL = protocol
 GLMATRIX = gl-matrix
 RENDERVM = rendervm
+VROOM_CLIENT = vroom_client
 
 EXTRAOBJECTS =
 EXTRAOBJECTS += $(GLMATRIX)/gl-matrix.o
@@ -66,6 +67,7 @@ deps:
 	cd $(MODULE) && make
 	cd $(GLMATRIX) && make
 	cd $(RENDERVM) && make
+	cd $(VROOM_CLIENT) && make
 
 clean:
 	cd $(COMMON) && make clean
@@ -73,6 +75,7 @@ clean:
 	cd $(GLMATRIX) && make clean
 	cd $(PROTOCOL)/c && make clean
 	cd $(RENDERVM) && make clean
+	cd $(VROOM_CLIENT) && make clean
 	rm -f *.o
 	rm -f vroom-server
 
