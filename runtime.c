@@ -10,7 +10,6 @@
 #include "object.h"
 #include "server.h"
 #include "scene.h"
-#include "esm.h"
 #include "opengl_stereo.h"
 #include "vroom.h"
 #include "runtime.h"
