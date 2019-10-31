@@ -1,23 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "client.h"
+#include <vroom_client.h>
 #include "geometry.h"
 #include "memory_layout.h"
 #include "texture.h"
 
 void realize_layout_item(memory_layout_t* layout, memory_layout_item_t* item, void* user_data) {
-    vrms_client_t* client = (vrms_client_t*)user_data;
+    vroom_client_t* client = (vroom_client_t*)user_data;
     item->id = client->interface->create_object_data(client, layout->id, item->memory_offset, item->memory_size, item->type);
 }
 
 void realize_layout(memory_layout_t* layout, void* user_data) {
-    vrms_client_t* client = (vrms_client_t*)user_data;
+    vroom_client_t* client = (vroom_client_t*)user_data;
     layout->id = client->interface->create_memory(client, layout->fd, layout->total_size);
 }
 
 int main(void) {
-    vrms_client_t* client = vrms_connect();
+    vroom_client_t* client = vroom_connect();
     if (NULL == client) {
         fprintf(stderr, "Unable to connect\n");
         exit(1);
