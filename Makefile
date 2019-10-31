@@ -18,7 +18,6 @@ OBJECTS += gl.o
 OBJECTS += object.o
 OBJECTS += ogl_shader_loader.o
 OBJECTS += opengl_stereo.o
-OBJECTS += render_vm.o
 OBJECTS += runtime.o
 OBJECTS += scene.o
 OBJECTS += server.o
