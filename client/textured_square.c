@@ -83,7 +83,7 @@ int main(void) {
 
     registers[4] = memory_layout_get_id(layout, 7);
     registers[5] = 0;
-    registers[6] = memory_layout_get_id(layout, 4);
+    registers[6] = memory_layout_get_id(layout, 3);
 
     program[0] = 0xc9;
     memory_layout_item_realize(layout, 6);
