@@ -13,6 +13,7 @@ MODULES =
 MODULES += vroom_protocol.so
 MODULES += input_libinput.so
 MODULES += input_openhmd.so
+MODULES += drm_manager.so
 
 all: $(MODULES)
 
@@ -38,6 +39,10 @@ input_libinput.so: input_libinput.c
 input_openhmd.so: input_openhmd.c $(COMMON)/esm_pic.o $(COMMON)/safemalloc_pic.o
 	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o input_openhmd.o input_openhmd.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC input_openhmd.o $(COMMON)/esm_pic.o $(COMMON)/safemalloc_pic.o -lopenhmd
+
+drm_manager.so: drm_manager.c udm.o
+	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o drm_manager.o drm_manager.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC drm_manager.o udm.o -ludev
 
 clean:
 	rm -f $(MODULES)
