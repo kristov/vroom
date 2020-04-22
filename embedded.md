@@ -27,7 +27,9 @@ I do not want any client to be able to load a program on the server that uses se
 
 If the scripting environment does not have this feature, and infinite loop in a client program could completely lock up rendering and user input. It also would not allow for frame rendering code to be stopped if it would drop the frame rate below an acceptable amount.
 
-## Lua
+## Evaluating options
+
+### Lua
 
 I do not like the idea of mapping tightly packed float or integer data (geometries, indicies, normals and textures) to Lua's `table` type ([Tables are the only "container" type in Lua.](http://lua-users.org/wiki/TablesTutorial)) from C, as it looks like there would be an expensive conversion operation when shifting data back and forward from Lua-land. Perhaps there is a way to expose some opaque reference to the data and restrict usage via an interface in Lua somehow. However I like the idea of being able to just write bytes into an array without going through some clunky interface.
 
@@ -35,15 +37,15 @@ It looks possible to sandbox Lua by not allowing anything and then whitelisting 
 
 [Arcan](https://arcan-fe.com) uses Lua, and Arcan rocks.
 
-## Guile
+### Guile
 
 I like that Guile has support for numeric vector types that seem to fit nicely into the type of data being manipulated (u8, s8, u16, s16, u32, s32, u64, s64, f32, f64). I could not find any information on restricting modules in Guile except [this unanswered question](https://stackoverflow.com/questions/54640307/sandboxing-guile-by-deleting-unwanted-libraries). For example to make it impossible to use threads from Guile - this worries me.
 
-## Duktape
+### Duktape
 
-Seems possible to sandbox it [fairly well](https://github.com/svaarala/duktape/blob/master/doc/sandboxing.rst). While there are no fancy vector types a plain Javascript array maps ok-ish to arrays of ints and floats.
+Seems possible to sandbox it [fairly well](https://github.com/svaarala/duktape/blob/master/doc/sandboxing.rst). While there are no fancy vector types a plain Javascript array maps ok-ish to arrays of ints and floats. [Buffer Objects](https://duktape.org/guide.html#bufferobjects) seem to map nicely.
 
-## SGScript
+### SGScript
 
 Has some interesting "why?" [answers](http://www.sgscript.org/docs/sgscript.docs/why-sgscript). For example:
 
@@ -52,3 +54,24 @@ Has some interesting "why?" [answers](http://www.sgscript.org/docs/sgscript.docs
 
 Major con: there is zero information on the web about it.
 
+## Conclusion
+
+I am going to choose Duktape. Reasons:
+
+* Natural mapping to C arrays (Buffer Objects)
+* Well known language
+* Good sandboxing features
+* Debugging hooks to allow stepwise execution (may not use)
+
+[Globals](https://github.com/svaarala/duktape/blob/master/tests/api/test-set-global-object.c#L252)
+[Console example](https://github.com/svaarala/duktape/blob/master/extras/console/duk_console.c)
+
+## Rethinking Architecture
+
+* New scenes create a thread for that scene.
+* The thread runs a duktape heap specific to that scene.
+* Each duktape instance overloads `window.requestAnimationFrame()`.
+
+## Starting
+
+* Create a new module that runs a duktape instance.
