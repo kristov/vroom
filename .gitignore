@@ -13,3 +13,4 @@ gl-matrix/gl-matrix.h
 client/assets/
 render/glut/render
 vroom_client/libvroom-client.so
+module/duktape*

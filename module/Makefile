@@ -44,6 +44,23 @@ drm_manager.so: drm_manager.c udm.o
 	$(CC) $(CFLAGS) $(INCD) -c -fPIC -o drm_manager.o drm_manager.c
 	$(CC) $(CFLAGS) -shared -o $@ -fPIC drm_manager.o udm.o -ludev
 
-clean:
+manager.so: manager.c duktape/duktape.o
+	$(CC) $(CFLAGS) $(INCD) -Iduktape -c -fPIC -o manager.o manager.c
+	$(CC) $(CFLAGS) -shared -o $@ -fPIC manager.o duktape/duktape.o -lm
+
+duktape/duktape.o: duktape/duktape.c
+	$(CC) $(CFLAGS) -Iduktape -c -fPIC -o duktape/duktape.o duktape/duktape.c
+
+duktape/duktape.c:
+	python duktape-2.5.0/tools/configure.py --output-directory=duktape
+
+duktape-2.5.0:
+	wget https://duktape.org/duktape-2.5.0.tar.xz
+	tar -xJvf duktape-2.5.0.tar.xz
+
+clean: clean-duktape
 	rm -f $(MODULES)
 	rm -f *.o
+
+clean-duktape:
+	rm -rf duktape/ duktape-2.5.0/ duktape-2.5.0.tar.xz
